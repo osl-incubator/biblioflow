@@ -1,0 +1,109 @@
+---
+title: Web app
+description: FastAPI and React application package for biblioflow workflows.
+---
+
+## Purpose
+
+`biblioflow-web` is the browser-based application package. It is designed to
+mimic the interactive workflow of bibliometrix/Biblioshiny while keeping the
+analysis logic in the core `biblioflow` library.
+
+The package is organized as:
+
+```text
+packages/biblioflow-web/
+├── backend/    # Python package published as biblioflow-web
+└── frontend/   # Private React/Vite application, not published to npm
+```
+
+## Installation and running
+
+After installation, run the backend CLI:
+
+```bash
+pip install biblioflow-web
+biblioflow-web
+```
+
+For development from the monorepo:
+
+```bash
+makim web.backend.dev
+makim web.frontend.install
+makim web.frontend.dev
+```
+
+The frontend development server proxies `/api` requests to the backend.
+
+## Backend package
+
+The backend lives in `packages/biblioflow-web/backend` and is an individual
+Python package with its own `pyproject.toml`, `src/`, tests, and build metadata.
+It provides:
+
+- FastAPI application factory.
+- Project, upload, dataset, validation, filter, analysis, matrix, network, and
+  export routes.
+- Runtime file stores for uploaded files, normalized datasets, exports, and
+  project metadata.
+- Static-file serving for the bundled React build in production wheels.
+
+Runtime data is controlled by `BIBLIOFLOW_WEB_DATA_DIR` and should never be
+written inside the installed package directory.
+
+## Frontend package
+
+The frontend lives in `packages/biblioflow-web/frontend`. It is intentionally
+private and is not published to npm. The release build compiles the React app
+and copies the production assets into the backend static package data.
+
+```bash
+makim web.frontend.install
+makim web.frontend.lint
+makim web.frontend.tests
+makim web.frontend.build
+```
+
+## Bundling behavior
+
+The backend build script compiles and copies frontend assets:
+
+```bash
+cd packages/biblioflow-web/backend
+python scripts/build_frontend.py
+poetry build
+```
+
+The root Makim task wraps this:
+
+```bash
+makim web.package.build
+```
+
+Users installing the final `biblioflow-web` wheel or sdist do not need Node.js
+or npm because the compiled frontend is already included in the Python package.
+
+## API overview
+
+All application API routes live under `/api` by default.
+
+| Area | Route pattern | Purpose |
+|---|---|---|
+| Health | `GET /api/health` | Service and version metadata. |
+| Projects | `/api/projects` | Create, list, inspect, and delete projects. |
+| Uploads | `/api/projects/{project_id}/uploads` | Upload and manage bibliographic files. |
+| Datasets | `/api/projects/{project_id}/datasets` | Load uploads and retrieve normalized datasets. |
+| Validation | `/api/projects/{project_id}/datasets/{dataset_id}/validation` | Inspect warnings and validation metadata. |
+| Filters | `/api/projects/{project_id}/datasets/{dataset_id}/filters/*` | Discover filter options and preview filtered results. |
+| Analysis | `/api/projects/{project_id}/datasets/{dataset_id}/analysis/overview` | Run descriptive analysis. |
+| Matrices | `/api/projects/{project_id}/datasets/{dataset_id}/matrices` | Build bibliometric matrices. |
+| Networks | `/api/projects/{project_id}/datasets/{dataset_id}/networks` | Build bibliometric networks. |
+| Exports | `/api/projects/{project_id}/exports` | Create and download export artifacts. |
+
+## Design rule
+
+If a web feature requires new bibliometric behavior, add it to `biblioflow`
+first. The FastAPI layer should orchestrate projects, uploads, persistence,
+request validation, and response shaping; it should not become a second analysis
+library.

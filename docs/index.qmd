@@ -9,46 +9,48 @@ description: Python-native bibliographic metadata and bibliometrics workflows.
 `biblioflow` is a Python-native toolkit for bibliographic metadata,
 bibliometrics, science mapping, and literature-review data workflows. It is
 inspired by the R bibliometrics ecosystem, especially `bibliometrix`, while
-using Pythonic naming and dataframe-centric workflows.
+keeping Pythonic names, plain data objects, and lightweight packaging.
 
-This repository includes core loading, normalization, validation, descriptive
-analysis, matrices, networks, lightweight science-mapping helpers,
-compatibility shims, and exports. Advanced provider connectors and clustering
-methods will be expanded in later changes.
+::: {.hero-actions}
+[Get started](get-started.qmd){.btn .btn-primary}
+[Core workflows](core-workflows.qmd){.btn .btn-outline-primary}
+[Web app](web-app.qmd){.btn .btn-outline-secondary}
+[Notebook app](notebook-app.qmd){.btn .btn-outline-secondary}
+:::
 :::
 
 ::: {.feature-grid}
 ::: {.feature-card}
-### Bibliographic ingestion
+### Core library
 
-Read RIS, BibTeX, CSV/TSV, JSON/JSONL, XML, PubMed NBIB, and optional YAML,
-with provider-aware adapters for PubMed XML, OpenAlex JSON, and Crossref JSON.
+`biblioflow` provides ingestion, normalization, validation, descriptive
+analysis, matrices, networks, mapping helpers, exports, and a CLI.
 :::
 
 ::: {.feature-card}
-### Canonical metadata
+### Web application
 
-Normalize provider-specific records into a canonical dataset while preserving
-raw records for traceability.
+`biblioflow-web` packages a FastAPI backend with a React frontend bundled into
+the Python wheel for browser-based workflows.
 :::
 
 ::: {.feature-card}
-### Bibliometric analysis
+### Notebook application
 
-Compute descriptive indicators, incidence/co-occurrence/collaboration/
-co-citation/coupling/direct-citation matrices, simple networks, lightweight
-thematic maps/evolution, and conservative historiographs.
-:::
-
-::: {.feature-card}
-### Pythonic API
-
-Use a compact API such as `load()`, `analyze()`, `matrix()`, `network()`,
-`map_themes()`, `trace_themes()`, and `export()`.
+`biblioflow-nb` provides an ipywidgets application for Jupyter notebooks and
+Google Colab while delegating computation to the core library.
 :::
 :::
 
-## Minimal example
+## Repository packages
+
+| Package | Distribution name | Main entry point | Purpose |
+|---|---|---|---|
+| Core library | `biblioflow` | `import biblioflow as bf` | Bibliographic data loading, normalization, analysis, matrices, networks, mapping, and export. |
+| Web app | `biblioflow-web` | `biblioflow-web` | FastAPI application that serves API routes and bundled React assets. |
+| Notebook app | `biblioflow-nb` | `import biblioflow_nb as bfn` | Jupyter/Colab widget application that mirrors the web workflow. |
+
+## Minimal Python workflow
 
 ```python
 import biblioflow as bf
@@ -56,9 +58,22 @@ import biblioflow as bf
 records = bf.load("data/scopus_export.bib", provider="scopus")
 summary = bf.analyze(records)
 network = bf.network(records, kind="co_occurrence", unit="keywords_all")
+bf.export(network, "keyword-network.graphml", format="graphml")
 ```
+
+## What biblioflow focuses on
+
+- File-based bibliographic ingestion for common export formats.
+- Canonical metadata records with raw-record traceability.
+- Structured validation warnings instead of silent data loss.
+- Pythonic APIs for bibliometric summaries, matrix construction, network
+  construction, and science-mapping helpers.
+- Browser and notebook applications that reuse the same core library instead of
+  reimplementing analysis logic.
 
 ## Naming policy
 
 The project name is `biblioflow` for the PyPI package, Python import package,
-and command-line interface. Do not use a hyphenated alias.
+and command-line interface. The web and notebook applications are published as
+`biblioflow-web` and `biblioflow-nb`. Do not document or add a hyphenated
+`biblio-flow` alias.

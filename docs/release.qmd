@@ -1,0 +1,96 @@
+---
+title: Release process
+description: Semantic-release configuration for publishing biblioflow packages.
+---
+
+## Published packages
+
+The repository releases three Python distributions from one semantic-release
+version:
+
+| Distribution | Source directory | Build artifact |
+|---|---|---|
+| `biblioflow` | `packages/biblioflow` | Core library wheel and sdist. |
+| `biblioflow-web` | `packages/biblioflow-web/backend` | FastAPI package with bundled React static assets. |
+| `biblioflow-nb` | `packages/biblioflow-nb` | Notebook widget package and example notebooks. |
+
+## Triggering releases
+
+The release workflow is defined in `.github/workflows/release.yml`.
+
+- Pushes and pull requests to `main` run semantic-release in dry-run mode.
+- Actual publishing is performed with `workflow_dispatch`.
+
+## Version replacement
+
+`.releaserc.json` uses `@google/semantic-release-replace-plugin` to update:
+
+- `packages/biblioflow/pyproject.toml`
+- `packages/biblioflow/src/biblioflow/__init__.py`
+- `packages/biblioflow-web/backend/pyproject.toml`
+- `packages/biblioflow-web/backend/src/biblioflow_web_backend/__init__.py`
+- `packages/biblioflow-web/backend/src/biblioflow_web_backend/main.py`
+- `packages/biblioflow-nb/pyproject.toml`
+- `packages/biblioflow-nb/src/biblioflow_nb/__init__.py`
+- `CITATION.cff`
+
+It also updates the internal package constraints so the application packages
+require the released core version:
+
+```toml
+"biblioflow>=${nextRelease.version}"
+```
+
+## Build sequence
+
+The semantic-release `prepareCmd` builds packages in this order:
+
+1. Build `biblioflow`.
+2. Build the React frontend and copy its `dist/` output into the FastAPI package.
+3. Build `biblioflow-web`.
+4. Build `biblioflow-nb`.
+
+The GitHub release assets include wheels and source distributions for all three
+packages.
+
+## Publish sequence
+
+The semantic-release `publishCmd` publishes all three Poetry packages to PyPI:
+
+1. `biblioflow`
+2. `biblioflow-web`
+3. `biblioflow-nb`
+
+::: {.callout-warning}
+For the first release of a new PyPI project, the `PYPI_TOKEN` usually needs
+account-level permission or project-creation permission. Project-scoped tokens
+only work after the project already exists and the token has access.
+:::
+
+## Local pre-release checklist
+
+Before triggering a real release, run:
+
+```bash
+makim tests.linter
+makim tests.unit
+makim web.backend.tests
+makim web.frontend.install
+makim web.frontend.lint
+makim web.frontend.tests
+makim web.frontend.build
+makim nb.tests
+makim package.build
+makim web.package.build
+makim nb.package.build
+makim docs.build
+```
+
+Also verify that semantic-release replacement patterns still match exactly once
+for each managed version field.
+
+## Frontend reproducibility
+
+The React frontend is not published to npm, but it is part of the Python release
+artifact. A lockfile is recommended so release builds are reproducible and use
+`npm ci` instead of resolving fresh dependency versions on every release.
