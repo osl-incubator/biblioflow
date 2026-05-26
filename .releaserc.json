@@ -59,6 +59,22 @@
           },
           {
             "files": [
+              "packages/biblioflow-web/backend/src/biblioflow_web_backend/main.py"
+            ],
+            "from": "version=\".*\",  # semantic-release",
+            "to": "version=\"${nextRelease.version}\",  # semantic-release",
+            "results": [
+              {
+                "file": "packages/biblioflow-web/backend/src/biblioflow_web_backend/main.py",
+                "hasChanged": true,
+                "numMatches": 1,
+                "numReplacements": 1
+              }
+            ],
+            "countMatches": true
+          },
+          {
+            "files": [
               "packages/biblioflow-web/backend/pyproject.toml"
             ],
             "from": "version = \".*\"  # semantic-release",
@@ -193,6 +209,7 @@
           "CHANGELOG.md",
           "packages/biblioflow/src/biblioflow/__init__.py",
           "packages/biblioflow-web/backend/src/biblioflow_web_backend/__init__.py",
+          "packages/biblioflow-web/backend/src/biblioflow_web_backend/main.py",
           "CITATION.cff",
           "packages/biblioflow-nb/pyproject.toml",
           "packages/biblioflow-nb/src/biblioflow_nb/__init__.py"
