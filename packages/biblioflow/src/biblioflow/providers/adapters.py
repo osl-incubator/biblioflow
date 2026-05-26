@@ -1,4 +1,6 @@
-"""Provider-specific raw-record adapters."""
+"""
+title: Provider-specific raw-record adapters.
+"""
 
 from __future__ import annotations
 
@@ -6,12 +8,30 @@ from typing import Any
 
 
 def _first(value: Any) -> Any:
+    """
+    title: Implement the first helper.
+    parameters:
+      value:
+        type: Any
+        description: Value value.
+    returns:
+      type: Any
+    """
     if isinstance(value, list):
         return value[0] if value else None
     return value
 
 
 def _date_parts(value: Any) -> int | None:
+    """
+    title: Implement the date parts helper.
+    parameters:
+      value:
+        type: Any
+        description: Value value.
+    returns:
+      type: int | None
+    """
     if isinstance(value, dict):
         parts = value.get("date-parts")
         if (
@@ -28,7 +48,15 @@ def _date_parts(value: Any) -> int | None:
 
 
 def adapt_openalex(record: dict[str, Any]) -> dict[str, Any]:
-    """Adapt an OpenAlex work object to biblioflow-friendly keys."""
+    """
+    title: Adapt an OpenAlex work object to biblioflow-friendly keys.
+    parameters:
+      record:
+        type: dict[str, Any]
+        description: Record value.
+    returns:
+      type: dict[str, Any]
+    """
     primary_location = record.get("primary_location") or {}
     source = primary_location.get("source") or {}
     authors = []
@@ -79,7 +107,15 @@ def adapt_openalex(record: dict[str, Any]) -> dict[str, Any]:
 
 
 def adapt_crossref(record: dict[str, Any]) -> dict[str, Any]:
-    """Adapt a Crossref work object to biblioflow-friendly keys."""
+    """
+    title: Adapt a Crossref work object to biblioflow-friendly keys.
+    parameters:
+      record:
+        type: dict[str, Any]
+        description: Record value.
+    returns:
+      type: dict[str, Any]
+    """
     authors = []
     for author in record.get("author") or []:
         if not isinstance(author, dict):
@@ -133,7 +169,15 @@ def adapt_crossref(record: dict[str, Any]) -> dict[str, Any]:
 
 
 def adapt_pubmed(record: dict[str, Any]) -> dict[str, Any]:
-    """Adapt PubMed/PubMed XML-like records."""
+    """
+    title: Adapt PubMed/PubMed XML-like records.
+    parameters:
+      record:
+        type: dict[str, Any]
+        description: Record value.
+    returns:
+      type: dict[str, Any]
+    """
     return {
         **record,
         "source_id": record.get("pmid")
@@ -144,7 +188,18 @@ def adapt_pubmed(record: dict[str, Any]) -> dict[str, Any]:
 
 
 def adapt_record(provider: str, record: dict[str, Any]) -> dict[str, Any]:
-    """Apply a provider-specific adapter when one is available."""
+    """
+    title: Apply a provider-specific adapter when one is available.
+    parameters:
+      provider:
+        type: str
+        description: Provider value.
+      record:
+        type: dict[str, Any]
+        description: Record value.
+    returns:
+      type: dict[str, Any]
+    """
     provider_key = provider.casefold().replace("-", "_")
     if provider_key == "openalex":
         return adapt_openalex(record)

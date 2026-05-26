@@ -14,7 +14,10 @@ export function App() {
         <Route index element={<HomePage />} />
         <Route path="projects" element={<ProjectPage />} />
         <Route path="projects/:projectId/upload" element={<UploadPage />} />
-        <Route path="projects/:projectId/dashboard/*" element={<DashboardPage />} />
+        <Route
+          path="projects/:projectId/dashboard/*"
+          element={<DashboardPage />}
+        />
         <Route path="projects/:projectId/exports" element={<ExportsPage />} />
       </Route>
     </Routes>

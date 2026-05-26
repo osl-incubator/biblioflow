@@ -8,16 +8,18 @@
       "cited_by_count": 12,
       "primary_location": {
         "landing_page_url": "https://example.org/oa1",
-        "source": {"display_name": "OpenAlex Journal"}
+        "source": { "display_name": "OpenAlex Journal" }
       },
       "authorships": [
         {
-          "author": {"display_name": "Rivera, Ana"},
-          "institutions": [{"display_name": "Open University", "country_code": "US"}]
+          "author": { "display_name": "Rivera, Ana" },
+          "institutions": [
+            { "display_name": "Open University", "country_code": "US" }
+          ]
         }
       ],
-      "concepts": [{"display_name": "Bibliometrics"}],
-      "keywords": [{"display_name": "open science"}],
+      "concepts": [{ "display_name": "Bibliometrics" }],
+      "keywords": [{ "display_name": "open science" }],
       "type": "article"
     }
   ]

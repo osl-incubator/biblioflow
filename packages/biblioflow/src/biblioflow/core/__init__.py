@@ -1,4 +1,6 @@
-"""Core biblioflow data structures."""
+"""
+title: Core biblioflow data structures.
+"""
 
 from biblioflow.core.dataset import BibliographicDataset
 from biblioflow.core.frames import MatrixFrame, RecordFrame

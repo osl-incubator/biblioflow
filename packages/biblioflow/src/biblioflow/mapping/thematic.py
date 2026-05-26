@@ -1,4 +1,6 @@
-"""Lightweight thematic mapping and evolution helpers."""
+"""
+title: Lightweight thematic mapping and evolution helpers.
+"""
 
 from __future__ import annotations
 
@@ -14,29 +16,64 @@ from biblioflow.networks import network
 
 @dataclass
 class ThematicMap:
-    """A lightweight thematic map table."""
+    """
+    title: A lightweight thematic map table.
+    attributes:
+      data:
+        type: Any
+        description: Data attribute.
+      metadata:
+        type: dict[str, Any]
+        description: Metadata attribute.
+    """
 
     data: Any
     metadata: dict[str, Any]
 
     def to_dataframe(self) -> Any:
-        """Return the thematic map as a DataFrame-like object."""
+        """
+        title: Return the thematic map as a DataFrame-like object.
+        returns:
+          type: Any
+        """
         return self.data.copy()
 
 
 @dataclass
 class ThematicEvolution:
-    """A term-by-period thematic evolution table."""
+    """
+    title: A term-by-period thematic evolution table.
+    attributes:
+      data:
+        type: Any
+        description: Data attribute.
+      metadata:
+        type: dict[str, Any]
+        description: Metadata attribute.
+    """
 
     data: Any
     metadata: dict[str, Any]
 
     def to_dataframe(self) -> Any:
-        """Return the thematic evolution table."""
+        """
+        title: Return the thematic evolution table.
+        returns:
+          type: Any
+        """
         return self.data.copy()
 
 
 def _terms(value: Any) -> list[str]:
+    """
+    title: Implement the terms helper.
+    parameters:
+      value:
+        type: Any
+        description: Value value.
+    returns:
+      type: list[str]
+    """
     return (
         [str(item).strip() for item in value if str(item).strip()]
         if isinstance(value, list)
@@ -50,7 +87,22 @@ def map_themes(
     field: str = "keywords_all",
     min_occurrences: int = 1,
 ) -> ThematicMap:
-    """Create a lightweight thematic map from keyword co-occurrence metrics."""
+    """
+    title: >-
+      Create a lightweight thematic map from keyword co-occurrence metrics.
+    parameters:
+      records:
+        type: BibliographicDataset | Any
+        description: Records value.
+      field:
+        type: str
+        description: Field value.
+      min_occurrences:
+        type: int
+        description: Min occurrences value.
+    returns:
+      type: ThematicMap
+    """
     dataset = (
         load(records) if not isinstance(records, BibliographicDataset) else records
     )
@@ -84,7 +136,21 @@ def trace_themes(
     field: str = "keywords_all",
     by: str = "publication_year",
 ) -> ThematicEvolution:
-    """Count thematic terms across periods such as publication years."""
+    """
+    title: Count thematic terms across periods such as publication years.
+    parameters:
+      records:
+        type: BibliographicDataset | Any
+        description: Records value.
+      field:
+        type: str
+        description: Field value.
+      by:
+        type: str
+        description: By value.
+    returns:
+      type: ThematicEvolution
+    """
     dataset = (
         load(records) if not isinstance(records, BibliographicDataset) else records
     )
@@ -111,11 +177,25 @@ def conceptual_structure(
     field: str = "keywords_all",
     min_occurrences: int = 1,
 ) -> ThematicMap:
-    """Return a lightweight conceptual-structure table.
-
-    This MVP uses the same deterministic term co-occurrence metrics as
-    `map_themes`. Later implementations can add dimensionality reduction and
-    clustering while keeping this return shape stable.
+    """
+    title: Return a lightweight conceptual-structure table.
+    summary: |-
+      This MVP uses the same deterministic term co-occurrence metrics as
+      `map_themes`. Later implementations can add dimensionality reduction
+      and
+      clustering while keeping this return shape stable.
+    parameters:
+      records:
+        type: BibliographicDataset | Any
+        description: Records value.
+      field:
+        type: str
+        description: Field value.
+      min_occurrences:
+        type: int
+        description: Min occurrences value.
+    returns:
+      type: ThematicMap
     """
     return map_themes(
         records,

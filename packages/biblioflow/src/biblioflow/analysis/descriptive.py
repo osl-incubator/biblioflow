@@ -1,4 +1,6 @@
-"""Descriptive bibliometric analysis."""
+"""
+title: Descriptive bibliometric analysis.
+"""
 
 from __future__ import annotations
 
@@ -13,7 +15,28 @@ from biblioflow.load.dispatcher import load
 
 @dataclass
 class DescriptiveSummary:
-    """Descriptive bibliometric analysis result."""
+    """
+    title: Descriptive bibliometric analysis result.
+    attributes:
+      main_information:
+        type: dict[str, Any]
+        description: Main information attribute.
+      annual_production:
+        type: Any
+        description: Annual production attribute.
+      top_authors:
+        type: Any
+        description: Top authors attribute.
+      top_sources:
+        type: Any
+        description: Top sources attribute.
+      top_keywords:
+        type: Any
+        description: Top keywords attribute.
+      metadata:
+        type: dict[str, Any]
+        description: Metadata attribute.
+    """
 
     main_information: dict[str, Any]
     annual_production: Any
@@ -23,7 +46,11 @@ class DescriptiveSummary:
     metadata: dict[str, Any]
 
     def to_dict(self) -> dict[str, Any]:
-        """Return the summary as dictionaries and record lists."""
+        """
+        title: Return the summary as dictionaries and record lists.
+        returns:
+          type: dict[str, Any]
+        """
         return {
             "main_information": self.main_information,
             "annual_production": self.annual_production.to_dict(orient="records"),
@@ -35,6 +62,24 @@ class DescriptiveSummary:
 
 
 def _counter_frame(counter: Counter[str], *, key: str, value: str, limit: int) -> Any:
+    """
+    title: Implement the counter frame helper.
+    parameters:
+      counter:
+        type: Counter[str]
+        description: Counter value.
+      key:
+        type: str
+        description: Key value.
+      value:
+        type: str
+        description: Value value.
+      limit:
+        type: int
+        description: Limit value.
+    returns:
+      type: Any
+    """
     rows = [{key: name, value: count} for name, count in counter.most_common(limit)]
     return make_record_frame(rows, [key, value])
 
@@ -42,7 +87,18 @@ def _counter_frame(counter: Counter[str], *, key: str, value: str, limit: int) -
 def analyze(
     records: BibliographicDataset | Any, *, top_n: int = 20
 ) -> DescriptiveSummary:
-    """Compute a descriptive bibliometric summary."""
+    """
+    title: Compute a descriptive bibliometric summary.
+    parameters:
+      records:
+        type: BibliographicDataset | Any
+        description: Records value.
+      top_n:
+        type: int
+        description: Top n value.
+    returns:
+      type: DescriptiveSummary
+    """
     dataset = (
         load(records) if not isinstance(records, BibliographicDataset) else records
     )

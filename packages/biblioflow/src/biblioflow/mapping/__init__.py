@@ -1,4 +1,6 @@
-"""Science mapping helpers."""
+"""
+title: Science mapping helpers.
+"""
 
 from biblioflow.mapping.historiograph import Historiograph, historiograph
 from biblioflow.mapping.thematic import (

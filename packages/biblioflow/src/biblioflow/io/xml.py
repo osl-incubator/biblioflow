@@ -1,4 +1,6 @@
-"""XML readers for common bibliographic records."""
+"""
+title: XML readers for common bibliographic records.
+"""
 
 from __future__ import annotations
 
@@ -8,6 +10,15 @@ from xml.etree import ElementTree as ET
 
 
 def _text(element: ET.Element | None) -> str | None:
+    """
+    title: Implement the text helper.
+    parameters:
+      element:
+        type: ET.Element | None
+        description: Element value.
+    returns:
+      type: str | None
+    """
     if element is None:
         return None
     value = "".join(element.itertext()).strip()
@@ -15,6 +26,19 @@ def _text(element: ET.Element | None) -> str | None:
 
 
 def _find_text(element: ET.Element, *paths: str) -> str | None:
+    """
+    title: Implement the find text helper.
+    parameters:
+      element:
+        type: ET.Element
+        description: Element value.
+      paths:
+        type: str
+        description: Additional positional arguments.
+        variadic: positional
+    returns:
+      type: str | None
+    """
     for path in paths:
         value = _text(element.find(path))
         if value:
@@ -23,6 +47,15 @@ def _find_text(element: ET.Element, *paths: str) -> str | None:
 
 
 def _pubmed_article(article: ET.Element) -> dict[str, Any]:
+    """
+    title: Implement the pubmed article helper.
+    parameters:
+      article:
+        type: ET.Element
+        description: Article value.
+    returns:
+      type: dict[str, Any]
+    """
     authors = []
     for author in article.findall(".//Author"):
         collective = _find_text(author, "CollectiveName")
@@ -76,6 +109,15 @@ def _pubmed_article(article: ET.Element) -> dict[str, Any]:
 
 
 def _generic_record(record: ET.Element) -> dict[str, Any]:
+    """
+    title: Implement the generic record helper.
+    parameters:
+      record:
+        type: ET.Element
+        description: Record value.
+    returns:
+      type: dict[str, Any]
+    """
     output: dict[str, Any] = {}
     for child in list(record):
         tag = child.tag.split("}")[-1]
@@ -93,7 +135,15 @@ def _generic_record(record: ET.Element) -> dict[str, Any]:
 
 
 def read_xml_records(path: str | Path) -> list[dict[str, Any]]:
-    """Read records from PubMed-style or simple generic XML."""
+    """
+    title: Read records from PubMed-style or simple generic XML.
+    parameters:
+      path:
+        type: str | Path
+        description: Path value.
+    returns:
+      type: list[dict[str, Any]]
+    """
     root = ET.parse(path).getroot()
     articles = root.findall(".//PubmedArticle")
     if articles:

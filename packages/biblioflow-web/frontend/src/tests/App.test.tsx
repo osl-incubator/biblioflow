@@ -21,6 +21,8 @@ function renderApp() {
 describe("App", () => {
   it("renders the home page", () => {
     renderApp();
-    expect(screen.getByText(/Bibliometric analysis in the browser/i)).toBeDefined();
+    expect(
+      screen.getByText(/Bibliometric analysis in the browser/i),
+    ).toBeDefined();
   });
 });

@@ -1,4 +1,6 @@
-"""Network entry points."""
+"""
+title: Network entry points.
+"""
 
 from biblioflow.networks.build import NetworkResult, network
 

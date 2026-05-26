@@ -1,4 +1,6 @@
-"""Optional YAML readers."""
+"""
+title: Optional YAML readers.
+"""
 
 from __future__ import annotations
 
@@ -9,7 +11,15 @@ from biblioflow.exceptions import OptionalDependencyError
 
 
 def read_yaml_records(path: str | Path) -> list[dict[str, Any]]:
-    """Read records from YAML using PyYAML if installed."""
+    """
+    title: Read records from YAML using PyYAML if installed.
+    parameters:
+      path:
+        type: str | Path
+        description: Path value.
+    returns:
+      type: list[dict[str, Any]]
+    """
     try:
         import yaml
     except ImportError as exc:  # pragma: no cover

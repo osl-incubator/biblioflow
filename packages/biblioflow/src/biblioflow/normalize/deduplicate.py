@@ -1,4 +1,6 @@
-"""Deduplication and metadata enrichment helpers."""
+"""
+title: Deduplication and metadata enrichment helpers.
+"""
 
 from __future__ import annotations
 
@@ -11,6 +13,18 @@ from biblioflow.normalize.records import normalize_doi
 
 
 def _key(row: dict[str, Any], by: str) -> str:
+    """
+    title: Implement the key helper.
+    parameters:
+      row:
+        type: dict[str, Any]
+        description: Row value.
+      by:
+        type: str
+        description: By value.
+    returns:
+      type: str
+    """
     if by == "doi":
         return normalize_doi(row.get("doi")) or ""
     if by == "title":
@@ -28,15 +42,28 @@ def deduplicate(
     by: str = "doi_or_title",
     keep: str = "first",
 ) -> BibliographicDataset:
-    """Remove duplicate records from a dataset.
-
-    Parameters
-    ----------
-    by:
-        Field to use as the duplicate key. `doi_or_title` first tries DOI and
-        falls back to normalized title.
-    keep:
-        Currently only `first` is supported.
+    """
+    title: Remove duplicate records from a dataset.
+    summary: |-
+      Parameters
+      ----------
+      by:
+      Field to use as the duplicate key. `doi_or_title` first tries DOI and
+      falls back to normalized title.
+      keep:
+      Currently only `first` is supported.
+    parameters:
+      records:
+        type: BibliographicDataset | Any
+        description: Records value.
+      by:
+        type: str
+        description: By value.
+      keep:
+        type: str
+        description: Keep value.
+    returns:
+      type: BibliographicDataset
     """
     if keep != "first":
         msg = "Only keep='first' is currently supported."
@@ -86,10 +113,27 @@ def enrich(
     *,
     by: str = "doi",
 ) -> BibliographicDataset:
-    """Merge local metadata into records by DOI, title, source_id, or another field.
-
-    This is an offline enrichment helper. Network-backed Crossref/OpenAlex
-    enrichment can be layered on top later without changing the merge semantics.
+    """
+    title: >-
+      Merge local metadata into records by DOI, title, source_id, or another
+      field.
+    summary: |-
+      This is an offline enrichment helper. Network-backed
+      Crossref/OpenAlex
+      enrichment can be layered on top later without changing the merge
+      semantics.
+    parameters:
+      records:
+        type: BibliographicDataset | Any
+        description: Records value.
+      metadata:
+        type: dict[str, dict[str, Any]] | list[dict[str, Any]]
+        description: Metadata value.
+      by:
+        type: str
+        description: By value.
+    returns:
+      type: BibliographicDataset
     """
     dataset = (
         load(records) if not isinstance(records, BibliographicDataset) else records

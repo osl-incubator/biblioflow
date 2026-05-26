@@ -1,4 +1,6 @@
-"""Dataset container for normalized bibliographic records."""
+"""
+title: Dataset container for normalized bibliographic records.
+"""
 
 from __future__ import annotations
 
@@ -14,7 +16,25 @@ from biblioflow.schema import BIBLIOMETRIX_FIELD_MAP, CANONICAL_FIELDS
 
 @dataclass
 class BibliographicDataset:
-    """Normalized bibliographic records plus load metadata and diagnostics."""
+    """
+    title: Normalized bibliographic records plus load metadata and diagnostics.
+    attributes:
+      data:
+        type: Any
+        description: Data attribute.
+      raw:
+        type: list[dict[str, Any]]
+        description: Raw attribute.
+      metadata:
+        type: dict[str, Any]
+        description: Metadata attribute.
+      warnings:
+        type: list[LoadWarning]
+        description: Warnings attribute.
+      errors:
+        type: list[str]
+        description: Errors attribute.
+    """
 
     data: Any
     raw: list[dict[str, Any]] = field(default_factory=list)
@@ -32,7 +52,27 @@ class BibliographicDataset:
         warnings: list[LoadWarning] | None = None,
         errors: list[str] | None = None,
     ) -> BibliographicDataset:
-        """Build a dataset from normalized record dictionaries."""
+        """
+        title: Build a dataset from normalized record dictionaries.
+        parameters:
+          records:
+            type: list[dict[str, Any]]
+            description: Records value.
+          raw:
+            type: list[dict[str, Any]] | None
+            description: Raw value.
+          metadata:
+            type: dict[str, Any] | None
+            description: Metadata value.
+          warnings:
+            type: list[LoadWarning] | None
+            description: Warnings value.
+          errors:
+            type: list[str] | None
+            description: Errors value.
+        returns:
+          type: BibliographicDataset
+        """
         frame = make_record_frame(records, list(CANONICAL_FIELDS))
         meta = dict(metadata or {})
         meta.setdefault("loaded_at", datetime.now(timezone.utc).isoformat())
@@ -46,24 +86,47 @@ class BibliographicDataset:
         )
 
     def __len__(self) -> int:
-        """Return the number of normalized records."""
+        """
+        title: Return the number of normalized records.
+        returns:
+          type: int
+        """
         return len(self.data)
 
     def __iter__(self):  # type: ignore[no-untyped-def]
-        """Iterate over normalized records as dictionaries."""
+        """
+        title: Iterate over normalized records as dictionaries.
+        """
         yield from self.to_records()
 
     def to_records(self, *, schema: str = "canonical") -> list[dict[str, Any]]:
-        """Return records as a list of dictionaries."""
+        """
+        title: Return records as a list of dictionaries.
+        parameters:
+          schema:
+            type: str
+            description: Schema value.
+        returns:
+          type: list[dict[str, Any]]
+        """
         frame = self.to_dataframe(schema=schema)
         return list(frame.to_dict(orient="records"))
 
     def to_dataframe(self, *, schema: str = "canonical") -> Any:
-        """Return records as a DataFrame-like object.
-
-        If pandas is installed, this is a pandas DataFrame. Otherwise, biblioflow
-        returns a small RecordFrame fallback with `to_dict`, `to_json`, and
-        `to_csv` methods.
+        """
+        title: Return records as a DataFrame-like object.
+        summary: |-
+          If pandas is installed, this is a pandas DataFrame. Otherwise,
+          biblioflow
+          returns a small RecordFrame fallback with `to_dict`, `to_json`,
+          and
+          `to_csv` methods.
+        parameters:
+          schema:
+            type: str
+            description: Schema value.
+        returns:
+          type: Any
         """
         if schema == "canonical":
             return self.data.copy()
@@ -78,13 +141,28 @@ class BibliographicDataset:
         raise ValueError(msg)
 
     def warning_dicts(self) -> list[dict[str, object]]:
-        """Return loading warnings as dictionaries."""
+        """
+        title: Return loading warnings as dictionaries.
+        returns:
+          type: list[dict[str, object]]
+        """
         return [warning.to_dict() for warning in self.warnings]
 
     def to_json(
         self, path: str | Path | None = None, *, schema: str = "canonical"
     ) -> str:
-        """Serialize records to JSON and optionally write them to a file."""
+        """
+        title: Serialize records to JSON and optionally write them to a file.
+        parameters:
+          path:
+            type: str | Path | None
+            description: Path value.
+          schema:
+            type: str
+            description: Schema value.
+        returns:
+          type: str
+        """
         frame = self.to_dataframe(schema=schema)
         text = str(frame.to_json(orient="records", force_ascii=False, indent=2))
         if path is not None:
@@ -92,5 +170,14 @@ class BibliographicDataset:
         return text
 
     def to_csv(self, path: str | Path, *, schema: str = "canonical") -> None:
-        """Write records to CSV."""
+        """
+        title: Write records to CSV.
+        parameters:
+          path:
+            type: str | Path
+            description: Path value.
+          schema:
+            type: str
+            description: Schema value.
+        """
         self.to_dataframe(schema=schema).to_csv(path, index=False)

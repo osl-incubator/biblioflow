@@ -1,4 +1,6 @@
-"""Minimal RIS reader."""
+"""
+title: Minimal RIS reader.
+"""
 
 from __future__ import annotations
 
@@ -35,6 +37,19 @@ _MULTI_FIELDS = {"authors", "keywords_author", "references"}
 
 
 def _append(record: dict[str, Any], key: str, value: str) -> None:
+    """
+    title: Implement the append helper.
+    parameters:
+      record:
+        type: dict[str, Any]
+        description: Record value.
+      key:
+        type: str
+        description: Key value.
+      value:
+        type: str
+        description: Value value.
+    """
     if key in _MULTI_FIELDS:
         record.setdefault(key, []).append(value)
     elif record.get(key):
@@ -44,7 +59,15 @@ def _append(record: dict[str, Any], key: str, value: str) -> None:
 
 
 def read_ris_records(path: str | Path) -> list[dict[str, Any]]:
-    """Read RIS records using a small pure-Python parser."""
+    """
+    title: Read RIS records using a small pure-Python parser.
+    parameters:
+      path:
+        type: str | Path
+        description: Path value.
+    returns:
+      type: list[dict[str, Any]]
+    """
     records: list[dict[str, Any]] = []
     current: dict[str, Any] = defaultdict(list)
     last_key: str | None = None

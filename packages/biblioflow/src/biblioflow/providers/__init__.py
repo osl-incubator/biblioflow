@@ -1,4 +1,6 @@
-"""Provider-specific adapters."""
+"""
+title: Provider-specific adapters.
+"""
 
 from biblioflow.providers.adapters import (
     adapt_crossref,

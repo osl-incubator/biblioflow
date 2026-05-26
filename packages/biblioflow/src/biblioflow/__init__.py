@@ -1,4 +1,6 @@
-"""Python-native bibliographic metadata and bibliometrics workflows."""
+"""
+title: Python-native bibliographic metadata and bibliometrics workflows.
+"""
 
 from biblioflow.analysis import DescriptiveSummary, analyze
 from biblioflow.core import BibliographicDataset, LoadWarning

@@ -1,3 +1,5 @@
-"""Compatibility namespaces."""
+"""
+title: Compatibility namespaces.
+"""
 
 __all__: list[str] = []

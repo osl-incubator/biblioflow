@@ -1,4 +1,6 @@
-"""PubMed NBIB reader."""
+"""
+title: PubMed NBIB reader.
+"""
 
 from __future__ import annotations
 
@@ -27,6 +29,19 @@ _MULTI_FIELDS = {"authors", "keywords_author", "keywords_index", "document_type"
 
 
 def _append(record: dict[str, Any], key: str, value: str) -> None:
+    """
+    title: Implement the append helper.
+    parameters:
+      record:
+        type: dict[str, Any]
+        description: Record value.
+      key:
+        type: str
+        description: Key value.
+      value:
+        type: str
+        description: Value value.
+    """
     if key == "doi" and " [doi]" in value.lower():
         value = value.lower().replace(" [doi]", "").strip()
     elif key == "doi" and "[doi]" not in value.lower() and record.get("doi"):
@@ -40,7 +55,15 @@ def _append(record: dict[str, Any], key: str, value: str) -> None:
 
 
 def read_nbib_records(path: str | Path) -> list[dict[str, Any]]:
-    """Read PubMed NBIB records."""
+    """
+    title: Read PubMed NBIB records.
+    parameters:
+      path:
+        type: str | Path
+        description: Path value.
+    returns:
+      type: list[dict[str, Any]]
+    """
     records: list[dict[str, Any]] = []
     current: dict[str, Any] = defaultdict(list)
     last_key: str | None = None

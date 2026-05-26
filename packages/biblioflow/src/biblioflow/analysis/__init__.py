@@ -1,4 +1,6 @@
-"""Analysis entry points."""
+"""
+title: Analysis entry points.
+"""
 
 from biblioflow.analysis.descriptive import DescriptiveSummary, analyze
 

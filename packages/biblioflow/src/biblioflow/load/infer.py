@@ -1,4 +1,6 @@
-"""Input format and provider inference."""
+"""
+title: Input format and provider inference.
+"""
 
 from __future__ import annotations
 
@@ -21,13 +23,32 @@ _KNOWN_PROVIDERS = (
 
 
 def infer_format(source: str | Path) -> str:
-    """Infer an input format from a path extension."""
+    """
+    title: Infer an input format from a path extension.
+    parameters:
+      source:
+        type: str | Path
+        description: Source value.
+    returns:
+      type: str
+    """
     suffix = Path(source).suffix.lower()
     return FORMAT_EXTENSIONS.get(suffix, "unknown")
 
 
 def infer_provider(source: str | Path, *, format: str = "auto") -> str:
-    """Infer a bibliographic provider from format and file name."""
+    """
+    title: Infer a bibliographic provider from format and file name.
+    parameters:
+      source:
+        type: str | Path
+        description: Source value.
+      format:
+        type: str
+        description: Format value.
+    returns:
+      type: str
+    """
     fmt = infer_format(source) if format == "auto" else format
     if fmt == "nbib":
         return "pubmed"

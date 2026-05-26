@@ -1,4 +1,6 @@
-"""Reusable JSON-serializable result helpers for biblioflow."""
+"""
+title: Reusable JSON-serializable result helpers for biblioflow.
+"""
 
 from __future__ import annotations
 
@@ -11,7 +13,37 @@ from biblioflow.core.dataset import BibliographicDataset
 
 @dataclass(frozen=True)
 class DatasetSummary:
-    """High-level summary of a bibliographic dataset."""
+    """
+    title: High-level summary of a bibliographic dataset.
+    attributes:
+      documents:
+        type: int
+        description: Documents attribute.
+      sources:
+        type: int
+        description: Sources attribute.
+      authors:
+        type: int
+        description: Authors attribute.
+      keywords:
+        type: int
+        description: Keywords attribute.
+      timespan_start:
+        type: int | None
+        description: Timespan start attribute.
+      timespan_end:
+        type: int | None
+        description: Timespan end attribute.
+      documents_with_doi:
+        type: int
+        description: Documents with doi attribute.
+      warnings:
+        type: list[dict[str, object]]
+        description: Warnings attribute.
+      metadata:
+        type: dict[str, Any]
+        description: Metadata attribute.
+    """
 
     documents: int
     sources: int
@@ -24,7 +56,11 @@ class DatasetSummary:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        """Return a JSON-serializable representation."""
+        """
+        title: Return a JSON-serializable representation.
+        returns:
+          type: dict[str, Any]
+        """
         return {
             "documents": self.documents,
             "sources": self.sources,
@@ -40,7 +76,25 @@ class DatasetSummary:
 
 @dataclass(frozen=True)
 class ImportSummary:
-    """Summary of an import/load operation."""
+    """
+    title: Summary of an import/load operation.
+    attributes:
+      records:
+        type: int
+        description: Records attribute.
+      format:
+        type: str | None
+        description: Format attribute.
+      provider:
+        type: str | None
+        description: Provider attribute.
+      warnings:
+        type: list[dict[str, object]]
+        description: Warnings attribute.
+      metadata:
+        type: dict[str, Any]
+        description: Metadata attribute.
+    """
 
     records: int
     format: str | None
@@ -49,7 +103,11 @@ class ImportSummary:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        """Return a JSON-serializable representation."""
+        """
+        title: Return a JSON-serializable representation.
+        returns:
+          type: dict[str, Any]
+        """
         return {
             "records": self.records,
             "format": self.format,
@@ -60,6 +118,15 @@ class ImportSummary:
 
 
 def _list_values(value: Any) -> list[str]:
+    """
+    title: Implement the list values helper.
+    parameters:
+      value:
+        type: Any
+        description: Value value.
+    returns:
+      type: list[str]
+    """
     if isinstance(value, list):
         return [str(item) for item in value if str(item).strip()]
     if value is None:
@@ -69,7 +136,15 @@ def _list_values(value: Any) -> list[str]:
 
 
 def summarize_dataset(dataset: BibliographicDataset) -> DatasetSummary:
-    """Build a reusable high-level dataset summary."""
+    """
+    title: Build a reusable high-level dataset summary.
+    parameters:
+      dataset:
+        type: BibliographicDataset
+        description: Dataset value.
+    returns:
+      type: DatasetSummary
+    """
     rows = dataset.to_records()
     years = [
         int(row["publication_year"]) for row in rows if row.get("publication_year")
@@ -97,7 +172,15 @@ def summarize_dataset(dataset: BibliographicDataset) -> DatasetSummary:
 
 
 def summarize_import(dataset: BibliographicDataset) -> ImportSummary:
-    """Build a reusable summary for a loaded dataset."""
+    """
+    title: Build a reusable summary for a loaded dataset.
+    parameters:
+      dataset:
+        type: BibliographicDataset
+        description: Dataset value.
+    returns:
+      type: ImportSummary
+    """
     return ImportSummary(
         records=len(dataset),
         format=dataset.metadata.get("format"),
