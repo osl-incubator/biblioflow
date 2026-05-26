@@ -5,9 +5,10 @@ description: FastAPI and React application package for biblioflow workflows.
 
 ## Purpose
 
-`biblioflow-web` is the browser-based application package. It is designed to
-mimic the interactive workflow of bibliometrix/Biblioshiny while keeping the
-analysis logic in the core `biblioflow` library.
+`biblioflow-web` is the browser-based application package. It provides an
+interactive browser workflow while keeping the analysis logic in the core
+`biblioflow` library. The current frontend is an intermediate dashboard with
+Search, Appraisal, Analysis, and Synthesis workflow groups.
 
 The package is organized as:
 
@@ -29,12 +30,16 @@ biblioflow-web
 For development from the monorepo:
 
 ```bash
-makim web.backend.dev
+makim web.backend.dev          # defaults to --port 0 for a random free port
+makim web.backend.dev --port 8000
 makim web.frontend.install
 makim web.frontend.dev
 ```
 
-The frontend development server proxies `/api` requests to the backend.
+When `--port 0` is used, Uvicorn prints the selected random port in the logs.
+Use an explicit port, such as `--port 8000`, when the Vite development proxy
+needs a stable backend URL. The frontend development server proxies `/api`
+requests to the backend.
 
 ## Backend package
 

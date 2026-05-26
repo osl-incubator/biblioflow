@@ -106,6 +106,23 @@ groups:
 
   web:
     tasks:
+      build:
+        help: Build biblioflow-web
+        backend: bash
+        hooks:
+          pre-run:
+            - task: web.frontend.build
+            - task: web.frontend.copy-to-backend
+            - task: web.package.build
+
+      run:
+        help: Run the biblioflow-web application
+        backend: bash
+        hooks:
+          pre-run:
+            - task: web.build
+            - task: web.backend.dev
+
       backend.tests:
         help: Run biblioflow-web backend tests
         backend: bash
@@ -115,10 +132,19 @@ groups:
 
       backend.dev:
         help: Run the biblioflow-web backend development server
+        args:
+          host:
+            help: Host interface to bind.
+            type: string
+            default: "127.0.0.1"
+          port:
+            help: Port to bind. Use 0 to ask the OS for a random free port.
+            type: string
+            default: "0"
         backend: bash
         run: |
           cd packages/biblioflow-web/backend
-          PYTHONPATH=src:../../biblioflow/src uvicorn biblioflow_web_backend.main:app --reload
+          PYTHONPATH=src:../../biblioflow/src uvicorn biblioflow_web_backend.main:app --reload --host "${{ args.host }}" --port "${{ args.port }}"
 
       backend.package.build:
         help: Build the backend Python package without rebuilding frontend assets

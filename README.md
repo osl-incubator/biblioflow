@@ -113,12 +113,16 @@ The monorepo also contains `packages/biblioflow-web`:
 
 The frontend is not published to npm. Release builds compile the React app and
 copy `frontend/dist/` into the backend package static directory before building
-the `biblioflow-web` wheel/sdist.
+the `biblioflow-web` wheel/sdist. Its current interface is an intermediate
+guided dashboard with Search, Appraisal, Analysis, and Synthesis sections;
+future iterations may move to a different product direction.
 
 Useful root Makim tasks:
 
 ```bash
 makim web.backend.tests
+makim web.backend.dev          # defaults to --port 0 for a random free port
+makim web.backend.dev --port 8000
 makim web.frontend.install
 makim web.frontend.build
 makim web.package.build
