@@ -1,0 +1,186 @@
+---
+title: Core workflows
+description: Loading, filtering, analyzing, mapping, and exporting bibliographic data.
+---
+
+## Workflow overview
+
+A typical biblioflow pipeline looks like this:
+
+1. Load bibliographic records from a file or existing data structure.
+2. Normalize provider-specific fields into the canonical schema.
+3. Inspect metadata, warnings, and validation output.
+4. Optionally deduplicate, enrich, or filter the dataset.
+5. Run descriptive analysis, matrix construction, network construction, or
+   science-mapping helpers.
+6. Export datasets or derived results.
+
+```python
+import biblioflow as bf
+
+dataset = bf.load("records.bib", provider="auto", format="auto")
+dataset = bf.deduplicate(dataset)
+summary = bf.summarize_dataset(dataset)
+analysis = bf.analyze(dataset)
+net = bf.network(dataset, kind="co_occurrence", unit="keywords_all")
+bf.export(net, "network.gexf", format="gexf")
+```
+
+## Canonical dataset
+
+`BibliographicDataset` stores the normalized table plus context:
+
+| Attribute | Purpose |
+|---|---|
+| `data` | DataFrame-like normalized records. Uses pandas when available, otherwise a lightweight fallback. |
+| `raw` | Raw records before normalization for traceability. |
+| `metadata` | Format, provider, load time, record counts, and workflow metadata. |
+| `warnings` | Structured load warnings. |
+| `errors` | Non-fatal errors collected during loading or validation. |
+
+Useful methods:
+
+```python
+dataset.to_records()
+dataset.to_dataframe(schema="canonical")
+dataset.to_dataframe(schema="bibliometrix")
+dataset.warning_dicts()
+dataset.to_json("records.json")
+dataset.to_csv("records.csv")
+```
+
+## Summaries and validation
+
+Use reusable summary helpers when an application needs small JSON payloads:
+
+```python
+import biblioflow as bf
+
+summary = bf.summarize_dataset(dataset)
+import_summary = bf.summarize_import(dataset)
+
+summary.to_dict()
+import_summary.to_dict()
+```
+
+The CLI `validate` command exposes warnings and errors as JSON:
+
+```bash
+biblioflow validate records.ris
+```
+
+## Deduplication and enrichment
+
+```python
+deduped = bf.deduplicate(dataset)
+```
+
+`deduplicate()` is intended for conservative local deduplication. Local
+enrichment helpers should also live in the core package so every interface can
+reuse the same behavior.
+
+## Filters
+
+Filters are represented by `DatasetFilterSpec`, which is serializable and shared
+by the core library, web backend, and notebook app.
+
+```python
+spec = bf.DatasetFilterSpec(
+    year_min=2020,
+    year_max=2026,
+    keywords=["bibliometrics", "open science"],
+    min_global_citations=5,
+)
+
+filtered = bf.filter_dataset(dataset, spec)
+filtered.dataset.to_records()
+filtered.to_dict()
+```
+
+Available filter values can be derived from any dataset:
+
+```python
+options = bf.available_filter_values(dataset)
+options.to_dict()
+```
+
+## Descriptive analysis
+
+```python
+analysis = bf.analyze(dataset, top_n=20)
+payload = analysis.to_dict()
+```
+
+The payload contains:
+
+- `main_information`
+- `annual_production`
+- `top_authors`
+- `top_sources`
+- `top_keywords`
+- `metadata`
+
+## Matrix construction
+
+`bf.matrix()` builds incidence, co-occurrence, collaboration, co-citation,
+bibliographic coupling, and direct-citation matrices depending on `kind` and
+`unit`.
+
+```python
+mat = bf.matrix(
+    dataset,
+    kind="co_occurrence",
+    unit="keywords_all",
+    normalize="association",
+    min_occurrences=2,
+)
+```
+
+Common units include authors, keywords, sources, countries, affiliations, and
+reference identifiers when present in the dataset.
+
+## Network construction
+
+`bf.network()` converts matrix-like relationships into node/edge records with
+basic metrics.
+
+```python
+net = bf.network(
+    dataset,
+    kind="co_occurrence",
+    unit="keywords_all",
+    normalize="association",
+    min_occurrences=2,
+)
+
+net.to_dict()
+```
+
+## Mapping helpers
+
+Lightweight science-mapping helpers are available from the main namespace:
+
+```python
+themes = bf.map_themes(dataset, field="keywords_all")
+evolution = bf.trace_themes(dataset, field="keywords_all", by="publication_year")
+concepts = bf.conceptual_structure(dataset, field="keywords_all")
+history = bf.historiograph(dataset)
+```
+
+These helpers are intentionally conservative. More advanced clustering and
+layout techniques should be implemented in the core package before being wired
+into the applications.
+
+## Export formats
+
+| Object | Common formats |
+|---|---|
+| Dataset | JSON, CSV, optional YAML |
+| Matrix | JSON, CSV |
+| Network | JSON, GraphML, GEXF, Pajek, VOSviewer text |
+
+```python
+bf.export(dataset, "records.json", format="json")
+bf.export(mat, "matrix.csv", format="csv")
+bf.export(net, "network.graphml", format="graphml")
+```

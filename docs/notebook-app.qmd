@@ -1,0 +1,92 @@
+---
+title: Notebook app
+description: Jupyter and Google Colab widget application for biblioflow workflows.
+---
+
+## Purpose
+
+`biblioflow-nb` provides a notebook-native widget interface that mirrors the
+core workflow of `biblioflow-web` without requiring a FastAPI server, React app,
+or local browser server. It is intended for Jupyter notebooks, JupyterLab, and
+Google Colab.
+
+## Installation
+
+```bash
+pip install biblioflow-nb
+```
+
+For plotting extras when they are implemented:
+
+```bash
+pip install "biblioflow-nb[plot]"
+```
+
+## Quickstart
+
+```python
+import biblioflow_nb as bfn
+
+app = bfn.launch()
+```
+
+Launch with an existing dataset:
+
+```python
+import biblioflow as bf
+import biblioflow_nb as bfn
+
+dataset = bf.load("records.ris")
+app = bfn.launch(records=dataset)
+```
+
+## Google Colab
+
+Call `colab_setup()` before launching. It is safe to call outside Colab.
+
+```python
+import biblioflow_nb as bfn
+
+bfn.colab_setup()
+app = bfn.launch()
+```
+
+Colab helper functions are provided for upload/download behavior where the
+Colab runtime exposes compatible APIs.
+
+## Widget workflow
+
+The notebook application provides panels for:
+
+- Loading local paths or uploaded files.
+- Previewing validation warnings and normalized records.
+- Applying common filters.
+- Running overview analysis.
+- Inspecting source, author, affiliation, country, document, keyword, and map
+  placeholders as the core implementation evolves.
+- Building matrices and networks.
+- Exporting datasets and downloading artifacts in notebook environments.
+
+## Development
+
+```bash
+makim nb.tests
+makim nb.package.build
+makim nb.examples.check
+```
+
+Direct package commands:
+
+```bash
+cd packages/biblioflow-nb
+PYTHONPATH=src:../biblioflow/src pytest
+PYTHONPATH=src:../biblioflow/src python -m ruff check src tests
+PYTHONPATH=src:../biblioflow/src python -m mypy src
+poetry build
+```
+
+## Design rule
+
+Notebook widgets should call the same `biblioflow` functions as the Python API
+and web backend. New bibliometric methods, matrix types, network types,
+normalizers, or exporters belong in the core library first.

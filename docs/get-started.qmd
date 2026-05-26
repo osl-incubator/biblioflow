@@ -1,0 +1,134 @@
+---
+title: Get started
+description: Install biblioflow and run your first bibliometric workflow.
+---
+
+## Installation
+
+Install the core library from PyPI:
+
+```bash
+pip install biblioflow
+```
+
+Optional YAML import/export support is provided as an extra:
+
+```bash
+pip install "biblioflow[yaml]"
+```
+
+Install application packages only when you need them:
+
+```bash
+pip install biblioflow-web
+pip install biblioflow-nb
+```
+
+::: {.callout-note}
+The applications depend on the core `biblioflow` package. New analysis features
+should be implemented in the core library first and then exposed by the web and
+notebook interfaces.
+:::
+
+## Load bibliographic records
+
+```python
+import biblioflow as bf
+
+dataset = bf.load(
+    "records.ris",
+    provider="auto",
+    format="auto",
+)
+```
+
+`bf.load()` returns a `BibliographicDataset` containing normalized records,
+raw records, metadata, warnings, and errors.
+
+```python
+len(dataset)
+dataset.metadata
+dataset.warning_dicts()
+dataset.to_records()[:3]
+```
+
+## Supported input formats
+
+| Format | Typical extension | Notes |
+|---|---|---|
+| RIS | `.ris` | Common export format from reference managers and scholarly databases. |
+| BibTeX | `.bib` | Common for LaTeX and citation managers. |
+| CSV/TSV | `.csv`, `.tsv` | Useful for spreadsheets and custom exports. |
+| JSON/JSONL | `.json`, `.jsonl` | Supports generic records and provider payloads. |
+| XML | `.xml` | Includes PubMed XML support. |
+| NBIB | `.nbib` | PubMed/NLM text export format. |
+| YAML | `.yaml`, `.yml` | Optional extra: `biblioflow[yaml]`. |
+
+## Provider inference
+
+Use `provider="auto"` and `format="auto"` for convenience, or pass explicit
+values when working with known exports:
+
+```python
+dataset = bf.load("openalex.json", provider="openalex", format="json")
+dataset = bf.load("pubmed.xml", provider="pubmed", format="xml")
+dataset = bf.load("crossref.json", provider="crossref", format="json")
+```
+
+Provider-aware adapters normalize database-specific field names into the
+canonical biblioflow schema.
+
+## Descriptive analysis
+
+```python
+summary = bf.analyze(dataset, top_n=20)
+summary.to_dict()
+```
+
+The descriptive summary includes high-level information, annual production,
+top authors, top sources, and top keywords.
+
+## Matrix and network construction
+
+```python
+keyword_matrix = bf.matrix(
+    dataset,
+    kind="co_occurrence",
+    unit="keywords_all",
+    normalize="association",
+    min_occurrences=2,
+)
+
+keyword_network = bf.network(
+    dataset,
+    kind="co_occurrence",
+    unit="keywords_all",
+    normalize="association",
+    min_occurrences=2,
+)
+```
+
+## Export results
+
+```python
+bf.export(dataset, "records.json", format="json")
+bf.export(keyword_matrix, "keywords.csv", format="csv")
+bf.export(keyword_network, "keywords.graphml", format="graphml")
+```
+
+Supported network exports include JSON, GraphML, GEXF, Pajek, and
+VOSviewer-style edge lists.
+
+## Command-line interface
+
+The command name is `biblioflow`:
+
+```bash
+biblioflow --help
+biblioflow validate records.ris
+biblioflow analyze records.ris --top-n 25 -o summary.json
+biblioflow matrix records.ris -o keywords.csv --kind co_occurrence --unit keywords_all
+biblioflow network records.ris -o network.graphml --to graphml
+```
+
+Do not use or document a hyphenated command alias.

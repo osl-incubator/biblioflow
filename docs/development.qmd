@@ -1,0 +1,113 @@
+---
+title: Development
+description: Contributor workflow for the biblioflow monorepo.
+---
+
+## Monorepo layout
+
+```text
+packages/
+├── biblioflow/                 # Core Python library and CLI
+├── biblioflow-web/
+│   ├── backend/                # FastAPI package published as biblioflow-web
+│   └── frontend/               # Private React/Vite app bundled into backend
+└── biblioflow-nb/              # Jupyter/Colab widget package
+```
+
+Top-level project files coordinate documentation, CI, release automation, and
+Makim tasks.
+
+## Environment setup
+
+```bash
+conda env create -f conda/dev.yaml
+conda activate biblioflow
+cd packages/biblioflow
+poetry config virtualenvs.create false
+poetry install --extras "dev yaml"
+```
+
+## Core library checks
+
+```bash
+makim tests.linter
+makim tests.unit
+makim package.build
+```
+
+The linter task runs pre-commit hooks, including Ruff, Mypy, and Douki for core
+library docstrings.
+
+## Web checks
+
+```bash
+makim web.backend.tests
+makim web.frontend.install
+makim web.frontend.lint
+makim web.frontend.tests
+makim web.frontend.build
+makim web.package.build
+```
+
+The frontend is private but still participates in CI because it is bundled into
+the published `biblioflow-web` Python package.
+
+## Notebook checks
+
+```bash
+makim nb.tests
+makim nb.package.build
+makim nb.examples.check
+```
+
+## Documentation checks
+
+The documentation site is built with Quarto:
+
+```bash
+makim docs.build
+```
+
+The Quarto source lives in `docs/` and renders to `build/`.
+
+## Full CI workflow
+
+```bash
+makim all.ci
+```
+
+CI also runs on supported Python versions and builds all three Python packages.
+
+## Documentation style
+
+- Keep user-facing docs in `docs/*.qmd`.
+- Prefer short runnable examples and explicit package names.
+- Document new public APIs when adding them to the core package.
+- Keep web and notebook documentation clear that they delegate computation to
+  the core `biblioflow` library.
+- Avoid documenting unsupported aliases such as `biblio-flow`.
+
+## Douki docstrings
+
+Core library Python docstrings are validated by Douki. Docstrings must be YAML
+dictionaries with a `title` field, for example:
+
+```python
+def example(path: str) -> str:
+    """
+    title: Return a normalized path string.
+    parameters:
+      path:
+        type: str
+        description: Input path.
+    returns:
+      type: str
+    """
+    return path
+```
+
+Run the hook directly with:
+
+```bash
+pre-commit run douki --all-files
+```

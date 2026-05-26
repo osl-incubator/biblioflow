@@ -16,6 +16,16 @@ website:
     left:
       - href: index.qmd
         text: Home
+      - href: get-started.qmd
+        text: Get started
+      - href: core-workflows.qmd
+        text: Core workflows
+      - text: Apps
+        menu:
+          - href: web-app.qmd
+            text: Web app
+          - href: notebook-app.qmd
+            text: Notebook app
     right:
       - icon: github
         href: https://github.com/osl-incubator/biblioflow
@@ -24,18 +34,37 @@ website:
     style: docked
     search: true
     contents:
-      - index.qmd
+      - section: Overview
+        contents:
+          - index.qmd
+          - get-started.qmd
+      - section: User guide
+        contents:
+          - core-workflows.qmd
+      - section: Applications
+        contents:
+          - web-app.qmd
+          - notebook-app.qmd
+      - section: Contributors
+        contents:
+          - development.qmd
+          - release.qmd
 
 format:
   html:
     theme:
       light: cosmo
       dark: darkly
+    css: styles.css
     toc: true
     toc-depth: 3
     code-copy: true
     code-overflow: wrap
     link-external-newwindow: true
+    grid:
+      sidebar-width: 280px
+      body-width: 900px
+      margin-width: 260px
 
 execute:
   freeze: auto
