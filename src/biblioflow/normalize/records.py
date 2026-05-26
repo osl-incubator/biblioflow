@@ -39,6 +39,9 @@ _FIELD_ALIASES: dict[str, tuple[str, ...]] = {
     "issn": ("issn", "sn"),
     "isbn": ("isbn", "bn"),
     "publisher": ("publisher", "pb"),
+    "affiliations": ("affiliations", "institutions", "addresses", "c1"),
+    "countries": ("countries", "country", "country_codes"),
+    "cited_by_count": ("cited_by_count", "citations", "times_cited", "tc"),
 }
 
 _LIST_FIELDS = {
@@ -47,6 +50,8 @@ _LIST_FIELDS = {
     "keywords_index",
     "keywords_all",
     "references",
+    "affiliations",
+    "countries",
 }
 
 
@@ -159,6 +164,12 @@ def normalize_record(
             continue
         if field_name == "publication_year":
             normalized[field_name] = parse_year(normalized.get(field_name))
+        elif field_name == "cited_by_count":
+            value = _string_or_none(normalized.get(field_name))
+            try:
+                normalized[field_name] = int(value) if value is not None else None
+            except ValueError:
+                normalized[field_name] = None
         elif field_name == "doi":
             normalized[field_name] = normalize_doi(normalized.get(field_name))
         elif field_name not in {"provider", "source_format"}:

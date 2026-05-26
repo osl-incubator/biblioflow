@@ -1,0 +1,23 @@
+<PubmedArticleSet>
+  <PubmedArticle>
+    <MedlineCitation>
+      <PMID>123456</PMID>
+      <Article>
+        <Journal>
+          <JournalIssue><PubDate><Year>2024</Year></PubDate></JournalIssue>
+          <Title>Journal of Open Research</Title>
+        </Journal>
+        <ArticleTitle>Open science and reproducible bibliometrics</ArticleTitle>
+        <Abstract><AbstractText>Open metadata study.</AbstractText></Abstract>
+        <AuthorList>
+          <Author><LastName>Smith</LastName><ForeName>Jane</ForeName></Author>
+        </AuthorList>
+        <ELocationID EIdType="doi">10.1000/os1</ELocationID>
+        <KeywordList><Keyword>open science</Keyword></KeywordList>
+      </Article>
+      <MeshHeadingList>
+        <MeshHeading><DescriptorName>Bibliometrics</DescriptorName></MeshHeading>
+      </MeshHeadingList>
+    </MedlineCitation>
+  </PubmedArticle>
+</PubmedArticleSet>

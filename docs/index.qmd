@@ -11,18 +11,18 @@ bibliometrics, science mapping, and literature-review data workflows. It is
 inspired by the R bibliometrics ecosystem, especially `bibliometrix`, while
 using Pythonic naming and dataframe-centric workflows.
 
-This repository includes an initial MVP for loading, normalizing, analyzing,
-and exporting bibliographic records. Advanced science-mapping features will be
-expanded in later changes.
+This repository includes core loading, normalization, validation, descriptive
+analysis, matrices, networks, lightweight science-mapping helpers,
+compatibility shims, and exports. Advanced provider connectors and clustering
+methods will be expanded in later changes.
 :::
 
 ::: {.feature-grid}
 ::: {.feature-card}
 ### Bibliographic ingestion
 
-The MVP can read RIS, BibTeX, CSV/TSV, JSON/JSONL, NBIB, and optional YAML.
-Deeper provider-specific imports for Scopus, Web of Science, PubMed Central,
-OpenAlex, Crossref, Lens, Dimensions, and Cochrane are planned.
+Read RIS, BibTeX, CSV/TSV, JSON/JSONL, XML, PubMed NBIB, and optional YAML,
+with provider-aware adapters for PubMed XML, OpenAlex JSON, and Crossref JSON.
 :::
 
 ::: {.feature-card}
@@ -35,8 +35,9 @@ raw records for traceability.
 ::: {.feature-card}
 ### Bibliometric analysis
 
-Compute descriptive indicators, incidence/co-occurrence matrices, simple
-networks, lightweight thematic maps/evolution, and conservative historiographs.
+Compute descriptive indicators, incidence/co-occurrence/collaboration/
+co-citation/coupling/direct-citation matrices, simple networks, lightweight
+thematic maps/evolution, and conservative historiographs.
 :::
 
 ::: {.feature-card}

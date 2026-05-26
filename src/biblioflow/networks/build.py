@@ -46,8 +46,12 @@ def network(records: Any, **kwargs: Any) -> NetworkResult:
     labels = list(table.index) if hasattr(table, "index") else []
 
     edges: list[dict[str, Any]] = []
+    directed = bool(mat.metadata.get("directed"))
     for i, source in enumerate(labels):
-        for j in range(i + 1, len(labels)):
+        target_indexes = range(len(labels)) if directed else range(i + 1, len(labels))
+        for j in target_indexes:
+            if i == j:
+                continue
             target = labels[j]
             weight = _matrix_value(table, source, target)
             if weight > 0:

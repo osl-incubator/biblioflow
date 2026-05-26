@@ -17,13 +17,23 @@ def read_json_records(path: str | Path) -> list[dict[str, Any]]:
     if isinstance(obj, list):
         records = obj
     elif isinstance(obj, dict):
-        for key in ("records", "data", "items", "results"):
-            value = obj.get(key)
-            if isinstance(value, list):
-                records = value
-                break
+        message = obj.get("message")
+        if isinstance(message, dict):
+            for key in ("items", "results", "records", "data"):
+                value = message.get(key)
+                if isinstance(value, list):
+                    records = value
+                    break
+            else:
+                records = [message]
         else:
-            records = [obj]
+            for key in ("records", "data", "items", "results"):
+                value = obj.get(key)
+                if isinstance(value, list):
+                    records = value
+                    break
+            else:
+                records = [obj]
     else:
         msg = "JSON input must contain an object or a list of objects."
         raise ValueError(msg)

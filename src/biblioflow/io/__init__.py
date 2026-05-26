@@ -5,6 +5,7 @@ from biblioflow.io.csv import read_csv_records
 from biblioflow.io.json import read_json_records, read_jsonl_records
 from biblioflow.io.nbib import read_nbib_records
 from biblioflow.io.ris import read_ris_records
+from biblioflow.io.xml import read_xml_records
 from biblioflow.io.yaml import read_yaml_records
 
 __all__ = [
@@ -14,5 +15,6 @@ __all__ = [
     "read_jsonl_records",
     "read_nbib_records",
     "read_ris_records",
+    "read_xml_records",
     "read_yaml_records",
 ]

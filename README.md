@@ -11,22 +11,23 @@ project is inspired by the R bibliometrics ecosystem, especially
 [`bibliometrix`](https://www.bibliometrix.org/), while aiming for a Pythonic API
 and dataframe-centric workflows.
 
-This repository currently includes an initial MVP implementation of the core
-workflow described in the project plan. Advanced science-mapping features will
-continue to evolve.
+This repository currently includes an implementation of the core workflow
+described in the project plan, including ingestion, normalization, validation,
+descriptive analysis, matrices, networks, compatibility helpers, and exports.
+Advanced provider connectors and clustering methods will continue to evolve.
 
 ## Current and planned scope
 
-- MVP file-based ingestion for RIS, BibTeX, CSV/TSV, JSON/JSONL, NBIB, and
-  optional YAML; XML and additional provider exports are planned
-- Provider-aware normalization metadata for generic files and common provider
-  names; deeper Scopus, Web of Science, PubMed Central, OpenAlex, Crossref,
-  Lens, Dimensions, and Cochrane mappings are planned
+- File-based ingestion for RIS, BibTeX, CSV/TSV, JSON/JSONL, XML, PubMed NBIB,
+  and optional YAML
+- Provider-aware normalization metadata and adapters for generic records,
+  PubMed/PubMed XML, OpenAlex JSON, and Crossref JSON
 - A canonical bibliographic dataset object with raw-record traceability
 - Descriptive bibliometric indicators
-- Incidence and co-occurrence matrices in the MVP; collaboration, co-citation,
-  bibliographic coupling, and direct-citation matrices are planned
-- Network construction, simple node/edge metrics, and export; clustering is planned
+- Incidence, co-occurrence, collaboration, co-citation, bibliographic coupling,
+  and direct-citation matrices
+- Network construction, simple node/edge metrics, and export to JSON, CSV,
+  GraphML, GEXF, Pajek, and VOSviewer-style edge lists
 - Thematic mapping, thematic evolution, conceptual structure, and historiography
 - Exports for common tabular and network-analysis workflows
 
@@ -69,8 +70,8 @@ evolution = bf.trace_themes(records, field="keywords_all", by="publication_year"
 
 The main namespace should use Pythonic names such as `load()`, `analyze()`,
 `matrix()`, `network()`, `map_themes()`, `trace_themes()`, `historiograph()`,
-and `export()`. Compatibility helpers for Bibliometrix-style names, if added,
-should live outside the main namespace under `biblioflow.compat`.
+and `export()`. Bibliometrix-style compatibility helpers live outside the main
+namespace under `biblioflow.compat`.
 
 ## CLI
 
@@ -103,4 +104,4 @@ makim all.ci
 
 ## Project status
 
-The current implementation covers loading, normalization, descriptive analysis, matrix/network construction, lightweight thematic helpers, export, and a small CLI.
+The current implementation covers loading, normalization, validation, deduplication, local enrichment, descriptive analysis, matrix/network construction, lightweight thematic helpers, compatibility shims, export, and a CLI.

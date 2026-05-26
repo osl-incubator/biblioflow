@@ -14,10 +14,12 @@ from biblioflow.io import (
     read_jsonl_records,
     read_nbib_records,
     read_ris_records,
+    read_xml_records,
     read_yaml_records,
 )
 from biblioflow.load.infer import infer_format, infer_provider
-from biblioflow.normalize import normalize_record
+from biblioflow.normalize.records import normalize_record
+from biblioflow.providers import adapt_record
 from biblioflow.validation import validate_records
 
 
@@ -36,6 +38,8 @@ def _read_records(path: Path, fmt: str) -> list[dict[str, Any]]:
         return read_bibtex_records(path)
     if fmt == "nbib":
         return read_nbib_records(path)
+    if fmt == "xml":
+        return read_xml_records(path)
     if fmt == "yaml":
         return read_yaml_records(path)
     msg = f"Unsupported input format: {fmt!r}"
@@ -67,7 +71,12 @@ def load(
         fmt = "records"
         prov = "generic" if provider == "auto" else provider
         normalized = [
-            normalize_record(record, provider=prov, source_format=fmt) for record in raw
+            normalize_record(
+                adapt_record(prov, record),
+                provider=prov,
+                source_format=fmt,
+            )
+            for record in raw
         ]
         warnings = validate_records(normalized)
         if strict and any(w.severity == "warning" for w in warnings):
@@ -96,7 +105,12 @@ def load(
     prov = infer_provider(path, format=fmt) if provider == "auto" else provider
     raw = _read_records(path, fmt)
     normalized = [
-        normalize_record(record, provider=prov, source_format=fmt) for record in raw
+        normalize_record(
+            adapt_record(prov, record),
+            provider=prov,
+            source_format=fmt,
+        )
+        for record in raw
     ]
     warnings = validate_records(normalized)
     if strict and any(w.severity == "warning" for w in warnings):

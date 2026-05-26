@@ -21,6 +21,7 @@ from biblioflow.mapping import (
 )
 from biblioflow.matrices import MatrixResult, matrix
 from biblioflow.networks import NetworkResult, network
+from biblioflow.normalize.deduplicate import deduplicate, enrich
 
 __version__ = "0.1.0"  # semantic-release
 
@@ -40,6 +41,8 @@ __all__ = [
     "__version__",
     "analyze",
     "conceptual_structure",
+    "deduplicate",
+    "enrich",
     "export",
     "historiograph",
     "infer_format",

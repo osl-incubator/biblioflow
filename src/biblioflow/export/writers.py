@@ -52,6 +52,54 @@ def _write_graphml(network: NetworkResult, path: Path) -> None:
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
+def _write_gexf(network: NetworkResult, path: Path) -> None:
+    lines = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<gexf xmlns="http://www.gexf.net/1.2draft" version="1.2">',
+        '  <graph mode="static" defaultedgetype="undirected">',
+        "    <nodes>",
+    ]
+    for node in network.nodes.to_dict(orient="records"):
+        node_id = escape(str(node["id"]))
+        label = escape(str(node.get("label", node["id"])))
+        lines.append(f'      <node id="{node_id}" label="{label}" />')
+    lines.extend(["    </nodes>", "    <edges>"])
+    for index, edge in enumerate(network.edges.to_dict(orient="records")):
+        source = escape(str(edge["source"]))
+        target = escape(str(edge["target"]))
+        weight = float(edge["weight"])
+        lines.append(
+            f'      <edge id="e{index}" source="{source}" '
+            f'target="{target}" weight="{weight}" />'
+        )
+    lines.extend(["    </edges>", "  </graph>", "</gexf>"])
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def _write_pajek(network: NetworkResult, path: Path) -> None:
+    nodes = network.nodes.to_dict(orient="records")
+    edges = network.edges.to_dict(orient="records")
+    ids = {str(node["id"]): index + 1 for index, node in enumerate(nodes)}
+    lines = [f"*Vertices {len(nodes)}"]
+    for node in nodes:
+        label = str(node.get("label", node["id"])).replace(chr(34), "'")
+        lines.append(f'{ids[str(node["id"])]} "{label}"')
+    lines.append("*Edges")
+    for edge in edges:
+        lines.append(
+            f"{ids[str(edge['source'])]} {ids[str(edge['target'])]} "
+            f"{float(edge['weight'])}"
+        )
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def _write_vosviewer(network: NetworkResult, path: Path) -> None:
+    lines = ["source\ttarget\tweight"]
+    for edge in network.edges.to_dict(orient="records"):
+        lines.append(f"{edge['source']}\t{edge['target']}\t{edge['weight']}")
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
 def export(obj: Any, path: str | Path, *, format: str | None = None) -> None:
     """Export a dataset, matrix, network, DataFrame, or JSON-like object."""
     output = Path(path)
@@ -77,6 +125,15 @@ def export(obj: Any, path: str | Path, *, format: str | None = None) -> None:
         if fmt == "graphml":
             _write_graphml(obj, output)
             return
+        if fmt == "gexf":
+            _write_gexf(obj, output)
+            return
+        if fmt in {"net", "pajek"}:
+            _write_pajek(obj, output)
+            return
+        if fmt in {"vosviewer", "vos", "txt"}:
+            _write_vosviewer(obj, output)
+            return
         if fmt == "csv":
             output.mkdir(parents=True, exist_ok=True)
             obj.nodes.to_csv(output / "nodes.csv", index=False)
@@ -95,6 +152,18 @@ def export(obj: Any, path: str | Path, *, format: str | None = None) -> None:
         output.write_text(
             obj.to_json(orient="records", indent=2) + "\n", encoding="utf-8"
         )
+        return
+    if fmt == "yaml":
+        try:
+            import yaml
+        except ImportError as exc:  # pragma: no cover
+            from biblioflow.exceptions import OptionalDependencyError
+
+            raise OptionalDependencyError(
+                "Install biblioflow[yaml] to write YAML."
+            ) from exc
+        payload = obj.to_dict(orient="records") if hasattr(obj, "to_dict") else obj
+        output.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
         return
     if fmt == "json":
         output.write_text(

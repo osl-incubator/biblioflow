@@ -1,0 +1,17 @@
+{
+  "message": {
+    "items": [
+      {
+        "DOI": "10.1000/cr1",
+        "title": ["Crossref metadata record"],
+        "container-title": ["Crossref Journal"],
+        "published-print": {"date-parts": [[2023, 5, 1]]},
+        "author": [{"family": "Jones", "given": "Alex"}],
+        "subject": ["bibliometrics", "metadata"],
+        "is-referenced-by-count": 7,
+        "reference": [{"DOI": "10.1000/os1"}],
+        "type": "journal-article"
+      }
+    ]
+  }
+}

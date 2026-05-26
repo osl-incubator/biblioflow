@@ -23,6 +23,9 @@ CANONICAL_FIELDS: tuple[str, ...] = (
     "issn",
     "isbn",
     "publisher",
+    "affiliations",
+    "countries",
+    "cited_by_count",
     "provider",
     "source_format",
 )
@@ -40,6 +43,7 @@ BIBLIOMETRIX_FIELD_MAP: dict[str, str] = {
     "language": "LA",
     "references": "CR",
     "url": "URL",
+    "cited_by_count": "TC",
 }
 
 FORMAT_EXTENSIONS: dict[str, str] = {
