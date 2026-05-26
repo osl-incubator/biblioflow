@@ -38,3 +38,26 @@ def test_project_upload_load_and_analyze(app_client):
     )
     assert analysis_response.status_code == 200
     assert analysis_response.json()["data"]["main_information"]["documents"] == 2
+
+    exports_response = app_client.get(f"/api/projects/{project_id}/exports")
+    assert exports_response.status_code == 200
+    assert exports_response.json()["data"] == []
+
+    create_export_response = app_client.post(
+        f"/api/projects/{project_id}/exports",
+        json={"dataset_id": dataset_id, "kind": "dataset", "format": "json"},
+    )
+    assert create_export_response.status_code == 200
+    export_payload = create_export_response.json()["data"]
+
+    list_exports_response = app_client.get(f"/api/projects/{project_id}/exports")
+    assert list_exports_response.status_code == 200
+    assert (
+        list_exports_response.json()["data"][0]["filename"]
+        == export_payload["filename"]
+    )
+
+    download_response = app_client.get(
+        f"/api/projects/{project_id}/exports/{export_payload['filename']}/download"
+    )
+    assert download_response.status_code == 200

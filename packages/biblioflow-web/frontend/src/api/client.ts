@@ -1,6 +1,35 @@
-import type { ApiEnvelope, HealthResponse, Project } from "./types";
+import type {
+  AnalysisOverview,
+  AnalysisRequest,
+  ApiEnvelope,
+  ApiErrorPayload,
+  BibliographicRecord,
+  DatasetListItem,
+  DatasetLoadRequest,
+  DatasetPayload,
+  DatasetSummary,
+  ExportArtifact,
+  ExportRequest,
+  FilterOptions,
+  FilterPreview,
+  FilterSpec,
+  HealthResponse,
+  MatrixRequest,
+  MatrixResult,
+  NetworkResult,
+  Project,
+  Upload,
+  ValidationPayload,
+} from "./types";
 
 const API_BASE_URL = import.meta.env.VITE_BIBLIOFLOW_WEB_API_BASE_URL ?? "/api";
+
+async function parseError(response: Response): Promise<Error> {
+  const payload = (await response.json().catch(() => ({}))) as ApiErrorPayload;
+  return new Error(
+    payload.error?.message ?? `Request failed: ${response.status}`,
+  );
+}
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
@@ -8,10 +37,21 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     ...init,
   });
   if (!response.ok) {
-    const payload = await response.json().catch(() => ({}));
-    throw new Error(
-      payload?.error?.message ?? `Request failed: ${response.status}`,
-    );
+    throw await parseError(response);
+  }
+  return response.json() as Promise<T>;
+}
+
+async function multipartRequest<T>(
+  path: string,
+  formData: FormData,
+): Promise<T> {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: "POST",
+    body: formData,
+  });
+  if (!response.ok) {
+    throw await parseError(response);
   }
   return response.json() as Promise<T>;
 }
@@ -31,4 +71,189 @@ export async function createProject(
     method: "POST",
     body: JSON.stringify({ name }),
   });
+}
+
+export async function getProject(
+  projectId: string,
+): Promise<ApiEnvelope<Project>> {
+  return request<ApiEnvelope<Project>>(`/projects/${projectId}`);
+}
+
+export async function deleteProject(
+  projectId: string,
+): Promise<ApiEnvelope<{ deleted: boolean }>> {
+  return request<ApiEnvelope<{ deleted: boolean }>>(`/projects/${projectId}`, {
+    method: "DELETE",
+  });
+}
+
+export async function listUploads(
+  projectId: string,
+): Promise<ApiEnvelope<Upload[]>> {
+  return request<ApiEnvelope<Upload[]>>(`/projects/${projectId}/uploads`);
+}
+
+export async function getUpload(
+  projectId: string,
+  uploadId: string,
+): Promise<ApiEnvelope<Upload>> {
+  return request<ApiEnvelope<Upload>>(
+    `/projects/${projectId}/uploads/${uploadId}`,
+  );
+}
+
+export async function uploadFiles(
+  projectId: string,
+  files: File[],
+): Promise<ApiEnvelope<Upload[]>> {
+  const formData = new FormData();
+  files.forEach((file) => formData.append("files", file));
+  return multipartRequest<ApiEnvelope<Upload[]>>(
+    `/projects/${projectId}/uploads`,
+    formData,
+  );
+}
+
+export async function deleteUpload(
+  projectId: string,
+  uploadId: string,
+): Promise<ApiEnvelope<{ deleted: boolean }>> {
+  return request<ApiEnvelope<{ deleted: boolean }>>(
+    `/projects/${projectId}/uploads/${uploadId}`,
+    { method: "DELETE" },
+  );
+}
+
+export async function loadDataset(
+  projectId: string,
+  payload: DatasetLoadRequest,
+): Promise<ApiEnvelope<DatasetPayload>> {
+  return request<ApiEnvelope<DatasetPayload>>(
+    `/projects/${projectId}/datasets/load`,
+    { method: "POST", body: JSON.stringify(payload) },
+  );
+}
+
+export async function listDatasets(
+  projectId: string,
+): Promise<ApiEnvelope<DatasetListItem[]>> {
+  return request<ApiEnvelope<DatasetListItem[]>>(
+    `/projects/${projectId}/datasets`,
+  );
+}
+
+export async function getDataset(
+  projectId: string,
+  datasetId: string,
+): Promise<ApiEnvelope<DatasetPayload>> {
+  return request<ApiEnvelope<DatasetPayload>>(
+    `/projects/${projectId}/datasets/${datasetId}`,
+  );
+}
+
+export async function getDatasetSummary(
+  projectId: string,
+  datasetId: string,
+): Promise<ApiEnvelope<DatasetSummary>> {
+  return request<ApiEnvelope<DatasetSummary>>(
+    `/projects/${projectId}/datasets/${datasetId}/summary`,
+  );
+}
+
+export async function getDatasetRecords(
+  projectId: string,
+  datasetId: string,
+): Promise<ApiEnvelope<BibliographicRecord[]>> {
+  return request<ApiEnvelope<BibliographicRecord[]>>(
+    `/projects/${projectId}/datasets/${datasetId}/records`,
+  );
+}
+
+export async function getValidation(
+  projectId: string,
+  datasetId: string,
+): Promise<ApiEnvelope<ValidationPayload>> {
+  return request<ApiEnvelope<ValidationPayload>>(
+    `/projects/${projectId}/datasets/${datasetId}/validation`,
+  );
+}
+
+export async function getFilterOptions(
+  projectId: string,
+  datasetId: string,
+): Promise<ApiEnvelope<FilterOptions>> {
+  return request<ApiEnvelope<FilterOptions>>(
+    `/projects/${projectId}/datasets/${datasetId}/filters/options`,
+  );
+}
+
+export async function previewFilters(
+  projectId: string,
+  datasetId: string,
+  filters: FilterSpec,
+): Promise<ApiEnvelope<FilterPreview>> {
+  return request<ApiEnvelope<FilterPreview>>(
+    `/projects/${projectId}/datasets/${datasetId}/filters/preview`,
+    { method: "POST", body: JSON.stringify({ filters }) },
+  );
+}
+
+export async function runOverview(
+  projectId: string,
+  datasetId: string,
+  payload: AnalysisRequest,
+): Promise<ApiEnvelope<AnalysisOverview>> {
+  return request<ApiEnvelope<AnalysisOverview>>(
+    `/projects/${projectId}/datasets/${datasetId}/analysis/overview`,
+    { method: "POST", body: JSON.stringify(payload) },
+  );
+}
+
+export async function buildMatrix(
+  projectId: string,
+  datasetId: string,
+  payload: MatrixRequest,
+): Promise<ApiEnvelope<MatrixResult>> {
+  return request<ApiEnvelope<MatrixResult>>(
+    `/projects/${projectId}/datasets/${datasetId}/matrices`,
+    { method: "POST", body: JSON.stringify(payload) },
+  );
+}
+
+export async function buildNetwork(
+  projectId: string,
+  datasetId: string,
+  payload: MatrixRequest,
+): Promise<ApiEnvelope<NetworkResult>> {
+  return request<ApiEnvelope<NetworkResult>>(
+    `/projects/${projectId}/datasets/${datasetId}/networks`,
+    { method: "POST", body: JSON.stringify(payload) },
+  );
+}
+
+export async function listExports(
+  projectId: string,
+): Promise<ApiEnvelope<ExportArtifact[]>> {
+  return request<ApiEnvelope<ExportArtifact[]>>(
+    `/projects/${projectId}/exports`,
+  );
+}
+
+export async function createExport(
+  projectId: string,
+  payload: ExportRequest,
+): Promise<ApiEnvelope<ExportArtifact>> {
+  return request<ApiEnvelope<ExportArtifact>>(
+    `/projects/${projectId}/exports`,
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    },
+  );
+}
+
+export function downloadExportUrl(projectId: string, filename: string): string {
+  return `${API_BASE_URL}/projects/${projectId}/exports/${encodeURIComponent(
+    filename,
+  )}/download`;
 }
