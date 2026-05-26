@@ -1,2 +1,4 @@
 docs/changelog.md
 CHANGELOG.md
+packages/biblioflow-web/frontend/dist/
+packages/biblioflow-web/backend/src/biblioflow_web_backend/static/

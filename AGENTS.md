@@ -82,6 +82,11 @@ The repository is organized as a monorepo. The `biblioflow` package lives under 
 - `packages/biblioflow/src/biblioflow/compat/`: optional Bibliometrix-style compatibility helpers
 - `packages/biblioflow/examples/`: runnable example inputs/scripts
 - `packages/biblioflow/tests/`: pytest coverage
+- `packages/biblioflow-web/backend/`: FastAPI package published as `biblioflow-web`
+- `packages/biblioflow-web/backend/src/biblioflow_web_backend/static/`: built
+  React assets copied in during package/release builds
+- `packages/biblioflow-web/frontend/`: private React/Vite source app, not
+  published to npm
 - `docs/`: Quarto documentation website
 
 ## Development commands
@@ -103,6 +108,19 @@ makim package.build
 makim docs.build
 makim all.ci
 ```
+
+Web package workflow:
+
+```bash
+makim web.backend.tests
+makim web.frontend.install
+makim web.frontend.build
+makim web.package.build
+```
+
+Keep reusable bibliometric logic in `packages/biblioflow`. The
+`biblioflow-web` backend should orchestrate HTTP/session/storage/static-serving
+concerns, and the frontend should render API responses.
 
 ## Implementation rules
 

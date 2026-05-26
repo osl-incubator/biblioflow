@@ -225,3 +225,10 @@ pytest-*
 
 # tmp
 tmp/
+
+# biblioflow-web frontend/build artifacts
+packages/biblioflow-web/frontend/node_modules/
+packages/biblioflow-web/frontend/dist/
+packages/biblioflow-web/backend/src/biblioflow_web_backend/static/*
+!packages/biblioflow-web/backend/src/biblioflow_web_backend/static/.gitkeep
+.biblioflow-web-data/

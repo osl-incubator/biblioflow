@@ -103,6 +103,27 @@ makim docs.build
 makim all.ci
 ```
 
+## Web application package
+
+The monorepo also contains `packages/biblioflow-web`:
+
+- `packages/biblioflow-web/backend`: FastAPI package published as
+  `biblioflow-web`
+- `packages/biblioflow-web/frontend`: private React/Vite source app
+
+The frontend is not published to npm. Release builds compile the React app and
+copy `frontend/dist/` into the backend package static directory before building
+the `biblioflow-web` wheel/sdist.
+
+Useful root Makim tasks:
+
+```bash
+makim web.backend.tests
+makim web.frontend.install
+makim web.frontend.build
+makim web.package.build
+```
+
 ## Project status
 
 The current implementation covers loading, normalization, validation, deduplication, local enrichment, descriptive analysis, matrix/network construction, lightweight thematic helpers, compatibility shims, export, and a CLI.

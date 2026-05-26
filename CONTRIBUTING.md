@@ -23,6 +23,15 @@ makim package.build
 makim docs.build
 ```
 
+Web package tasks are also available from the repository root:
+
+```bash
+makim web.backend.tests
+makim web.frontend.install
+makim web.frontend.build
+makim web.package.build
+```
+
 ## Scope
 
 `biblioflow` is being initialized as a Python-native bibliographic metadata and

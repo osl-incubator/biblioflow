@@ -28,6 +28,12 @@ groups:
           rm -fr packages/biblioflow/.pytest_cache
           rm -fr packages/biblioflow/.mypy_cache
           rm -fr packages/biblioflow/.ruff_cache
+          rm -fr packages/biblioflow-web/backend/dist/
+          rm -fr packages/biblioflow-web/backend/.pytest_cache
+          rm -fr packages/biblioflow-web/backend/.mypy_cache
+          rm -fr packages/biblioflow-web/backend/.ruff_cache
+          rm -fr packages/biblioflow-web/frontend/dist/
+          rm -fr packages/biblioflow-web/frontend/node_modules/
           find . -name '*.egg-info' -exec rm -fr {} +
           find . -name '*.egg' -exec rm -f {} +
           find . -name '*.pyc' -exec rm -f {} +
@@ -91,6 +97,65 @@ groups:
         help: Build the package with Poetry
         backend: bash
         run: cd packages/biblioflow && poetry build
+
+  web:
+    tasks:
+      backend.tests:
+        help: Run biblioflow-web backend tests
+        backend: bash
+        run: |
+          cd packages/biblioflow-web/backend
+          PYTHONPATH=src:../../biblioflow/src pytest
+
+      backend.dev:
+        help: Run the biblioflow-web backend development server
+        backend: bash
+        run: |
+          cd packages/biblioflow-web/backend
+          PYTHONPATH=src:../../biblioflow/src uvicorn biblioflow_web_backend.main:app --reload
+
+      backend.package.build:
+        help: Build the backend Python package without rebuilding frontend assets
+        backend: bash
+        run: cd packages/biblioflow-web/backend && poetry build
+
+      frontend.install:
+        help: Install frontend dependencies
+        backend: bash
+        run: cd packages/biblioflow-web/frontend && npm install
+
+      frontend.dev:
+        help: Run the frontend development server
+        backend: bash
+        run: cd packages/biblioflow-web/frontend && npm run dev
+
+      frontend.build:
+        help: Build the frontend production assets
+        backend: bash
+        run: cd packages/biblioflow-web/frontend && npm run build
+
+      frontend.lint:
+        help: Run frontend static checks
+        backend: bash
+        run: cd packages/biblioflow-web/frontend && npm run lint
+
+      frontend.tests:
+        help: Run frontend tests
+        backend: bash
+        run: cd packages/biblioflow-web/frontend && npm test
+
+      frontend.copy-to-backend:
+        help: Copy frontend dist assets into the backend package
+        backend: bash
+        run: cd packages/biblioflow-web/backend && python scripts/build_frontend.py --skip-install --skip-build
+
+      package.build:
+        help: Build the publishable biblioflow-web package with bundled frontend assets
+        backend: bash
+        run: |
+          cd packages/biblioflow-web/backend
+          python scripts/build_frontend.py
+          poetry build
 
   release:
     vars:

@@ -1,5 +1,7 @@
 {
-  "branches": ["main"],
+  "branches": [
+    "main"
+  ],
   "tagFormat": "${version}",
   "plugins": [
     "@semantic-release/commit-analyzer",
@@ -8,7 +10,9 @@
       {
         "replacements": [
           {
-            "files": ["packages/biblioflow/src/biblioflow/__init__.py"],
+            "files": [
+              "packages/biblioflow/src/biblioflow/__init__.py"
+            ],
             "from": "__version__ = \".*\"  # semantic-release",
             "to": "__version__ = \"${nextRelease.version}\"  # semantic-release",
             "results": [
@@ -22,7 +26,9 @@
             "countMatches": true
           },
           {
-            "files": ["packages/biblioflow/pyproject.toml"],
+            "files": [
+              "packages/biblioflow/pyproject.toml"
+            ],
             "from": "version = \".*\"  # semantic-release",
             "to": "version = \"${nextRelease.version}\"  # semantic-release",
             "results": [
@@ -36,7 +42,57 @@
             "countMatches": true
           },
           {
-            "files": ["CITATION.cff"],
+            "files": [
+              "packages/biblioflow-web/backend/src/biblioflow_web_backend/__init__.py"
+            ],
+            "from": "__version__ = \".*\"  # semantic-release",
+            "to": "__version__ = \"${nextRelease.version}\"  # semantic-release",
+            "results": [
+              {
+                "file": "packages/biblioflow-web/backend/src/biblioflow_web_backend/__init__.py",
+                "hasChanged": true,
+                "numMatches": 1,
+                "numReplacements": 1
+              }
+            ],
+            "countMatches": true
+          },
+          {
+            "files": [
+              "packages/biblioflow-web/backend/pyproject.toml"
+            ],
+            "from": "version = \".*\"  # semantic-release",
+            "to": "version = \"${nextRelease.version}\"  # semantic-release",
+            "results": [
+              {
+                "file": "packages/biblioflow-web/backend/pyproject.toml",
+                "hasChanged": true,
+                "numMatches": 1,
+                "numReplacements": 1
+              }
+            ],
+            "countMatches": true
+          },
+          {
+            "files": [
+              "packages/biblioflow-web/backend/pyproject.toml"
+            ],
+            "from": "\"biblioflow>=.*\",",
+            "to": "\"biblioflow>=${nextRelease.version}\",",
+            "results": [
+              {
+                "file": "packages/biblioflow-web/backend/pyproject.toml",
+                "hasChanged": true,
+                "numMatches": 1,
+                "numReplacements": 1
+              }
+            ],
+            "countMatches": true
+          },
+          {
+            "files": [
+              "CITATION.cff"
+            ],
             "from": "version: \".*\" # semantic-release",
             "to": "version: \"${nextRelease.version}\" # semantic-release",
             "results": [
@@ -63,14 +119,19 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "cd packages/biblioflow && poetry build",
-        "publishCmd": "cd packages/biblioflow && poetry publish"
+        "prepareCmd": "cd packages/biblioflow && poetry build && cd ../biblioflow-web/backend && python scripts/build_frontend.py && poetry build",
+        "publishCmd": "cd packages/biblioflow && poetry publish && cd ../biblioflow-web/backend && poetry publish"
       }
     ],
     [
       "@semantic-release/github",
       {
-        "assets": ["packages/biblioflow/dist/*.whl", "packages/biblioflow/dist/*.tar.gz"]
+        "assets": [
+          "packages/biblioflow/dist/*.whl",
+          "packages/biblioflow/dist/*.tar.gz",
+          "packages/biblioflow-web/backend/dist/*.whl",
+          "packages/biblioflow-web/backend/dist/*.tar.gz"
+        ]
       }
     ],
     [
@@ -78,8 +139,10 @@
       {
         "assets": [
           "packages/biblioflow/pyproject.toml",
+          "packages/biblioflow-web/backend/pyproject.toml",
           "CHANGELOG.md",
           "packages/biblioflow/src/biblioflow/__init__.py",
+          "packages/biblioflow-web/backend/src/biblioflow_web_backend/__init__.py",
           "CITATION.cff"
         ],
         "message": "chore(release): ${nextRelease.version}"

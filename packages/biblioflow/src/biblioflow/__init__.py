@@ -9,6 +9,14 @@ from biblioflow.exceptions import (
     UnsupportedFormatError,
 )
 from biblioflow.export import export
+from biblioflow.filters import (
+    DatasetFilterSpec,
+    FilteredDatasetResult,
+    FilterOptions,
+    available_filter_values,
+    filter_dataset,
+    summarize_filters,
+)
 from biblioflow.load import infer_format, infer_provider, load
 from biblioflow.mapping import (
     Historiograph,
@@ -22,6 +30,12 @@ from biblioflow.mapping import (
 from biblioflow.matrices import MatrixResult, matrix
 from biblioflow.networks import NetworkResult, network
 from biblioflow.normalize.deduplicate import deduplicate, enrich
+from biblioflow.results import (
+    DatasetSummary,
+    ImportSummary,
+    summarize_dataset,
+    summarize_import,
+)
 
 __version__ = "0.1.0"  # semantic-release
 
@@ -29,8 +43,13 @@ __all__ = [
     "AmbiguousSourceError",
     "BiblioFlowError",
     "BibliographicDataset",
+    "DatasetFilterSpec",
+    "DatasetSummary",
     "DescriptiveSummary",
+    "FilterOptions",
+    "FilteredDatasetResult",
     "Historiograph",
+    "ImportSummary",
     "LoadWarning",
     "MatrixResult",
     "NetworkResult",
@@ -40,10 +59,12 @@ __all__ = [
     "UnsupportedFormatError",
     "__version__",
     "analyze",
+    "available_filter_values",
     "conceptual_structure",
     "deduplicate",
     "enrich",
     "export",
+    "filter_dataset",
     "historiograph",
     "infer_format",
     "infer_provider",
@@ -51,5 +72,8 @@ __all__ = [
     "map_themes",
     "matrix",
     "network",
+    "summarize_dataset",
+    "summarize_filters",
+    "summarize_import",
     "trace_themes",
 ]
