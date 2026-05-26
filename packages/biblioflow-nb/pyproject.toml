@@ -1,0 +1,101 @@
+[project]
+name = "biblioflow-nb"
+version = "0.1.0"  # semantic-release
+description = "Notebook widget application for biblioflow bibliometric workflows."
+readme = "README.md"
+requires-python = ">=3.10,<4"
+license = "BSD-3-Clause"
+authors = [
+  { name = "Ivan Ogasawara", email = "ivan.ogasawara@gmail.com" }
+]
+keywords = [
+  "bibliometrics",
+  "biblioflow",
+  "jupyter",
+  "ipywidgets",
+  "google-colab",
+  "notebook",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Framework :: Jupyter",
+  "Intended Audience :: Science/Research",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+]
+dependencies = [
+  "biblioflow>=0.1.0",
+  "IPython>=8",
+  "ipywidgets>=8",
+]
+
+[project.optional-dependencies]
+dev = [
+  "mypy>=1.10",
+  "pytest>=8",
+  "ruff>=0.6",
+]
+plot = [
+  "plotly>=5",
+]
+notebooks = [
+  "nbclient>=0.10",
+]
+
+[project.urls]
+Homepage = "https://github.com/osl-incubator/biblioflow"
+Repository = "https://github.com/osl-incubator/biblioflow"
+Issues = "https://github.com/osl-incubator/biblioflow/issues"
+Documentation = "https://osl-incubator.github.io/biblioflow/"
+
+[build-system]
+requires = ["poetry-core>=2"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+packages = [
+  { include = "biblioflow_nb", from = "src" },
+]
+include = [
+  "src/biblioflow_nb/examples/*.ipynb",
+]
+
+[tool.poetry.group.dev.dependencies]
+mypy = ">=1.10"
+pytest = ">=8"
+ruff = ">=0.6"
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "RUF"]
+ignore = ["D203", "D213"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_unused_configs = true
+show_error_codes = true
+disable_error_code = ["no-untyped-call"]
+
+[[tool.mypy.overrides]]
+module = ["ipywidgets", "IPython", "IPython.*"]
+ignore_missing_imports = true

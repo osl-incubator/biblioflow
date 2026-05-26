@@ -32,6 +32,14 @@ makim web.frontend.build
 makim web.package.build
 ```
 
+Notebook app checks:
+
+```bash
+makim nb.tests
+makim nb.package.build
+makim nb.examples.check
+```
+
 ## Scope
 
 `biblioflow` is being initialized as a Python-native bibliographic metadata and

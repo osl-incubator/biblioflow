@@ -91,6 +91,54 @@
           },
           {
             "files": [
+              "packages/biblioflow-nb/src/biblioflow_nb/__init__.py"
+            ],
+            "from": "__version__ = \".*\"  # semantic-release",
+            "to": "__version__ = \"${nextRelease.version}\"  # semantic-release",
+            "results": [
+              {
+                "file": "packages/biblioflow-nb/src/biblioflow_nb/__init__.py",
+                "hasChanged": true,
+                "numMatches": 1,
+                "numReplacements": 1
+              }
+            ],
+            "countMatches": true
+          },
+          {
+            "files": [
+              "packages/biblioflow-nb/pyproject.toml"
+            ],
+            "from": "version = \".*\"  # semantic-release",
+            "to": "version = \"${nextRelease.version}\"  # semantic-release",
+            "results": [
+              {
+                "file": "packages/biblioflow-nb/pyproject.toml",
+                "hasChanged": true,
+                "numMatches": 1,
+                "numReplacements": 1
+              }
+            ],
+            "countMatches": true
+          },
+          {
+            "files": [
+              "packages/biblioflow-nb/pyproject.toml"
+            ],
+            "from": "\"biblioflow>=.*\",",
+            "to": "\"biblioflow>=${nextRelease.version}\",",
+            "results": [
+              {
+                "file": "packages/biblioflow-nb/pyproject.toml",
+                "hasChanged": true,
+                "numMatches": 1,
+                "numReplacements": 1
+              }
+            ],
+            "countMatches": true
+          },
+          {
+            "files": [
               "CITATION.cff"
             ],
             "from": "version: \".*\" # semantic-release",
@@ -119,8 +167,8 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "cd packages/biblioflow && poetry build && cd ../biblioflow-web/backend && python scripts/build_frontend.py && poetry build",
-        "publishCmd": "cd packages/biblioflow && poetry publish && cd ../biblioflow-web/backend && poetry publish"
+        "prepareCmd": "cd packages/biblioflow && poetry build && cd ../biblioflow-web/backend && python scripts/build_frontend.py && poetry build && cd ../../biblioflow-nb && poetry build",
+        "publishCmd": "cd packages/biblioflow && poetry publish && cd ../biblioflow-web/backend && poetry publish && cd ../../biblioflow-nb && poetry publish"
       }
     ],
     [
@@ -130,7 +178,9 @@
           "packages/biblioflow/dist/*.whl",
           "packages/biblioflow/dist/*.tar.gz",
           "packages/biblioflow-web/backend/dist/*.whl",
-          "packages/biblioflow-web/backend/dist/*.tar.gz"
+          "packages/biblioflow-web/backend/dist/*.tar.gz",
+          "packages/biblioflow-nb/dist/*.whl",
+          "packages/biblioflow-nb/dist/*.tar.gz"
         ]
       }
     ],
@@ -143,7 +193,9 @@
           "CHANGELOG.md",
           "packages/biblioflow/src/biblioflow/__init__.py",
           "packages/biblioflow-web/backend/src/biblioflow_web_backend/__init__.py",
-          "CITATION.cff"
+          "CITATION.cff",
+          "packages/biblioflow-nb/pyproject.toml",
+          "packages/biblioflow-nb/src/biblioflow_nb/__init__.py"
         ],
         "message": "chore(release): ${nextRelease.version}"
       }

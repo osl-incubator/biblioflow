@@ -124,6 +124,25 @@ makim web.frontend.build
 makim web.package.build
 ```
 
+## Notebook widget application
+
+`packages/biblioflow-nb` contains the Jupyter/Colab widget application published
+as `biblioflow-nb`:
+
+```python
+import biblioflow_nb as bfn
+
+app = bfn.launch()
+```
+
+Useful root Makim tasks:
+
+```bash
+makim nb.tests
+makim nb.package.build
+makim nb.examples.check
+```
+
 ## Project status
 
 The current implementation covers loading, normalization, validation, deduplication, local enrichment, descriptive analysis, matrix/network construction, lightweight thematic helpers, compatibility shims, export, and a CLI.

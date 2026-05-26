@@ -63,11 +63,20 @@ jobs:
           makim web.frontend.tests
           makim web.frontend.build
 
+      - name: Install notebook app dependencies
+        run: python -m pip install ipywidgets IPython
+
+      - name: Run notebook app tests
+        run: makim nb.tests
+
       - name: Build package
         run: makim package.build
 
       - name: Build web package with bundled frontend
         run: makim web.package.build
+
+      - name: Build notebook app package
+        run: makim nb.package.build
 
       - name: Build documentation
         run: makim docs.build

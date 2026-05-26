@@ -8,6 +8,8 @@ groups:
             - task: tests.linter
             - task: tests.unit
             - task: package.build
+            - task: nb.tests
+            - task: nb.package.build
             - task: docs.build
 
   clean:
@@ -34,6 +36,10 @@ groups:
           rm -fr packages/biblioflow-web/backend/.ruff_cache
           rm -fr packages/biblioflow-web/frontend/dist/
           rm -fr packages/biblioflow-web/frontend/node_modules/
+          rm -fr packages/biblioflow-nb/dist/
+          rm -fr packages/biblioflow-nb/.pytest_cache
+          rm -fr packages/biblioflow-nb/.mypy_cache
+          rm -fr packages/biblioflow-nb/.ruff_cache
           find . -name '*.egg-info' -exec rm -fr {} +
           find . -name '*.egg' -exec rm -f {} +
           find . -name '*.pyc' -exec rm -f {} +
@@ -156,6 +162,27 @@ groups:
           cd packages/biblioflow-web/backend
           python scripts/build_frontend.py
           poetry build
+
+  nb:
+    tasks:
+      tests:
+        help: Run biblioflow-nb tests
+        backend: bash
+        run: |
+          cd packages/biblioflow-nb
+          PYTHONPATH=src:../biblioflow/src pytest
+
+      package.build:
+        help: Build the biblioflow-nb package
+        backend: bash
+        run: cd packages/biblioflow-nb && poetry build
+
+      examples.check:
+        help: Validate biblioflow-nb example notebooks are present
+        backend: bash
+        run: |
+          test -f packages/biblioflow-nb/src/biblioflow_nb/examples/quickstart.ipynb
+          test -f packages/biblioflow-nb/src/biblioflow_nb/examples/colab_quickstart.ipynb
 
   release:
     vars:

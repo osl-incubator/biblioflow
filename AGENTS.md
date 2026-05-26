@@ -87,6 +87,9 @@ The repository is organized as a monorepo. The `biblioflow` package lives under 
   React assets copied in during package/release builds
 - `packages/biblioflow-web/frontend/`: private React/Vite source app, not
   published to npm
+- `packages/biblioflow-nb/`: Jupyter/Colab widget application published as
+  `biblioflow-nb`
+- `packages/biblioflow-nb/src/biblioflow_nb/`: notebook app package
 - `docs/`: Quarto documentation website
 
 ## Development commands
@@ -118,9 +121,18 @@ makim web.frontend.build
 makim web.package.build
 ```
 
+Notebook app workflow:
+
+```bash
+makim nb.tests
+makim nb.package.build
+makim nb.examples.check
+```
+
 Keep reusable bibliometric logic in `packages/biblioflow`. The
 `biblioflow-web` backend should orchestrate HTTP/session/storage/static-serving
-concerns, and the frontend should render API responses.
+concerns, the frontend should render API responses, and `biblioflow-nb` should
+only orchestrate notebook widgets and call `biblioflow` APIs.
 
 ## Implementation rules
 
