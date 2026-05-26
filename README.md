@@ -5,45 +5,44 @@
 [![Package Version](https://img.shields.io/pypi/v/biblioflow?color=blue)](https://pypi.org/project/biblioflow/)
 ![License](https://img.shields.io/pypi/l/biblioflow?color=blue)
 
-`biblioflow` is a planned Python-native toolkit for bibliographic metadata,
+`biblioflow` is a Python-native toolkit for bibliographic metadata,
 bibliometrics, science mapping, and literature-review data workflows. The
 project is inspired by the R bibliometrics ecosystem, especially
 [`bibliometrix`](https://www.bibliometrix.org/), while aiming for a Pythonic API
 and dataframe-centric workflows.
 
-This repository is currently a project scaffold. The full implementation will be
-added later. The examples below describe the intended public direction, not a
-complete implemented API yet.
+This repository currently includes an initial MVP implementation of the core
+workflow described in the project plan. Advanced science-mapping features will
+continue to evolve.
 
-## Planned scope
+## Current and planned scope
 
-- File-based ingestion for RIS, BibTeX, CSV/TSV, XML, JSON, NBIB, and related
-  bibliographic exports
-- Provider-aware normalization for Scopus, Web of Science, PubMed, PubMed
-  Central, OpenAlex, Crossref, Lens, Dimensions, Cochrane, and generic exports
+- MVP file-based ingestion for RIS, BibTeX, CSV/TSV, JSON/JSONL, NBIB, and
+  optional YAML; XML and additional provider exports are planned
+- Provider-aware normalization metadata for generic files and common provider
+  names; deeper Scopus, Web of Science, PubMed Central, OpenAlex, Crossref,
+  Lens, Dimensions, and Cochrane mappings are planned
 - A canonical bibliographic dataset object with raw-record traceability
 - Descriptive bibliometric indicators
-- Incidence, co-occurrence, collaboration, co-citation, bibliographic coupling,
-  and direct-citation matrices
-- Network construction, metrics, clustering, and export
+- Incidence and co-occurrence matrices in the MVP; collaboration, co-citation,
+  bibliographic coupling, and direct-citation matrices are planned
+- Network construction, simple node/edge metrics, and export; clustering is planned
 - Thematic mapping, thematic evolution, conceptual structure, and historiography
 - Exports for common tabular and network-analysis workflows
 
 ## Installation
 
-Once published:
-
 ```bash
 pip install biblioflow
 ```
 
-Optional YAML support is planned as:
+Optional YAML support:
 
 ```bash
 pip install "biblioflow[yaml]"
 ```
 
-## Intended Python API
+## Python API
 
 ```python
 import biblioflow as bf
@@ -73,9 +72,9 @@ The main namespace should use Pythonic names such as `load()`, `analyze()`,
 and `export()`. Compatibility helpers for Bibliometrix-style names, if added,
 should live outside the main namespace under `biblioflow.compat`.
 
-## Intended CLI
+## CLI
 
-The command name is planned to be `biblioflow`:
+The command name is `biblioflow`:
 
 ```bash
 biblioflow --help
@@ -104,4 +103,4 @@ makim all.ci
 
 ## Project status
 
-Core package functionality will be implemented in future changes.
+The current implementation covers loading, normalization, descriptive analysis, matrix/network construction, lightweight thematic helpers, export, and a small CLI.

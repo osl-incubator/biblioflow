@@ -1,0 +1,18 @@
+[
+  {
+    "title": "Open science and reproducible bibliometrics",
+    "authors": "Smith, Jane; Doe, John",
+    "year": "2024",
+    "journal": "Journal of Open Research",
+    "doi": "https://doi.org/10.1000/os1",
+    "keywords": "open science; bibliometrics; reproducibility"
+  },
+  {
+    "title": "Artificial intelligence in medicine",
+    "authors": "Doe, John; Chen, Li",
+    "year": 2025,
+    "journal": "Medical AI Review",
+    "doi": "10.1000/ai1",
+    "keywords": "artificial intelligence; medicine; bibliometrics"
+  }
+]

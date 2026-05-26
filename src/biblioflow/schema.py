@@ -1,0 +1,57 @@
+"""Canonical bibliographic schema definitions."""
+
+CANONICAL_FIELDS: tuple[str, ...] = (
+    "source_id",
+    "title",
+    "abstract",
+    "authors",
+    "source_title",
+    "publication_year",
+    "doi",
+    "url",
+    "keywords_author",
+    "keywords_index",
+    "keywords_all",
+    "references",
+    "document_type",
+    "language",
+    "volume",
+    "issue",
+    "start_page",
+    "end_page",
+    "pages",
+    "issn",
+    "isbn",
+    "publisher",
+    "provider",
+    "source_format",
+)
+
+BIBLIOMETRIX_FIELD_MAP: dict[str, str] = {
+    "authors": "AU",
+    "title": "TI",
+    "source_title": "SO",
+    "publication_year": "PY",
+    "doi": "DI",
+    "keywords_author": "DE",
+    "keywords_index": "ID",
+    "abstract": "AB",
+    "document_type": "DT",
+    "language": "LA",
+    "references": "CR",
+    "url": "URL",
+}
+
+FORMAT_EXTENSIONS: dict[str, str] = {
+    ".ris": "ris",
+    ".bib": "bibtex",
+    ".bibtex": "bibtex",
+    ".csv": "csv",
+    ".tsv": "tsv",
+    ".json": "json",
+    ".jsonl": "jsonl",
+    ".nbib": "nbib",
+    ".xml": "xml",
+    ".yaml": "yaml",
+    ".yml": "yaml",
+}
