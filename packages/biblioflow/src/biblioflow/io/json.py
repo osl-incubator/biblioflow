@@ -1,4 +1,6 @@
-"""JSON readers."""
+"""
+title: JSON readers.
+"""
 
 from __future__ import annotations
 
@@ -8,10 +10,18 @@ from typing import Any
 
 
 def read_json_records(path: str | Path) -> list[dict[str, Any]]:
-    """Read bibliographic records from JSON.
-
-    Supported shapes are a top-level list of records, or an object containing a
-    `records`, `data`, `items`, or `results` list.
+    """
+    title: Read bibliographic records from JSON.
+    summary: |-
+      Supported shapes are a top-level list of records, or an object
+      containing a
+      `records`, `data`, `items`, or `results` list.
+    parameters:
+      path:
+        type: str | Path
+        description: Path value.
+    returns:
+      type: list[dict[str, Any]]
     """
     obj = json.loads(Path(path).read_text(encoding="utf-8"))
     if isinstance(obj, list):
@@ -41,7 +51,15 @@ def read_json_records(path: str | Path) -> list[dict[str, Any]]:
 
 
 def read_jsonl_records(path: str | Path) -> list[dict[str, Any]]:
-    """Read newline-delimited JSON records."""
+    """
+    title: Read newline-delimited JSON records.
+    parameters:
+      path:
+        type: str | Path
+        description: Path value.
+    returns:
+      type: list[dict[str, Any]]
+    """
     records: list[dict[str, Any]] = []
     for line in Path(path).read_text(encoding="utf-8").splitlines():
         if not line.strip():

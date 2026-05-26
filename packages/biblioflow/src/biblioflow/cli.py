@@ -1,4 +1,6 @@
-"""Command-line interface for biblioflow."""
+"""
+title: Command-line interface for biblioflow.
+"""
 
 from __future__ import annotations
 
@@ -17,12 +19,28 @@ from biblioflow.normalize.deduplicate import deduplicate
 
 
 def _add_load_options(parser: argparse.ArgumentParser) -> None:
+    """
+    title: Add load options.
+    parameters:
+      parser:
+        type: argparse.ArgumentParser
+        description: Parser value.
+    """
     parser.add_argument("input", help="Input bibliographic file")
     parser.add_argument("--provider", default="auto", help="Semantic provider")
     parser.add_argument("--format", default="auto", help="Input format")
 
 
 def _cmd_convert(args: argparse.Namespace) -> int:
+    """
+    title: Run the convert command.
+    parameters:
+      args:
+        type: argparse.Namespace
+        description: Parsed command arguments.
+    returns:
+      type: int
+    """
     dataset = load(args.input, provider=args.provider, format=args.format)
     if args.deduplicate:
         dataset = deduplicate(dataset)
@@ -31,6 +49,15 @@ def _cmd_convert(args: argparse.Namespace) -> int:
 
 
 def _cmd_validate(args: argparse.Namespace) -> int:
+    """
+    title: Run the validate command.
+    parameters:
+      args:
+        type: argparse.Namespace
+        description: Parsed command arguments.
+    returns:
+      type: int
+    """
     dataset = load(args.input, provider=args.provider, format=args.format)
     payload = {
         "records": len(dataset),
@@ -43,6 +70,15 @@ def _cmd_validate(args: argparse.Namespace) -> int:
 
 
 def _cmd_analyze(args: argparse.Namespace) -> int:
+    """
+    title: Run the analyze command.
+    parameters:
+      args:
+        type: argparse.Namespace
+        description: Parsed command arguments.
+    returns:
+      type: int
+    """
     dataset = load(args.input, provider=args.provider, format=args.format)
     if args.deduplicate:
         dataset = deduplicate(dataset)
@@ -56,6 +92,15 @@ def _cmd_analyze(args: argparse.Namespace) -> int:
 
 
 def _cmd_network(args: argparse.Namespace) -> int:
+    """
+    title: Run the network command.
+    parameters:
+      args:
+        type: argparse.Namespace
+        description: Parsed command arguments.
+    returns:
+      type: int
+    """
     dataset = load(args.input, provider=args.provider, format=args.format)
     if args.deduplicate:
         dataset = deduplicate(dataset)
@@ -71,6 +116,15 @@ def _cmd_network(args: argparse.Namespace) -> int:
 
 
 def _cmd_matrix(args: argparse.Namespace) -> int:
+    """
+    title: Run the matrix command.
+    parameters:
+      args:
+        type: argparse.Namespace
+        description: Parsed command arguments.
+    returns:
+      type: int
+    """
     dataset = load(args.input, provider=args.provider, format=args.format)
     mat = matrix(
         dataset,
@@ -84,7 +138,11 @@ def _cmd_matrix(args: argparse.Namespace) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    """Build the command-line parser."""
+    """
+    title: Build the command-line parser.
+    returns:
+      type: argparse.ArgumentParser
+    """
     parser = argparse.ArgumentParser(prog="biblioflow")
     parser.add_argument(
         "--version", action="version", version=f"biblioflow {__version__}"
@@ -138,7 +196,15 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    """Run the biblioflow command-line interface."""
+    """
+    title: Run the biblioflow command-line interface.
+    parameters:
+      argv:
+        type: Sequence[str] | None
+        description: Command-line argument list.
+    returns:
+      type: int
+    """
     parser = build_parser()
     args = parser.parse_args(argv)
     if not hasattr(args, "func"):

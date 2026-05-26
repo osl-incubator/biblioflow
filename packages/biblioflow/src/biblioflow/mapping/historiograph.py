@@ -1,4 +1,6 @@
-"""Lightweight historiograph helpers."""
+"""
+title: Lightweight historiograph helpers.
+"""
 
 from __future__ import annotations
 
@@ -13,14 +15,31 @@ from biblioflow.networks import NetworkResult
 
 @dataclass
 class Historiograph:
-    """A simple citation-like graph built from DOI/reference overlap."""
+    """
+    title: A simple citation-like graph built from DOI/reference overlap.
+    attributes:
+      network:
+        type: NetworkResult
+        description: Network attribute.
+      metadata:
+        type: dict[str, Any]
+        description: Metadata attribute.
+    """
 
     network: NetworkResult
     metadata: dict[str, Any]
 
 
 def historiograph(records: BibliographicDataset | Any) -> Historiograph:
-    """Build a lightweight historiograph from canonical records."""
+    """
+    title: Build a lightweight historiograph from canonical records.
+    parameters:
+      records:
+        type: BibliographicDataset | Any
+        description: Records value.
+    returns:
+      type: Historiograph
+    """
     dataset = (
         load(records) if not isinstance(records, BibliographicDataset) else records
     )

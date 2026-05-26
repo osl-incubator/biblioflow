@@ -1,4 +1,6 @@
-"""Canonical bibliographic schema definitions."""
+"""
+title: Canonical bibliographic schema definitions.
+"""
 
 CANONICAL_FIELDS: tuple[str, ...] = (
     "source_id",

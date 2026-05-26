@@ -1,4 +1,6 @@
-"""Validation helpers for normalized bibliographic records."""
+"""
+title: Validation helpers for normalized bibliographic records.
+"""
 
 from __future__ import annotations
 
@@ -9,7 +11,15 @@ from biblioflow.core.warnings import LoadWarning
 
 
 def validate_records(records: list[dict[str, Any]]) -> list[LoadWarning]:
-    """Return structured warnings for common bibliographic quality issues."""
+    """
+    title: Return structured warnings for common bibliographic quality issues.
+    parameters:
+      records:
+        type: list[dict[str, Any]]
+        description: Records value.
+    returns:
+      type: list[LoadWarning]
+    """
     warnings: list[LoadWarning] = []
     missing_title = sum(1 for record in records if not record.get("title"))
     missing_doi = sum(1 for record in records if not record.get("doi"))

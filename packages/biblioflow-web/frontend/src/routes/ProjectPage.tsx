@@ -19,7 +19,10 @@ export function ProjectPage() {
         <form onSubmit={onSubmit} className="inline-form">
           <label>
             Project name
-            <input value={name} onChange={(event) => setName(event.target.value)} />
+            <input
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+            />
           </label>
           <button type="submit" disabled={createProject.isPending}>
             Create project

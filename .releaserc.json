@@ -1,7 +1,5 @@
 {
-  "branches": [
-    "main"
-  ],
+  "branches": ["main"],
   "tagFormat": "${version}",
   "plugins": [
     "@semantic-release/commit-analyzer",
@@ -10,9 +8,7 @@
       {
         "replacements": [
           {
-            "files": [
-              "packages/biblioflow/src/biblioflow/__init__.py"
-            ],
+            "files": ["packages/biblioflow/src/biblioflow/__init__.py"],
             "from": "__version__ = \".*\"  # semantic-release",
             "to": "__version__ = \"${nextRelease.version}\"  # semantic-release",
             "results": [
@@ -26,9 +22,7 @@
             "countMatches": true
           },
           {
-            "files": [
-              "packages/biblioflow/pyproject.toml"
-            ],
+            "files": ["packages/biblioflow/pyproject.toml"],
             "from": "version = \".*\"  # semantic-release",
             "to": "version = \"${nextRelease.version}\"  # semantic-release",
             "results": [
@@ -74,9 +68,7 @@
             "countMatches": true
           },
           {
-            "files": [
-              "packages/biblioflow-web/backend/pyproject.toml"
-            ],
+            "files": ["packages/biblioflow-web/backend/pyproject.toml"],
             "from": "version = \".*\"  # semantic-release",
             "to": "version = \"${nextRelease.version}\"  # semantic-release",
             "results": [
@@ -90,9 +82,7 @@
             "countMatches": true
           },
           {
-            "files": [
-              "packages/biblioflow-web/backend/pyproject.toml"
-            ],
+            "files": ["packages/biblioflow-web/backend/pyproject.toml"],
             "from": "\"biblioflow>=.*\",",
             "to": "\"biblioflow>=${nextRelease.version}\",",
             "results": [
@@ -106,9 +96,7 @@
             "countMatches": true
           },
           {
-            "files": [
-              "packages/biblioflow-nb/src/biblioflow_nb/__init__.py"
-            ],
+            "files": ["packages/biblioflow-nb/src/biblioflow_nb/__init__.py"],
             "from": "__version__ = \".*\"  # semantic-release",
             "to": "__version__ = \"${nextRelease.version}\"  # semantic-release",
             "results": [
@@ -122,9 +110,7 @@
             "countMatches": true
           },
           {
-            "files": [
-              "packages/biblioflow-nb/pyproject.toml"
-            ],
+            "files": ["packages/biblioflow-nb/pyproject.toml"],
             "from": "version = \".*\"  # semantic-release",
             "to": "version = \"${nextRelease.version}\"  # semantic-release",
             "results": [
@@ -138,9 +124,7 @@
             "countMatches": true
           },
           {
-            "files": [
-              "packages/biblioflow-nb/pyproject.toml"
-            ],
+            "files": ["packages/biblioflow-nb/pyproject.toml"],
             "from": "\"biblioflow>=.*\",",
             "to": "\"biblioflow>=${nextRelease.version}\",",
             "results": [
@@ -154,9 +138,7 @@
             "countMatches": true
           },
           {
-            "files": [
-              "CITATION.cff"
-            ],
+            "files": ["CITATION.cff"],
             "from": "version: \".*\" # semantic-release",
             "to": "version: \"${nextRelease.version}\" # semantic-release",
             "results": [

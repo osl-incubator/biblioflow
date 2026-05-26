@@ -1,4 +1,6 @@
-"""Bibliometric matrix construction."""
+"""
+title: Bibliometric matrix construction.
+"""
 
 from __future__ import annotations
 
@@ -14,7 +16,22 @@ from biblioflow.load.dispatcher import load
 
 @dataclass
 class MatrixResult:
-    """A bibliometric matrix and its metadata."""
+    """
+    title: A bibliometric matrix and its metadata.
+    attributes:
+      table:
+        type: Any
+        description: Table attribute.
+      kind:
+        type: str
+        description: Kind attribute.
+      unit:
+        type: str
+        description: Unit attribute.
+      metadata:
+        type: dict[str, Any]
+        description: Metadata attribute.
+    """
 
     table: Any
     kind: str
@@ -22,11 +39,24 @@ class MatrixResult:
     metadata: dict[str, Any]
 
     def to_dataframe(self) -> Any:
-        """Return the underlying table."""
+        """
+        title: Return the underlying table.
+        returns:
+          type: Any
+        """
         return self.table.copy()
 
 
 def _terms(value: Any) -> list[str]:
+    """
+    title: Implement the terms helper.
+    parameters:
+      value:
+        type: Any
+        description: Value value.
+    returns:
+      type: list[str]
+    """
     if isinstance(value, list):
         return sorted({str(item).strip() for item in value if str(item).strip()})
     if value is None:
@@ -36,6 +66,18 @@ def _terms(value: Any) -> list[str]:
 
 
 def _doc_id(row: dict[str, Any], index: int) -> str:
+    """
+    title: Implement the doc id helper.
+    parameters:
+      row:
+        type: dict[str, Any]
+        description: Row value.
+      index:
+        type: int
+        description: Index value.
+    returns:
+      type: str
+    """
     return str(row.get("doi") or row.get("source_id") or row.get("title") or index)
 
 
@@ -47,6 +89,27 @@ def _co_occurrence_matrix(
     normalize: str | None,
     min_occurrences: int,
 ) -> MatrixResult:
+    """
+    title: Implement the co occurrence matrix helper.
+    parameters:
+      rows:
+        type: list[dict[str, Any]]
+        description: Rows value.
+      kind:
+        type: str
+        description: Kind value.
+      unit:
+        type: str
+        description: Unit value.
+      normalize:
+        type: str | None
+        description: Normalize value.
+      min_occurrences:
+        type: int
+        description: Min occurrences value.
+    returns:
+      type: MatrixResult
+    """
     docs_terms = [_terms(row.get(unit)) for row in rows]
     occurrences = Counter(term for terms in docs_terms for term in set(terms))
     vocabulary = sorted(
@@ -97,6 +160,18 @@ def _co_occurrence_matrix(
 def _bibliographic_coupling(
     rows: list[dict[str, Any]], *, min_occurrences: int
 ) -> MatrixResult:
+    """
+    title: Implement the bibliographic coupling helper.
+    parameters:
+      rows:
+        type: list[dict[str, Any]]
+        description: Rows value.
+      min_occurrences:
+        type: int
+        description: Min occurrences value.
+    returns:
+      type: MatrixResult
+    """
     labels = [_doc_id(row, index) for index, row in enumerate(rows)]
     doc_refs = [set(_terms(row.get("references"))) for row in rows]
     table = MatrixFrame(labels)
@@ -116,6 +191,15 @@ def _bibliographic_coupling(
 
 
 def _direct_citation(rows: list[dict[str, Any]]) -> MatrixResult:
+    """
+    title: Implement the direct citation helper.
+    parameters:
+      rows:
+        type: list[dict[str, Any]]
+        description: Rows value.
+    returns:
+      type: MatrixResult
+    """
     labels = [_doc_id(row, index) for index, row in enumerate(rows)]
     identifiers: list[tuple[str, str | None, str | None]] = []
     for index, row in enumerate(rows):
@@ -149,10 +233,29 @@ def matrix(
     normalize: str | None = None,
     min_occurrences: int = 1,
 ) -> MatrixResult:
-    """Build a bibliometric matrix.
-
-    Supported kinds are `incidence`, `co_occurrence`, `collaboration`,
-    `co_citation`, `bibliographic_coupling`, and `direct_citation`.
+    """
+    title: Build a bibliometric matrix.
+    summary: |-
+      Supported kinds are `incidence`, `co_occurrence`, `collaboration`,
+      `co_citation`, `bibliographic_coupling`, and `direct_citation`.
+    parameters:
+      records:
+        type: BibliographicDataset | Any
+        description: Records value.
+      kind:
+        type: str
+        description: Kind value.
+      unit:
+        type: str
+        description: Unit value.
+      normalize:
+        type: str | None
+        description: Normalize value.
+      min_occurrences:
+        type: int
+        description: Min occurrences value.
+    returns:
+      type: MatrixResult
     """
     dataset = (
         load(records) if not isinstance(records, BibliographicDataset) else records

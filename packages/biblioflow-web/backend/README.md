@@ -2,9 +2,9 @@
 
 FastAPI backend for the `biblioflow-web` application.
 
-This directory is an individual Python package published as `biblioflow-web`.
-It serves `/api/*` routes and, in production, serves the built React frontend
-from `src/biblioflow_web_backend/static/`.
+This directory is an individual Python package published as `biblioflow-web`. It
+serves `/api/*` routes and, in production, serves the built React frontend from
+`src/biblioflow_web_backend/static/`.
 
 ## Development
 

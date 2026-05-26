@@ -1,4 +1,6 @@
-"""Network construction from bibliometric matrices."""
+"""
+title: Network construction from bibliometric matrices.
+"""
 
 from __future__ import annotations
 
@@ -12,14 +14,30 @@ from biblioflow.matrices.build import MatrixResult, matrix
 
 @dataclass
 class NetworkResult:
-    """A simple node/edge representation of a bibliometric network."""
+    """
+    title: A simple node/edge representation of a bibliometric network.
+    attributes:
+      nodes:
+        type: Any
+        description: Nodes attribute.
+      edges:
+        type: Any
+        description: Edges attribute.
+      metadata:
+        type: dict[str, Any]
+        description: Metadata attribute.
+    """
 
     nodes: Any
     edges: Any
     metadata: dict[str, Any]
 
     def to_dict(self) -> dict[str, Any]:
-        """Return nodes, edges, and metadata as dictionaries."""
+        """
+        title: Return nodes, edges, and metadata as dictionaries.
+        returns:
+          type: dict[str, Any]
+        """
         return {
             "nodes": self.nodes.to_dict(orient="records"),
             "edges": self.edges.to_dict(orient="records"),
@@ -27,20 +45,56 @@ class NetworkResult:
         }
 
     def export(self, path: str | Path, *, format: str | None = None) -> None:
-        """Export this network using biblioflow.export.export."""
+        """
+        title: Export this network using biblioflow.export.export.
+        parameters:
+          path:
+            type: str | Path
+            description: Path value.
+          format:
+            type: str | None
+            description: Format value.
+        """
         from biblioflow.export import export
 
         export(self, path, format=format)
 
 
 def _matrix_value(table: Any, row: str, column: str) -> float:
+    """
+    title: Implement the matrix value helper.
+    parameters:
+      table:
+        type: Any
+        description: Table value.
+      row:
+        type: str
+        description: Row value.
+      column:
+        type: str
+        description: Column value.
+    returns:
+      type: float
+    """
     if isinstance(table, MatrixFrame):
         return table.get(row, column)
     return float(table.loc[row, column])
 
 
 def network(records: Any, **kwargs: Any) -> NetworkResult:
-    """Build a node/edge network from records or a MatrixResult."""
+    """
+    title: Build a node/edge network from records or a MatrixResult.
+    parameters:
+      records:
+        type: Any
+        description: Records value.
+      kwargs:
+        type: Any
+        description: Additional keyword arguments.
+        variadic: keyword
+    returns:
+      type: NetworkResult
+    """
     mat = records if isinstance(records, MatrixResult) else matrix(records, **kwargs)
     table = mat.table
     labels = list(table.index) if hasattr(table, "index") else []

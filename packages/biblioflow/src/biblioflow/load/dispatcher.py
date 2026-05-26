@@ -1,4 +1,6 @@
-"""Main loading dispatcher."""
+"""
+title: Main loading dispatcher.
+"""
 
 from __future__ import annotations
 
@@ -24,6 +26,18 @@ from biblioflow.validation import validate_records
 
 
 def _read_records(path: Path, fmt: str) -> list[dict[str, Any]]:
+    """
+    title: Implement the read records helper.
+    parameters:
+      path:
+        type: Path
+        description: Path value.
+      fmt:
+        type: str
+        description: Fmt value.
+    returns:
+      type: list[dict[str, Any]]
+    """
     if fmt == "json":
         return read_json_records(path)
     if fmt == "jsonl":
@@ -57,11 +71,42 @@ def load(
     schema: str = "canonical",
     **_: Any,
 ) -> BibliographicDataset | Any:
-    """Load bibliographic records into a :class:`BibliographicDataset`.
-
-    The current implementation supports local files and in-memory record lists.
-    API query connectors are intentionally not implemented yet; pass a file path
-    or a list of dictionaries for now.
+    """
+    title: Load bibliographic records into a :class:`BibliographicDataset`.
+    summary: |-
+      The current implementation supports local files and in-memory record
+      lists.
+      API query connectors are intentionally not implemented yet; pass a
+      file path
+      or a list of dictionaries for now.
+    parameters:
+      source:
+        type: str | Path | list[dict[str, Any]] | BibliographicDataset
+        description: Source value.
+      provider:
+        type: str
+        description: Provider value.
+      format:
+        type: str
+        description: Format value.
+      keep_raw:
+        type: bool
+        description: Keep raw value.
+      strict:
+        type: bool
+        description: Strict value.
+      as_dataframe:
+        type: bool
+        description: As dataframe value.
+      schema:
+        type: str
+        description: Schema value.
+      _:
+        type: Any
+        description: Additional keyword arguments.
+        variadic: keyword
+    returns:
+      type: BibliographicDataset | Any
     """
     if isinstance(source, BibliographicDataset):
         return source.to_dataframe(schema=schema) if as_dataframe else source

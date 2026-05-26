@@ -145,4 +145,7 @@ makim nb.examples.check
 
 ## Project status
 
-The current implementation covers loading, normalization, validation, deduplication, local enrichment, descriptive analysis, matrix/network construction, lightweight thematic helpers, compatibility shims, export, and a CLI.
+The current implementation covers loading, normalization, validation,
+deduplication, local enrichment, descriptive analysis, matrix/network
+construction, lightweight thematic helpers, compatibility shims, export, and a
+CLI.

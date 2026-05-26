@@ -62,27 +62,35 @@ Preferred parser/connector direction from the project plan:
 
 ## Repository layout
 
-The repository is organized as a monorepo. The `biblioflow` package lives under `packages/biblioflow`:
+The repository is organized as a monorepo. The `biblioflow` package lives under
+`packages/biblioflow`:
 
 - `packages/biblioflow/src/biblioflow/`: Python package
-- `packages/biblioflow/src/biblioflow/core/`: dataset, schema, warnings, exceptions, typing
-- `packages/biblioflow/src/biblioflow/load/`: dispatcher, inference, registry, load results
+- `packages/biblioflow/src/biblioflow/core/`: dataset, schema, warnings,
+  exceptions, typing
+- `packages/biblioflow/src/biblioflow/load/`: dispatcher, inference, registry,
+  load results
 - `packages/biblioflow/src/biblioflow/io/`: format readers/writers
 - `packages/biblioflow/src/biblioflow/providers/`: source-specific normalization
-- `packages/biblioflow/src/biblioflow/connectors/`: optional API connector adapters
-- `packages/biblioflow/src/biblioflow/normalize/`: field, author, affiliation, keyword, reference,
-  identifier, and deduplication helpers
-- `packages/biblioflow/src/biblioflow/analysis/`: descriptive bibliometric indicators
-- `packages/biblioflow/src/biblioflow/matrices/`: incidence, co-occurrence, collaboration,
-  co-citation, coupling, and citation matrices
-- `packages/biblioflow/src/biblioflow/networks/`: graph construction, metrics, clustering, export
-- `packages/biblioflow/src/biblioflow/mapping/`: thematic maps, thematic evolution, conceptual
-  structure, historiography
+- `packages/biblioflow/src/biblioflow/connectors/`: optional API connector
+  adapters
+- `packages/biblioflow/src/biblioflow/normalize/`: field, author, affiliation,
+  keyword, reference, identifier, and deduplication helpers
+- `packages/biblioflow/src/biblioflow/analysis/`: descriptive bibliometric
+  indicators
+- `packages/biblioflow/src/biblioflow/matrices/`: incidence, co-occurrence,
+  collaboration, co-citation, coupling, and citation matrices
+- `packages/biblioflow/src/biblioflow/networks/`: graph construction, metrics,
+  clustering, export
+- `packages/biblioflow/src/biblioflow/mapping/`: thematic maps, thematic
+  evolution, conceptual structure, historiography
 - `packages/biblioflow/src/biblioflow/export/`: tabular and network exports
-- `packages/biblioflow/src/biblioflow/compat/`: optional Bibliometrix-style compatibility helpers
+- `packages/biblioflow/src/biblioflow/compat/`: optional Bibliometrix-style
+  compatibility helpers
 - `packages/biblioflow/examples/`: runnable example inputs/scripts
 - `packages/biblioflow/tests/`: pytest coverage
-- `packages/biblioflow-web/backend/`: FastAPI package published as `biblioflow-web`
+- `packages/biblioflow-web/backend/`: FastAPI package published as
+  `biblioflow-web`
 - `packages/biblioflow-web/backend/src/biblioflow_web_backend/static/`: built
   React assets copied in during package/release builds
 - `packages/biblioflow-web/frontend/`: private React/Vite source app, not
@@ -129,10 +137,10 @@ makim nb.package.build
 makim nb.examples.check
 ```
 
-Keep reusable bibliometric logic in `packages/biblioflow`. The
-`biblioflow-web` backend should orchestrate HTTP/session/storage/static-serving
-concerns, the frontend should render API responses, and `biblioflow-nb` should
-only orchestrate notebook widgets and call `biblioflow` APIs.
+Keep reusable bibliometric logic in `packages/biblioflow`. The `biblioflow-web`
+backend should orchestrate HTTP/session/storage/static-serving concerns, the
+frontend should render API responses, and `biblioflow-nb` should only
+orchestrate notebook widgets and call `biblioflow` APIs.
 
 ## Implementation rules
 
@@ -142,6 +150,6 @@ only orchestrate notebook widgets and call `biblioflow` APIs.
 3. Preserve a Pythonic main namespace; put Bibliometrix compatibility aliases in
    `biblioflow.compat` only.
 4. Do not introduce hyphenated aliases for the package, import, or CLI.
-5. When the project plan and current scaffold differ, prefer the project plan for
-   naming and architecture, but do not invent full implementation code unless
-   explicitly requested.
+5. When the project plan and current scaffold differ, prefer the project plan
+   for naming and architecture, but do not invent full implementation code
+   unless explicitly requested.

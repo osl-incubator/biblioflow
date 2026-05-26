@@ -1,4 +1,6 @@
-"""Small BibTeX reader for common bibliographic exports."""
+"""
+title: Small BibTeX reader for common bibliographic exports.
+"""
 
 from __future__ import annotations
 
@@ -27,6 +29,15 @@ _FIELD_MAP = {
 
 
 def _balanced_entries(text: str) -> list[tuple[str, str, str]]:
+    """
+    title: Implement the balanced entries helper.
+    parameters:
+      text:
+        type: str
+        description: Text value.
+    returns:
+      type: list[tuple[str, str, str]]
+    """
     entries: list[tuple[str, str, str]] = []
     i = 0
     while True:
@@ -55,6 +66,15 @@ def _balanced_entries(text: str) -> list[tuple[str, str, str]]:
 
 
 def _parse_fields(body: str) -> dict[str, str]:
+    """
+    title: Implement the parse fields helper.
+    parameters:
+      body:
+        type: str
+        description: Body value.
+    returns:
+      type: dict[str, str]
+    """
     fields: dict[str, str] = {}
     i = 0
     while i < len(body):
@@ -107,7 +127,15 @@ def _parse_fields(body: str) -> dict[str, str]:
 
 
 def read_bibtex_records(path: str | Path) -> list[dict[str, Any]]:
-    """Read common BibTeX records."""
+    """
+    title: Read common BibTeX records.
+    parameters:
+      path:
+        type: str | Path
+        description: Path value.
+    returns:
+      type: list[dict[str, Any]]
+    """
     text = Path(path).read_text(encoding="utf-8-sig")
     records: list[dict[str, Any]] = []
     for entry_type, key, body in _balanced_entries(text):

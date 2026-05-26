@@ -23,4 +23,5 @@ or set `VITE_BIBLIOFLOW_WEB_API_BASE_URL`.
 npm run build
 ```
 
-The build output is written to `dist/` and consumed by the backend package build.
+The build output is written to `dist/` and consumed by the backend package
+build.

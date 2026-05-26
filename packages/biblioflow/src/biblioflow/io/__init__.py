@@ -1,4 +1,6 @@
-"""Input/output helpers."""
+"""
+title: Input/output helpers.
+"""
 
 from biblioflow.io.bibtex import read_bibtex_records
 from biblioflow.io.csv import read_csv_records

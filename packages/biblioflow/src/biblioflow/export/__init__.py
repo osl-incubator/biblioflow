@@ -1,4 +1,6 @@
-"""Export entry points."""
+"""
+title: Export entry points.
+"""
 
 from biblioflow.export.writers import export
 

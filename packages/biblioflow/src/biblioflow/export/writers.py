@@ -1,4 +1,6 @@
-"""Export helpers."""
+"""
+title: Export helpers.
+"""
 
 from __future__ import annotations
 
@@ -13,6 +15,18 @@ from biblioflow.networks import NetworkResult
 
 
 def _infer_format(path: Path, explicit: str | None) -> str:
+    """
+    title: Implement the infer format helper.
+    parameters:
+      path:
+        type: Path
+        description: Path value.
+      explicit:
+        type: str | None
+        description: Explicit value.
+    returns:
+      type: str
+    """
     if explicit:
         return explicit
     suffix = path.suffix.lower().lstrip(".")
@@ -20,6 +34,16 @@ def _infer_format(path: Path, explicit: str | None) -> str:
 
 
 def _write_graphml(network: NetworkResult, path: Path) -> None:
+    """
+    title: Implement the write graphml helper.
+    parameters:
+      network:
+        type: NetworkResult
+        description: Network value.
+      path:
+        type: Path
+        description: Path value.
+    """
     lines = [
         '<?xml version="1.0" encoding="UTF-8"?>',
         '<graphml xmlns="http://graphml.graphdrawing.org/xmlns">',
@@ -53,6 +77,16 @@ def _write_graphml(network: NetworkResult, path: Path) -> None:
 
 
 def _write_gexf(network: NetworkResult, path: Path) -> None:
+    """
+    title: Implement the write gexf helper.
+    parameters:
+      network:
+        type: NetworkResult
+        description: Network value.
+      path:
+        type: Path
+        description: Path value.
+    """
     lines = [
         '<?xml version="1.0" encoding="UTF-8"?>',
         '<gexf xmlns="http://www.gexf.net/1.2draft" version="1.2">',
@@ -77,6 +111,16 @@ def _write_gexf(network: NetworkResult, path: Path) -> None:
 
 
 def _write_pajek(network: NetworkResult, path: Path) -> None:
+    """
+    title: Implement the write pajek helper.
+    parameters:
+      network:
+        type: NetworkResult
+        description: Network value.
+      path:
+        type: Path
+        description: Path value.
+    """
     nodes = network.nodes.to_dict(orient="records")
     edges = network.edges.to_dict(orient="records")
     ids = {str(node["id"]): index + 1 for index, node in enumerate(nodes)}
@@ -94,6 +138,16 @@ def _write_pajek(network: NetworkResult, path: Path) -> None:
 
 
 def _write_vosviewer(network: NetworkResult, path: Path) -> None:
+    """
+    title: Implement the write vosviewer helper.
+    parameters:
+      network:
+        type: NetworkResult
+        description: Network value.
+      path:
+        type: Path
+        description: Path value.
+    """
     lines = ["source\ttarget\tweight"]
     for edge in network.edges.to_dict(orient="records"):
         lines.append(f"{edge['source']}\t{edge['target']}\t{edge['weight']}")
@@ -101,7 +155,19 @@ def _write_vosviewer(network: NetworkResult, path: Path) -> None:
 
 
 def export(obj: Any, path: str | Path, *, format: str | None = None) -> None:
-    """Export a dataset, matrix, network, DataFrame, or JSON-like object."""
+    """
+    title: Export a dataset, matrix, network, DataFrame, or JSON-like object.
+    parameters:
+      obj:
+        type: Any
+        description: Obj value.
+      path:
+        type: str | Path
+        description: Path value.
+      format:
+        type: str | None
+        description: Format value.
+    """
     output = Path(path)
     fmt = _infer_format(output, format)
 

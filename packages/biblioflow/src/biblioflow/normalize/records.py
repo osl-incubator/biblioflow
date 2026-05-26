@@ -1,4 +1,6 @@
-"""Record normalization helpers."""
+"""
+title: Record normalization helpers.
+"""
 
 from __future__ import annotations
 
@@ -56,16 +58,43 @@ _LIST_FIELDS = {
 
 
 def _canonical_key(key: str) -> str:
+    """
+    title: Implement the canonical key helper.
+    parameters:
+      key:
+        type: str
+        description: Key value.
+    returns:
+      type: str
+    """
     return re.sub(r"[^a-z0-9]+", "_", key.strip().lower()).strip("_")
 
 
 def _first_value(value: Any) -> Any:
+    """
+    title: Implement the first value helper.
+    parameters:
+      value:
+        type: Any
+        description: Value value.
+    returns:
+      type: Any
+    """
     if isinstance(value, list):
         return value[0] if value else None
     return value
 
 
 def _string_or_none(value: Any) -> str | None:
+    """
+    title: Implement the string or none helper.
+    parameters:
+      value:
+        type: Any
+        description: Value value.
+    returns:
+      type: str | None
+    """
     value = _first_value(value)
     if value is None:
         return None
@@ -74,6 +103,15 @@ def _string_or_none(value: Any) -> str | None:
 
 
 def _as_list(value: Any) -> list[str]:
+    """
+    title: Implement the as list helper.
+    parameters:
+      value:
+        type: Any
+        description: Value value.
+    returns:
+      type: list[str]
+    """
     if value is None:
         return []
     if isinstance(value, list | tuple | set):
@@ -93,6 +131,15 @@ def _as_list(value: Any) -> list[str]:
 
 
 def _dedupe(values: Any) -> list[str]:
+    """
+    title: Implement the dedupe helper.
+    parameters:
+      values:
+        type: Any
+        description: Values value.
+    returns:
+      type: list[str]
+    """
     seen: set[str] = set()
     output: list[str] = []
     for value in values:
@@ -108,7 +155,15 @@ def _dedupe(values: Any) -> list[str]:
 
 
 def normalize_doi(value: Any) -> str | None:
-    """Normalize a DOI string."""
+    """
+    title: Normalize a DOI string.
+    parameters:
+      value:
+        type: Any
+        description: Value value.
+    returns:
+      type: str | None
+    """
     text = _string_or_none(value)
     if text is None:
         return None
@@ -118,7 +173,15 @@ def normalize_doi(value: Any) -> str | None:
 
 
 def parse_year(value: Any) -> int | None:
-    """Extract a plausible publication year from a value."""
+    """
+    title: Extract a plausible publication year from a value.
+    parameters:
+      value:
+        type: Any
+        description: Value value.
+    returns:
+      type: int | None
+    """
     text = _string_or_none(value)
     if not text:
         return None
@@ -135,7 +198,21 @@ def normalize_record(
     provider: str = "generic",
     source_format: str = "unknown",
 ) -> dict[str, Any]:
-    """Normalize one provider/export record into the canonical schema."""
+    """
+    title: Normalize one provider/export record into the canonical schema.
+    parameters:
+      record:
+        type: dict[str, Any]
+        description: Record value.
+      provider:
+        type: str
+        description: Provider value.
+      source_format:
+        type: str
+        description: Source format value.
+    returns:
+      type: dict[str, Any]
+    """
     by_key = {_canonical_key(k): v for k, v in record.items()}
     normalized: dict[str, Any] = {field: None for field in CANONICAL_FIELDS}
 

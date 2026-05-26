@@ -47,8 +47,8 @@ bibliometrics workflow package inspired by R `bibliometrix`. Keep public APIs
 Pythonic and reserve Bibliometrix-style compatibility names for
 `biblioflow.compat` only.
 
-Use `biblioflow` as the package, import, and CLI name. Do not add a
-hyphenated alias.
+Use `biblioflow` as the package, import, and CLI name. Do not add a hyphenated
+alias.
 
 ## Documentation
 
