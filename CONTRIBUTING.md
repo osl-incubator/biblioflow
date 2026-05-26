@@ -7,13 +7,14 @@ Thank you for contributing to `biblioflow`.
 ```bash
 conda env create -f conda/dev.yaml
 conda activate biblioflow
+cd packages/biblioflow
 poetry config virtualenvs.create false
 poetry install --extras "dev yaml"
 ```
 
 ## Checks
 
-Run the same core checks used by CI:
+From the repository root, run the same core checks used by CI:
 
 ```bash
 makim tests.linter

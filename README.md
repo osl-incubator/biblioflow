@@ -88,11 +88,12 @@ Do not use or document a hyphenated command alias.
 ```bash
 conda env create -f conda/dev.yaml
 conda activate biblioflow
+cd packages/biblioflow
 poetry config virtualenvs.create false
 poetry install --extras "dev yaml"
 ```
 
-Run the same workflow through Makim:
+From the repository root, run the same workflow through Makim:
 
 ```bash
 makim tests.linter

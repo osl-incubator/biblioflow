@@ -62,26 +62,26 @@ Preferred parser/connector direction from the project plan:
 
 ## Repository layout
 
-The initial repository is a scaffold. Planned package layout includes:
+The repository is organized as a monorepo. The `biblioflow` package lives under `packages/biblioflow`:
 
-- `src/biblioflow/`: Python package
-- `src/biblioflow/core/`: dataset, schema, warnings, exceptions, typing
-- `src/biblioflow/load/`: dispatcher, inference, registry, load results
-- `src/biblioflow/io/`: format readers/writers
-- `src/biblioflow/providers/`: source-specific normalization
-- `src/biblioflow/connectors/`: optional API connector adapters
-- `src/biblioflow/normalize/`: field, author, affiliation, keyword, reference,
+- `packages/biblioflow/src/biblioflow/`: Python package
+- `packages/biblioflow/src/biblioflow/core/`: dataset, schema, warnings, exceptions, typing
+- `packages/biblioflow/src/biblioflow/load/`: dispatcher, inference, registry, load results
+- `packages/biblioflow/src/biblioflow/io/`: format readers/writers
+- `packages/biblioflow/src/biblioflow/providers/`: source-specific normalization
+- `packages/biblioflow/src/biblioflow/connectors/`: optional API connector adapters
+- `packages/biblioflow/src/biblioflow/normalize/`: field, author, affiliation, keyword, reference,
   identifier, and deduplication helpers
-- `src/biblioflow/analysis/`: descriptive bibliometric indicators
-- `src/biblioflow/matrices/`: incidence, co-occurrence, collaboration,
+- `packages/biblioflow/src/biblioflow/analysis/`: descriptive bibliometric indicators
+- `packages/biblioflow/src/biblioflow/matrices/`: incidence, co-occurrence, collaboration,
   co-citation, coupling, and citation matrices
-- `src/biblioflow/networks/`: graph construction, metrics, clustering, export
-- `src/biblioflow/mapping/`: thematic maps, thematic evolution, conceptual
+- `packages/biblioflow/src/biblioflow/networks/`: graph construction, metrics, clustering, export
+- `packages/biblioflow/src/biblioflow/mapping/`: thematic maps, thematic evolution, conceptual
   structure, historiography
-- `src/biblioflow/export/`: tabular and network exports
-- `src/biblioflow/compat/`: optional Bibliometrix-style compatibility helpers
-- `examples/`: runnable example inputs/scripts
-- `tests/`: pytest coverage
+- `packages/biblioflow/src/biblioflow/export/`: tabular and network exports
+- `packages/biblioflow/src/biblioflow/compat/`: optional Bibliometrix-style compatibility helpers
+- `packages/biblioflow/examples/`: runnable example inputs/scripts
+- `packages/biblioflow/tests/`: pytest coverage
 - `docs/`: Quarto documentation website
 
 ## Development commands
@@ -89,11 +89,12 @@ The initial repository is a scaffold. Planned package layout includes:
 ```bash
 conda env create -f conda/dev.yaml
 conda activate biblioflow
+cd packages/biblioflow
 poetry config virtualenvs.create false
 poetry install --extras "dev yaml"
 ```
 
-Makim workflow:
+From the repository root, use the Makim workflow:
 
 ```bash
 makim tests.linter

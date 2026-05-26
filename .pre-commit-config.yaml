@@ -44,14 +44,14 @@ repos:
         language: system
         pass_filenames: true
         require_serial: yes
-        files: ^src/biblioflow/.*\.py$
+        files: ^packages/biblioflow/src/biblioflow/.*\.py$
         types:
           - python
 
       - id: mypy
         name: mypy
-        entry: mypy src
-        files: ^src/biblioflow/.*\.py$
+        entry: mypy --config-file packages/biblioflow/pyproject.toml packages/biblioflow/src
+        files: ^packages/biblioflow/src/biblioflow/.*\.py$
         language: system
         pass_filenames: false
         types:

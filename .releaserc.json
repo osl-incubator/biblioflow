@@ -8,12 +8,12 @@
       {
         "replacements": [
           {
-            "files": ["src/biblioflow/__init__.py"],
+            "files": ["packages/biblioflow/src/biblioflow/__init__.py"],
             "from": "__version__ = \".*\"  # semantic-release",
             "to": "__version__ = \"${nextRelease.version}\"  # semantic-release",
             "results": [
               {
-                "file": "src/biblioflow/__init__.py",
+                "file": "packages/biblioflow/src/biblioflow/__init__.py",
                 "hasChanged": true,
                 "numMatches": 1,
                 "numReplacements": 1
@@ -22,12 +22,12 @@
             "countMatches": true
           },
           {
-            "files": ["pyproject.toml"],
+            "files": ["packages/biblioflow/pyproject.toml"],
             "from": "version = \".*\"  # semantic-release",
             "to": "version = \"${nextRelease.version}\"  # semantic-release",
             "results": [
               {
-                "file": "pyproject.toml",
+                "file": "packages/biblioflow/pyproject.toml",
                 "hasChanged": true,
                 "numMatches": 1,
                 "numReplacements": 1
@@ -63,23 +63,23 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "poetry build",
-        "publishCmd": "poetry publish"
+        "prepareCmd": "cd packages/biblioflow && poetry build",
+        "publishCmd": "cd packages/biblioflow && poetry publish"
       }
     ],
     [
       "@semantic-release/github",
       {
-        "assets": ["dist/*.whl", "dist/*.tar.gz"]
+        "assets": ["packages/biblioflow/dist/*.whl", "packages/biblioflow/dist/*.tar.gz"]
       }
     ],
     [
       "@semantic-release/git",
       {
         "assets": [
-          "pyproject.toml",
+          "packages/biblioflow/pyproject.toml",
           "CHANGELOG.md",
-          "src/biblioflow/__init__.py",
+          "packages/biblioflow/src/biblioflow/__init__.py",
           "CITATION.cff"
         ],
         "message": "chore(release): ${nextRelease.version}"

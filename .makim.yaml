@@ -18,12 +18,16 @@ groups:
         run: |
           rm -fr build/
           rm -fr dist/
+          rm -fr packages/biblioflow/dist/
           rm -fr .eggs/
           rm -f .coverage
           rm -fr htmlcov/
           rm -fr .pytest_cache
           rm -fr .mypy_cache
           rm -fr .ruff_cache
+          rm -fr packages/biblioflow/.pytest_cache
+          rm -fr packages/biblioflow/.mypy_cache
+          rm -fr packages/biblioflow/.ruff_cache
           find . -name '*.egg-info' -exec rm -fr {} +
           find . -name '*.egg' -exec rm -f {} +
           find . -name '*.pyc' -exec rm -f {} +
@@ -70,7 +74,8 @@ groups:
             default: "-vv"
         backend: bash
         run: |
-          pytest ${{ args.path }} ${{ args.params }}
+          cd packages/biblioflow
+          PYTHONPATH=src pytest ${{ args.path }} ${{ args.params }}
 
       ci:
         help: run the same tests executed on CI
@@ -85,7 +90,7 @@ groups:
       build:
         help: Build the package with Poetry
         backend: bash
-        run: poetry build
+        run: cd packages/biblioflow && poetry build
 
   release:
     vars:
