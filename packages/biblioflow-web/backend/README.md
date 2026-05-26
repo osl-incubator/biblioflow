@@ -12,8 +12,11 @@ serves `/api/*` routes and, in production, serves the built React frontend from
 cd packages/biblioflow-web/backend
 poetry install --extras dev
 PYTHONPATH=../../biblioflow/src poetry run pytest
-poetry run uvicorn biblioflow_web_backend.main:app --reload
+poetry run uvicorn biblioflow_web_backend.main:app --reload --port 0
 ```
+
+Use `--port 0` to bind a random free port, or pass a fixed port such as
+`--port 8000` when the frontend development proxy needs a stable backend URL.
 
 Set `BIBLIOFLOW_WEB_DATA_DIR` to control where projects, uploads, datasets,
 exports, and caches are written. Runtime data is never written into the

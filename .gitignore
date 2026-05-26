@@ -225,6 +225,7 @@ pytest-*
 
 # tmp
 tmp/
+tmp*.makim
 
 # biblioflow-web frontend/build artifacts
 packages/biblioflow-web/frontend/node_modules/

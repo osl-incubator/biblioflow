@@ -22,7 +22,9 @@ describe("App", () => {
   it("renders the home page", () => {
     renderApp();
     expect(
-      screen.getByText(/Bibliometric analysis in the browser/i),
+      screen.getByRole("heading", {
+        name: /Bibliometric analysis in the browser/i,
+      }),
     ).toBeDefined();
   });
 });
