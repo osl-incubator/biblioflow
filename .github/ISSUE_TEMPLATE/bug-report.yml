@@ -1,0 +1,76 @@
+---
+name: 🐛  Bug Report
+description: Create a report to help us improve
+labels: ["bug"]
+
+body:
+  - type: markdown
+    attributes:
+      value: >
+        **Thank you for wanting to report a bug in BiblioFlow!**
+
+        Please verify first that your issue is not
+        [already reported on GitHub][issue search].
+
+        [issue search]: https://github.com/osl-incubator/biblioflow/issues?q=is%3Aopen+is%3Aissue+label%3Abug
+
+  - type: textarea
+    attributes:
+      label: Summary
+      description: Explain the problem briefly below.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: OS / Environment
+      description: Provide information on your operating system and environment.
+      render: console
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Steps to Reproduce
+      description: Describe exactly how to reproduce the problem.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Expected Results
+      description: Describe what you expected to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Actual Results
+      description: >-
+        Paste verbatim program or command output.
+        Do not wrap it with triple backticks; your input will be rendered as a
+        code snippet automatically.
+      render: console
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: BiblioFlow version
+      description: >-
+        Paste the installed BiblioFlow version, if available. For example:
+        python -c "import biblioflow; print(biblioflow.__version__)"
+      render: console
+    validations:
+      required: false
+
+  - type: checkboxes
+    attributes:
+      label: Code of Conduct
+      description: |
+        Read the [BiblioFlow Code of Conduct][CoC] first.
+
+        [CoC]: https://github.com/osl-incubator/biblioflow/blob/main/CODE_OF_CONDUCT.md
+      options:
+        - label: I agree to follow the Code of Conduct
+          required: true

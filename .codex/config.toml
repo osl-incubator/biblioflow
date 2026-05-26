@@ -1,0 +1,8 @@
+model_reasoning_effort = "xhigh"
+
+model_instructions_file = "instructions.md"
+
+[shell_environment_policy]
+inherit = "core"
+include_only = ["PATH", "HOME", "USER", "SHELL", "TERM"]
+experimental_use_profile = false

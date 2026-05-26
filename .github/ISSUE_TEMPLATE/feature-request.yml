@@ -1,0 +1,47 @@
+---
+name: ✨  Feature Request
+description: Suggest an idea for this project
+labels: ["feat/enhancement", "needs-triage"]
+
+body:
+  - type: markdown
+    attributes:
+      value: >
+        **Thank you for wanting to suggest a feature for BiblioFlow!**
+
+        Please verify first that your issue is not
+        [already reported on GitHub][issue search]. Check closed issues too in
+        case it has already been considered or implemented.
+
+        [issue search]: https://github.com/osl-incubator/biblioflow/issues?q=is%3Aissue+label%3Afeat%2Fenhancement
+
+  - type: textarea
+    attributes:
+      label: Summary
+      description: >
+        Describe the feature or improvement you would like.
+
+        What problem does it solve? What are you trying to do? How would this
+        change help real users?
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Additional Information
+      description: Add examples, references, or design notes if useful.
+      value: |
+        <!-- Add any extra context here. -->
+    validations:
+      required: false
+
+  - type: checkboxes
+    attributes:
+      label: Code of Conduct
+      description: |
+        Read the [BiblioFlow Code of Conduct][CoC] first.
+
+        [CoC]: https://github.com/osl-incubator/biblioflow/blob/main/CODE_OF_CONDUCT.md
+      options:
+        - label: I agree to follow the Code of Conduct
+          required: true

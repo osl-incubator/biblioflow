@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use biblioflow in your research workflow, please cite this software."
+type: software
+title: "biblioflow"
+version: "0.1.0" # semantic-release
+authors:
+  - family-names: "Ogasawara"
+    given-names: "Ivan"
+    email: "ivan.ogasawara@gmail.com"
+abstract: "Python-native workflows for bibliographic metadata, bibliometrics, and science mapping."
+repository-code: "https://github.com/osl-incubator/biblioflow"
+url: "https://osl-incubator.github.io/biblioflow/"
+license: "BSD-3-Clause"
+keywords:
+  - bibliometrics
+  - bibliographic-metadata
+  - science-mapping
+  - literature-review
+  - python

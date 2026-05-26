@@ -1,0 +1,41 @@
+project:
+  type: website
+  output-dir: ../build
+
+website:
+  title: biblioflow
+  description: Python-native workflows for bibliographic metadata, bibliometrics, and science mapping.
+  site-url: https://osl-incubator.github.io/biblioflow/
+  repo-url: https://github.com/osl-incubator/biblioflow
+  repo-actions: [edit, issue]
+  page-navigation: true
+  bread-crumbs: true
+  navbar:
+    background: primary
+    search: true
+    left:
+      - href: index.qmd
+        text: Home
+    right:
+      - icon: github
+        href: https://github.com/osl-incubator/biblioflow
+        aria-label: GitHub repository
+  sidebar:
+    style: docked
+    search: true
+    contents:
+      - index.qmd
+
+format:
+  html:
+    theme:
+      light: cosmo
+      dark: darkly
+    toc: true
+    toc-depth: 3
+    code-copy: true
+    code-overflow: wrap
+    link-external-newwindow: true
+
+execute:
+  freeze: auto

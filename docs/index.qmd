@@ -1,0 +1,62 @@
+---
+title: biblioflow
+description: Python-native bibliographic metadata and bibliometrics workflows.
+---
+
+::: {.hero}
+# biblioflow
+
+`biblioflow` is a planned Python-native toolkit for bibliographic metadata,
+bibliometrics, science mapping, and literature-review data workflows. It is
+inspired by the R bibliometrics ecosystem, especially `bibliometrix`, while
+using Pythonic naming and dataframe-centric workflows.
+
+This repository is currently a scaffold. Core implementation will be added in
+later changes.
+:::
+
+::: {.feature-grid}
+::: {.feature-card}
+### Bibliographic ingestion
+
+Planned ingestion support includes RIS, BibTeX, Scopus CSV, Web of Science
+exports, PubMed NBIB/XML, PubMed Central XML, OpenAlex, Crossref, Lens,
+Dimensions, Cochrane, and generic formats.
+:::
+
+::: {.feature-card}
+### Canonical metadata
+
+Normalize provider-specific records into a canonical dataset while preserving
+raw records for traceability.
+:::
+
+::: {.feature-card}
+### Bibliometric analysis
+
+Compute descriptive indicators, matrices, networks, thematic maps, thematic
+evolution, conceptual structures, and historiographs.
+:::
+
+::: {.feature-card}
+### Pythonic API
+
+Use a compact API such as `load()`, `analyze()`, `matrix()`, `network()`,
+`map_themes()`, `trace_themes()`, and `export()`.
+:::
+:::
+
+## Intended minimal example
+
+```python
+import biblioflow as bf
+
+records = bf.load("data/scopus_export.bib", provider="scopus")
+summary = bf.analyze(records)
+network = bf.network(records, kind="co_occurrence", unit="keywords_all")
+```
+
+## Naming policy
+
+The project name is `biblioflow` for the PyPI package, Python import package,
+and planned command-line interface. Do not use a hyphenated alias.

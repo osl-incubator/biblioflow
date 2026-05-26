@@ -1,0 +1,42 @@
+---
+name: 📝  Documentation Report
+description: Create a report for problems with the docs
+labels: ["docs", "needs-triage"]
+
+body:
+  - type: markdown
+    attributes:
+      value: >
+        **Thank you for wanting to report a problem with BiblioFlow's documentation!**
+
+        Please verify first that your issue is not
+        [already reported on GitHub][issue search].
+
+        [issue search]: https://github.com/osl-incubator/biblioflow/issues?q=is%3Aopen+is%3Aissue+label%3Adocs
+
+  - type: textarea
+    attributes:
+      label: Summary
+      description: >-
+        Explain the problem briefly below. Add suggestions to wording or
+        structure, and link any related external references.
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: Documentation Page Link
+      description: Paste the link to the documentation page.
+    validations:
+      required: true
+
+  - type: checkboxes
+    attributes:
+      label: Code of Conduct
+      description: |
+        Read the [BiblioFlow Code of Conduct][CoC] first.
+
+        [CoC]: https://github.com/osl-incubator/biblioflow/blob/main/CODE_OF_CONDUCT.md
+      options:
+        - label: I agree to follow the Code of Conduct
+          required: true

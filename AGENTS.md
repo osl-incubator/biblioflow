@@ -1,0 +1,116 @@
+# biblioflow Contributor Guide
+
+This file is the shared operating manual for AI contributors working in
+`biblioflow`.
+
+## Project identity
+
+- PyPI package: `biblioflow`
+- Python import package: `biblioflow`
+- Recommended import alias: `bf`
+- CLI command: `biblioflow`
+- Repository: `osl-incubator/biblioflow`
+- Build backend: Poetry
+- Environment/workflow: conda + Poetry + Makim
+- Runtime: Python 3.10+
+
+Use `biblioflow` everywhere. Do not introduce a hyphenated package, import,
+command, documentation alias, or compatibility shim.
+
+## Project scope
+
+`biblioflow` is a Python-native bibliographic metadata and bibliometrics
+workflow toolkit inspired by the R bibliometrics ecosystem, especially the R
+package `bibliometrix`. It should provide Pythonic ingestion, normalization,
+descriptive analysis, matrix/network construction, science mapping, thematic
+analysis, and export workflows.
+
+The package should not be a direct translation of `bibliometrix` function names.
+Prefer Pythonic public APIs such as:
+
+```python
+import biblioflow as bf
+
+records = bf.load(...)
+summary = bf.analyze(records)
+net = bf.network(records, ...)
+themes = bf.map_themes(records, ...)
+evolution = bf.trace_themes(records, ...)
+```
+
+## Design constraints
+
+1. Keep the base install lightweight.
+2. Treat bibliographic records as structured metadata, not as arbitrary ad hoc
+   tables.
+3. Preserve raw source records where practical for traceability.
+4. Distinguish source format (`ris`, `bibtex`, `csv`, `xml`, `json`, `nbib`,
+   `tsv`) from semantic provider (`scopus`, `wos`, `pubmed`, `pmc`, `openalex`,
+   `crossref`, `lens`, `dimensions`, `cochrane`, `generic`).
+5. Validate bibliographic data and analysis assumptions with structured reports
+   and warnings.
+6. Keep API connectors optional where they bring substantial extra dependency
+   weight or credentials.
+7. Do not add required dependencies on Graphviz, Node, Mermaid CLI, browser
+   engines, Playwright, Selenium, Matplotlib, Plotly, or other heavy rendering
+   stacks for core bibliometric workflows.
+
+Preferred parser/connector direction from the project plan:
+
+- RIS: `rispy`
+- PubMed and PubMed Central: `pymedx`, maintained by OSL Incubator
+
+## Repository layout
+
+The initial repository is a scaffold. Planned package layout includes:
+
+- `src/biblioflow/`: Python package
+- `src/biblioflow/core/`: dataset, schema, warnings, exceptions, typing
+- `src/biblioflow/load/`: dispatcher, inference, registry, load results
+- `src/biblioflow/io/`: format readers/writers
+- `src/biblioflow/providers/`: source-specific normalization
+- `src/biblioflow/connectors/`: optional API connector adapters
+- `src/biblioflow/normalize/`: field, author, affiliation, keyword, reference,
+  identifier, and deduplication helpers
+- `src/biblioflow/analysis/`: descriptive bibliometric indicators
+- `src/biblioflow/matrices/`: incidence, co-occurrence, collaboration,
+  co-citation, coupling, and citation matrices
+- `src/biblioflow/networks/`: graph construction, metrics, clustering, export
+- `src/biblioflow/mapping/`: thematic maps, thematic evolution, conceptual
+  structure, historiography
+- `src/biblioflow/export/`: tabular and network exports
+- `src/biblioflow/compat/`: optional Bibliometrix-style compatibility helpers
+- `examples/`: runnable example inputs/scripts
+- `tests/`: pytest coverage
+- `docs/`: Quarto documentation website
+
+## Development commands
+
+```bash
+conda env create -f conda/dev.yaml
+conda activate biblioflow
+poetry config virtualenvs.create false
+poetry install --extras "dev yaml"
+```
+
+Makim workflow:
+
+```bash
+makim tests.linter
+makim tests.unit
+makim package.build
+makim docs.build
+makim all.ci
+```
+
+## Implementation rules
+
+1. Keep README examples, docs, and examples in sync with public API changes.
+2. Add tests for model, validation, normalization, ingestion, analysis, network,
+   IO, export, and CLI changes.
+3. Preserve a Pythonic main namespace; put Bibliometrix compatibility aliases in
+   `biblioflow.compat` only.
+4. Do not introduce hyphenated aliases for the package, import, or CLI.
+5. When the project plan and current scaffold differ, prefer the project plan for
+   naming and architecture, but do not invent full implementation code unless
+   explicitly requested.

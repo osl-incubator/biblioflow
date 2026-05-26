@@ -1,0 +1,9 @@
+name: biblioflow
+channels:
+  - nodefaults
+  - conda-forge
+dependencies:
+  - python >=3.10
+  - poetry >=2
+  - nodejs
+  - pip

@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+env:
+  VIRTUALENV_ACTIVATORS: "bash,python"
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          miniforge-version: latest
+          environment-file: conda/dev.yaml
+          channels: conda-forge,nodefaults
+          activate-environment: biblioflow
+          auto-update-conda: true
+          conda-solver: libmamba
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          poetry config virtualenvs.create false
+          poetry check
+          poetry install --extras "dev yaml"
+
+      - name: Run linter checks
+        run: makim tests.linter
+
+      - name: Run tests
+        run: makim tests.unit
+
+      - name: Build package
+        run: makim package.build
+
+      - name: Build documentation
+        run: makim docs.build
