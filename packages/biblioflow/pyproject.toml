@@ -41,6 +41,21 @@ Documentation = "https://osl-incubator.github.io/biblioflow/"
 
 [project.optional-dependencies]
 yaml = ["pyyaml>=6"]
+bibtex = ["bibtexparser>=1.4"]
+ris = ["rispy>=0.9"]
+openalex = ["pyalex>=0.15"]
+crossref = ["habanero>=1.2"]
+scopus = ["pybliometrics>=4"]
+dataframe = ["pandas>=2"]
+all = [
+  "bibtexparser>=1.4",
+  "rispy>=0.9",
+  "pyalex>=0.15",
+  "habanero>=1.2",
+  "pybliometrics>=4",
+  "pandas>=2",
+  "pyyaml>=6",
+]
 dev = [
   "douki>=0.12.1",
   "pytest>=8",

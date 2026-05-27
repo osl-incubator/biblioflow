@@ -1,0 +1,14 @@
+{
+  "eid": "2-s2.0-999",
+  "dc:title": "Scopus API record",
+  "prism:doi": "10.1234/API",
+  "prism:coverDate": "2024-05-10",
+  "prism:publicationName": "API Journal",
+  "prism:volume": "12",
+  "prism:issueIdentifier": "3",
+  "prism:pageRange": "1-10",
+  "citedby-count": "4",
+  "subtypeDescription": "Article",
+  "openaccess": "1",
+  "link": [{ "@href": "https://example.org/api" }]
+}

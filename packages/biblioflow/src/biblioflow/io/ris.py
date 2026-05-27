@@ -80,7 +80,9 @@ def read_ris_records(path: str | Path) -> list[dict[str, Any]]:
             value = raw_line[5:].strip()
             if tag == "ER":
                 if current:
-                    records.append(dict(current))
+                    record = dict(current)
+                    record["raw"] = dict(current)
+                    records.append(record)
                 current = defaultdict(list)
                 last_key = None
                 continue
@@ -92,5 +94,7 @@ def read_ris_records(path: str | Path) -> list[dict[str, Any]]:
             if continuation:
                 _append(current, last_key, continuation)
     if current:
-        records.append(dict(current))
+        record = dict(current)
+        record["raw"] = dict(current)
+        records.append(record)
     return records

@@ -16,16 +16,24 @@ from biblioflow.io import (
     read_jsonl_records,
     read_nbib_records,
     read_ris_records,
+    read_wos_records,
     read_xml_records,
     read_yaml_records,
 )
-from biblioflow.load.infer import infer_format, infer_provider
+from biblioflow.load.infer import (
+    infer_format,
+    infer_provider,
+    normalize_format_name,
+    normalize_provider_name,
+)
 from biblioflow.normalize.records import normalize_record
 from biblioflow.providers import adapt_record
 from biblioflow.validation import validate_records
 
 
-def _read_records(path: Path, fmt: str) -> list[dict[str, Any]]:
+def _read_records(
+    path: Path, fmt: str, provider: str = "generic"
+) -> list[dict[str, Any]]:
     """
     title: Implement the read records helper.
     parameters:
@@ -35,6 +43,9 @@ def _read_records(path: Path, fmt: str) -> list[dict[str, Any]]:
       fmt:
         type: str
         description: Fmt value.
+      provider:
+        type: str
+        description: Provider/source name.
     returns:
       type: list[dict[str, Any]]
     """
@@ -50,6 +61,8 @@ def _read_records(path: Path, fmt: str) -> list[dict[str, Any]]:
         return read_ris_records(path)
     if fmt == "bibtex":
         return read_bibtex_records(path)
+    if fmt == "plain_text" and provider == "web_of_science":
+        return read_wos_records(path)
     if fmt == "nbib":
         return read_nbib_records(path)
     if fmt == "xml":
@@ -60,9 +73,48 @@ def _read_records(path: Path, fmt: str) -> list[dict[str, Any]]:
     raise UnsupportedFormatError(msg)
 
 
-def load(
-    source: str | Path | list[dict[str, Any]] | BibliographicDataset,
+def _normalize_raw_records(
+    records: list[dict[str, Any]],
     *,
+    provider: str,
+    source_format: str,
+    keep_raw: bool,
+) -> list[dict[str, Any]]:
+    """
+    title: Normalize raw records for one provider/source format.
+    parameters:
+      records:
+        type: list[dict[str, Any]]
+        description: Raw records.
+      provider:
+        type: str
+        description: Provider/source name.
+      source_format:
+        type: str
+        description: Source format.
+      keep_raw:
+        type: bool
+        description: Whether raw payloads should be preserved.
+    returns:
+      type: list[dict[str, Any]]
+    """
+    normalized: list[dict[str, Any]] = []
+    for record in records:
+        row = normalize_record(
+            adapt_record(provider, record),
+            provider=provider,
+            source_format=source_format,
+        )
+        if not keep_raw:
+            row["raw"] = None
+        normalized.append(row)
+    return normalized
+
+
+def load(
+    path_or_buffer: str | Path | list[dict[str, Any]] | BibliographicDataset,
+    *,
+    source: str | None = None,
     provider: str = "auto",
     format: str = "auto",
     keep_raw: bool = True,
@@ -74,15 +126,15 @@ def load(
     """
     title: Load bibliographic records into a :class:`BibliographicDataset`.
     summary: |-
-      The current implementation supports local files and in-memory record
-      lists.
-      API query connectors are intentionally not implemented yet; pass a
-      file path
-      or a list of dictionaries for now.
+      Supports local bibliographic files and in-memory record lists. Use
+      from_openalex, from_crossref, or from_scopus for API-backed imports.
     parameters:
-      source:
+      path_or_buffer:
         type: str | Path | list[dict[str, Any]] | BibliographicDataset
-        description: Source value.
+        description: File path, records, or dataset value.
+      source:
+        type: str | None
+        description: Provider/source alias, such as scopus or wos.
       provider:
         type: str
         description: Provider value.
@@ -108,21 +160,28 @@ def load(
     returns:
       type: BibliographicDataset | Any
     """
-    if isinstance(source, BibliographicDataset):
-        return source.to_dataframe(schema=schema) if as_dataframe else source
+    if source is not None:
+        provider = source
+    provider = normalize_provider_name(provider)
+    format = normalize_format_name(format)
 
-    if isinstance(source, list):
-        raw = [dict(record) for record in source]
+    if isinstance(path_or_buffer, BibliographicDataset):
+        return (
+            path_or_buffer.to_dataframe(schema=schema)
+            if as_dataframe
+            else path_or_buffer
+        )
+
+    if isinstance(path_or_buffer, list):
+        raw = [dict(record) for record in path_or_buffer]
         fmt = "records"
         prov = "generic" if provider == "auto" else provider
-        normalized = [
-            normalize_record(
-                adapt_record(prov, record),
-                provider=prov,
-                source_format=fmt,
-            )
-            for record in raw
-        ]
+        normalized = _normalize_raw_records(
+            raw,
+            provider=prov,
+            source_format=fmt,
+            keep_raw=keep_raw,
+        )
         warnings = validate_records(normalized)
         if strict and any(w.severity == "warning" for w in warnings):
             msg = "; ".join(w.message or w.code for w in warnings)
@@ -135,11 +194,16 @@ def load(
         )
         return dataset.to_dataframe(schema=schema) if as_dataframe else dataset
 
-    path = Path(source)
+    path = Path(path_or_buffer)
     if not path.exists():
         msg = (
-            f"Source {str(source)!r} is not a local file. API query connectors "
-            "are planned but not implemented in this scaffold."
+            f"Could not detect the source or format of {str(path_or_buffer)!r}.\n\n"
+            "For files, pass a local path and optionally source=... and format=...\n"
+            "Examples:\n"
+            '  bf.load("records.txt", source="wos")\n'
+            '  bf.load("records.csv", source="scopus")\n\n'
+            "For APIs, use bf.from_openalex(...), bf.from_crossref(...), "
+            "or bf.from_scopus(...)."
         )
         raise AmbiguousSourceError(msg)
 
@@ -148,15 +212,14 @@ def load(
         msg = f"Could not infer input format for {path}. Pass format= explicitly."
         raise UnsupportedFormatError(msg)
     prov = infer_provider(path, format=fmt) if provider == "auto" else provider
-    raw = _read_records(path, fmt)
-    normalized = [
-        normalize_record(
-            adapt_record(prov, record),
-            provider=prov,
-            source_format=fmt,
-        )
-        for record in raw
-    ]
+    prov = normalize_provider_name(prov)
+    raw = _read_records(path, fmt, prov)
+    normalized = _normalize_raw_records(
+        raw,
+        provider=prov,
+        source_format=fmt,
+        keep_raw=keep_raw,
+    )
     warnings = validate_records(normalized)
     if strict and any(w.severity == "warning" for w in warnings):
         msg = "; ".join(w.message or w.code for w in warnings)
