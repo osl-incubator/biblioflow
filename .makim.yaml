@@ -96,9 +96,13 @@ groups:
             type: string
             default: "-vv"
         backend: bash
+        dir: packages/biblioflow
         run: |
-          cd packages/biblioflow
-          PYTHONPATH=src pytest ${{ args.path }} ${{ args.params }}
+          pytest ${{ args.path }} ${{ args.params }} \
+            --cov=biblioflow \
+            --cov-report=term-missing \
+            --cov-report=xml:coverage.xml \
+            --cov-fail-under=90
 
       nb:
         help: Run biblioflow-nb tests with 90% coverage gate
