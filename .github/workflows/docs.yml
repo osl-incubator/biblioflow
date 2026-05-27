@@ -44,7 +44,7 @@ jobs:
         run: |
           cd packages/biblioflow
           poetry config virtualenvs.create false
-          poetry install --extras "dev yaml"
+          poetry install
 
       - name: Render Quarto site
         run: makim docs.build

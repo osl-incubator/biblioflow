@@ -69,9 +69,10 @@ groups:
     tasks:
       linter:
         help: Run linter tools
+        backend: bash
         run: |
-          pre-commit install
-          pre-commit run --all-files --verbose
+          PRE_COMMIT_HOME="${PRE_COMMIT_HOME:-.cache/pre-commit}" \
+            pre-commit run --all-files --verbose
 
       unit:
         help: run tests

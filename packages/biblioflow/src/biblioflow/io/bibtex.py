@@ -8,8 +8,13 @@ from pathlib import Path
 from typing import Any
 
 _FIELD_MAP = {
+    "id": "source_id",
+    "unique-id": "source_id",
+    "unique_id": "source_id",
+    "eid": "source_id",
     "title": "title",
     "author": "authors",
+    "authors": "authors",
     "journal": "source_title",
     "journaltitle": "source_title",
     "booktitle": "source_title",
@@ -25,6 +30,11 @@ _FIELD_MAP = {
     "issn": "issn",
     "isbn": "isbn",
     "publisher": "publisher",
+    "citedby": "cited_by_count",
+    "cited-by": "cited_by_count",
+    "document_type": "document_type",
+    "web-of-science-categories": "wos_categories",
+    "research-areas": "research_areas",
 }
 
 
@@ -143,9 +153,13 @@ def read_bibtex_records(path: str | Path) -> list[dict[str, Any]]:
         record: dict[str, Any] = {
             "source_id": key,
             "document_type": entry_type,
+            "source_format": "bibtex",
+            "raw": {"ENTRYTYPE": entry_type, "ID": key, **fields},
         }
         for source, target in _FIELD_MAP.items():
             if source in fields:
                 record[target] = fields[source]
+        if "author" in fields:
+            record["authors_raw"] = fields["author"]
         records.append(record)
     return records

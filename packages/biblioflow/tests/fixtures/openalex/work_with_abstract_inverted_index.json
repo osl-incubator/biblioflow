@@ -1,0 +1,30 @@
+{
+  "id": "https://openalex.org/W123",
+  "doi": "https://doi.org/10.1234/OA",
+  "title": "OpenAlex science mapping record",
+  "publication_year": 2024,
+  "publication_date": "2024-05-10",
+  "type": "article",
+  "language": "en",
+  "abstract_inverted_index": { "Bibliometrics": [0], "is": [1], "useful": [2] },
+  "primary_location": {
+    "landing_page_url": "https://example.org/oa",
+    "source": { "display_name": "OpenAlex Journal", "issn_l": "1234-5678" }
+  },
+  "open_access": {
+    "oa_status": "gold",
+    "oa_url": "https://example.org/oa.pdf"
+  },
+  "authorships": [
+    {
+      "author": { "display_name": "Jane Smith" },
+      "institutions": [
+        { "display_name": "Open University", "country_code": "US" }
+      ]
+    }
+  ],
+  "concepts": [{ "display_name": "Bibliometrics" }],
+  "keywords": [{ "display_name": "science mapping" }],
+  "referenced_works": ["https://openalex.org/W999"],
+  "cited_by_count": 5
+}

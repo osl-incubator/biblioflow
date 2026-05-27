@@ -6,9 +6,13 @@ from biblioflow.analysis import DescriptiveSummary, analyze
 from biblioflow.core import BibliographicDataset, LoadWarning
 from biblioflow.exceptions import (
     AmbiguousSourceError,
+    APIConfigurationError,
     BiblioFlowError,
     OptionalDependencyError,
+    ParseError,
+    SourceDetectionError,
     UnsupportedFormatError,
+    UnsupportedSourceError,
 )
 from biblioflow.export import export
 from biblioflow.filters import (
@@ -38,10 +42,12 @@ from biblioflow.results import (
     summarize_dataset,
     summarize_import,
 )
+from biblioflow.sources import from_crossref, from_openalex, from_scopus
 
 __version__ = "0.1.0"  # semantic-release
 
 __all__ = [
+    "APIConfigurationError",
     "AmbiguousSourceError",
     "BiblioFlowError",
     "BibliographicDataset",
@@ -56,9 +62,12 @@ __all__ = [
     "MatrixResult",
     "NetworkResult",
     "OptionalDependencyError",
+    "ParseError",
+    "SourceDetectionError",
     "ThematicEvolution",
     "ThematicMap",
     "UnsupportedFormatError",
+    "UnsupportedSourceError",
     "__version__",
     "analyze",
     "available_filter_values",
@@ -67,6 +76,9 @@ __all__ = [
     "enrich",
     "export",
     "filter_dataset",
+    "from_crossref",
+    "from_openalex",
+    "from_scopus",
     "historiograph",
     "infer_format",
     "infer_provider",

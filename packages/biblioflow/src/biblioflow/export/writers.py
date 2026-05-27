@@ -219,18 +219,6 @@ def export(obj: Any, path: str | Path, *, format: str | None = None) -> None:
             obj.to_json(orient="records", indent=2) + "\n", encoding="utf-8"
         )
         return
-    if fmt == "yaml":
-        try:
-            import yaml
-        except ImportError as exc:  # pragma: no cover
-            from biblioflow.exceptions import OptionalDependencyError
-
-            raise OptionalDependencyError(
-                "Install biblioflow[yaml] to write YAML."
-            ) from exc
-        payload = obj.to_dict(orient="records") if hasattr(obj, "to_dict") else obj
-        output.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
-        return
     if fmt == "json":
         output.write_text(
             json.dumps(obj, indent=2, default=str) + "\n", encoding="utf-8"

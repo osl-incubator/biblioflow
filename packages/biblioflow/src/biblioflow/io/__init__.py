@@ -7,16 +7,19 @@ from biblioflow.io.csv import read_csv_records
 from biblioflow.io.json import read_json_records, read_jsonl_records
 from biblioflow.io.nbib import read_nbib_records
 from biblioflow.io.ris import read_ris_records
+from biblioflow.io.wos import parse_wos_records, read_wos_records
 from biblioflow.io.xml import read_xml_records
 from biblioflow.io.yaml import read_yaml_records
 
 __all__ = [
+    "parse_wos_records",
     "read_bibtex_records",
     "read_csv_records",
     "read_json_records",
     "read_jsonl_records",
     "read_nbib_records",
     "read_ris_records",
+    "read_wos_records",
     "read_xml_records",
     "read_yaml_records",
 ]

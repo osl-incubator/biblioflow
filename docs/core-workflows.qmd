@@ -18,7 +18,7 @@ A typical biblioflow pipeline looks like this:
 ```python
 import biblioflow as bf
 
-dataset = bf.load("records.bib", provider="auto", format="auto")
+dataset = bf.load("records.bib", source="auto", format="auto")
 dataset = bf.deduplicate(dataset)
 summary = bf.summarize_dataset(dataset)
 analysis = bf.analyze(dataset)
@@ -37,6 +37,35 @@ bf.export(net, "network.gexf", format="gexf")
 | `metadata` | Format, provider, load time, record counts, and workflow metadata. |
 | `warnings` | Structured load warnings. |
 | `errors` | Non-fatal errors collected during loading or validation. |
+
+Each canonical record also has a `raw` field when `keep_raw=True`, which makes
+it possible to inspect the original source payload beside normalized fields.
+
+Frequently used normalized columns include:
+
+```text
+source
+source_id
+doi
+title
+abstract
+authors
+authors_raw
+publication_year
+publication_date
+source_title
+journal
+keywords_author
+keywords_index
+keywords_all
+references
+references_raw
+affiliations
+institutions
+countries
+cited_by_count
+raw
+```
 
 Useful methods:
 
@@ -78,6 +107,30 @@ deduped = bf.deduplicate(dataset)
 `deduplicate()` is intended for conservative local deduplication. Local
 enrichment helpers should also live in the core package so every interface can
 reuse the same behavior.
+
+## Source-specific loading
+
+Use `source=` when an export is known:
+
+```python
+scopus = bf.load("scopus.csv", source="scopus")
+wos = bf.load("savedrecs.txt", source="wos")
+openalex = bf.load("openalex.json", source="openalex")
+crossref = bf.load("crossref.json", source="crossref")
+```
+
+The loader detects many common cases automatically, but explicit `source=` is
+recommended for ambiguous `.csv`, `.txt`, and `.json` files.
+
+Dedicated API helpers are available for live metadata retrieval:
+
+```python
+openalex = bf.from_openalex(search="bibliometrics", limit=100)
+crossref = bf.from_crossref(query="science mapping", limit=100)
+```
+
+For a full mapping of supported providers and formats, see
+[Sources and import formats](sources.qmd).
 
 ## Filters
 

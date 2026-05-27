@@ -1,0 +1,35 @@
+FN Clarivate Analytics Web of Science
+VR 1.0
+PT J
+AU Smith, J
+AU Doe, J
+AF Smith, Jane
+AF Doe, John
+TI Science mapping with Python
+   and reproducible bibliometrics
+SO Journal of Bibliometrics
+LA English
+DT Article
+DE bibliometrics; science mapping
+ID CITATION ANALYSIS; SCIENTOMETRICS
+AB This paper discusses science mapping workflows.
+C1 University X, Department Y, City, United States
+CR Author A, 2020, JOURNAL NAME, V10, P100, DOI 10.1000/ref1
+CR Author B, 2021, JOURNAL NAME, V11, P120
+NR 2
+TC 12
+PY 2024
+PD MAY 2024
+VL 10
+IS 2
+BP 100
+EP 120
+DI 10.1234/EXAMPLE
+UT WOS:0000001
+SN 1234-5678
+EI 8765-4321
+PU Open Science Press
+WC Information Science & Library Science
+SC Computer Science
+ER
+EF

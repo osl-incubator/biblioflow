@@ -24,7 +24,9 @@ keeping Pythonic names, plain data objects, and lightweight packaging.
 ### Core library
 
 `biblioflow` provides ingestion, normalization, validation, descriptive
-analysis, matrices, networks, mapping helpers, exports, and a CLI.
+analysis, matrices, networks, mapping helpers, exports, and a CLI. Supported
+source workflows include BibTeX, RIS, Scopus CSV, Web of Science plain text,
+OpenAlex JSON/API, and Crossref JSON/API.
 :::
 
 ::: {.feature-card}
@@ -55,15 +57,24 @@ Google Colab while delegating computation to the core library.
 ```python
 import biblioflow as bf
 
-records = bf.load("data/scopus_export.bib", provider="scopus")
+records = bf.load("data/scopus_export.bib", source="scopus")
 summary = bf.analyze(records)
 network = bf.network(records, kind="co_occurrence", unit="keywords_all")
 bf.export(network, "keyword-network.graphml", format="graphml")
 ```
 
+Prefer the `source=` keyword in new code:
+
+```python
+dataset = bf.load("data/scopus_export.csv", source="scopus")
+dataset = bf.load("data/savedrecs.txt", source="wos")
+```
+
 ## What biblioflow focuses on
 
-- File-based bibliographic ingestion for common export formats.
+- File-based bibliographic ingestion for common export formats and major
+  providers, including Web of Science, Scopus, OpenAlex, Crossref, PubMed,
+  BibTeX, and RIS.
 - Canonical metadata records with raw-record traceability.
 - Structured validation warnings instead of silent data loss.
 - Pythonic APIs for bibliometric summaries, matrix construction, network

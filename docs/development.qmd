@@ -38,6 +38,28 @@ makim package.build
 The linter task runs pre-commit hooks, including Ruff, Mypy, and Douki for core
 library docstrings.
 
+## Source loader development
+
+Source-specific import behavior belongs in `packages/biblioflow`, not in the
+web or notebook applications. The current loader stack is organized around:
+
+- `biblioflow/load/infer.py` for source/format aliasing and detection.
+- `biblioflow/load/dispatcher.py` for `bf.load(...)` orchestration.
+- `biblioflow/io/` for file readers such as BibTeX, RIS, and Web of Science.
+- `biblioflow/providers/adapters.py` for provider-specific mappings.
+- `biblioflow/normalize/` for DOI, date, author, text, and reference helpers.
+- `biblioflow/sources/` for public source helpers such as
+  `from_openalex(...)`, `from_crossref(...)`, and `from_scopus(...)`.
+
+Add fixtures under `packages/biblioflow/tests/fixtures/<source>/` and cover:
+
+- detection,
+- field mapping,
+- raw payload preservation,
+- missing or partial fields,
+- unicode and multiline values,
+- API normalizers without live network calls.
+
 ## Web checks
 
 ```bash

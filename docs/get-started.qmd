@@ -14,7 +14,17 @@ pip install biblioflow
 Optional YAML import/export support is provided as an extra:
 
 ```bash
-pip install "biblioflow[yaml]"
+pip install "biblioflow"
+```
+
+Provider/API extras are available when you want client libraries installed in
+the same environment:
+
+```bash
+pip install "biblioflow[openalex]"
+pip install "biblioflow[crossref]"
+pip install "biblioflow[scopus]"
+pip install "biblioflow[all]"
 ```
 
 Install application packages only when you need them:
@@ -37,7 +47,7 @@ import biblioflow as bf
 
 dataset = bf.load(
     "records.ris",
-    provider="auto",
+    source="auto",
     format="auto",
 )
 ```
@@ -54,29 +64,57 @@ dataset.to_records()[:3]
 
 ## Supported input formats
 
-| Format | Typical extension | Notes |
+| Format/source | Typical extension | Notes |
 |---|---|---|
 | RIS | `.ris` | Common export format from reference managers and scholarly databases. |
 | BibTeX | `.bib` | Common for LaTeX and citation managers. |
+| Scopus CSV | `.csv` | Scopus headers such as `EID`, `Authors`, and `Source title` are detected. |
+| Web of Science plain text | `.txt` | Clarivate `savedrecs.txt` exports with multiline/repeated tags. |
+| OpenAlex JSON | `.json` | Single works, lists, or API responses with `results`. |
+| Crossref JSON | `.json` | Single works, lists, or work-list responses with `message.items`. |
 | CSV/TSV | `.csv`, `.tsv` | Useful for spreadsheets and custom exports. |
 | JSON/JSONL | `.json`, `.jsonl` | Supports generic records and provider payloads. |
 | XML | `.xml` | Includes PubMed XML support. |
 | NBIB | `.nbib` | PubMed/NLM text export format. |
-| YAML | `.yaml`, `.yml` | Optional extra: `biblioflow[yaml]`. |
 
-## Provider inference
+See [Sources and import formats](sources.qmd) for the complete source guide.
 
-Use `provider="auto"` and `format="auto"` for convenience, or pass explicit
+## Source inference
+
+Use `source="auto"` and `format="auto"` for convenience, or pass explicit
 values when working with known exports:
 
 ```python
-dataset = bf.load("openalex.json", provider="openalex", format="json")
-dataset = bf.load("pubmed.xml", provider="pubmed", format="xml")
-dataset = bf.load("crossref.json", provider="crossref", format="json")
+dataset = bf.load("openalex.json", source="openalex", format="json")
+dataset = bf.load("pubmed.xml", source="pubmed", format="xml")
+dataset = bf.load("crossref.json", source="crossref", format="json")
+dataset = bf.load("savedrecs.txt", source="wos")
+dataset = bf.load("scopus.csv", source="scopus")
 ```
 
 Provider-aware adapters normalize database-specific field names into the
 canonical biblioflow schema.
+
+`provider=` remains supported for compatibility with older examples, but new
+documentation uses `source=`.
+
+## API imports
+
+File loading and API querying are separate entry points:
+
+```python
+openalex = bf.from_openalex(search="bibliometrics", limit=100)
+crossref = bf.from_crossref(query="science mapping", limit=100)
+```
+
+Scopus API imports require pybliometrics configuration and access:
+
+```python
+scopus = bf.from_scopus(
+    query="TITLE-ABS-KEY(bibliometrics)",
+    limit=100,
+)
+```
 
 ## Descriptive analysis
 
