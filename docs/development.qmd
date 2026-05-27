@@ -49,7 +49,8 @@ web or notebook applications. The current loader stack is organized around:
 - `biblioflow/providers/adapters.py` for provider-specific mappings.
 - `biblioflow/normalize/` for DOI, date, author, text, and reference helpers.
 - `biblioflow/sources/` for public source helpers such as
-  `from_openalex(...)`, `from_crossref(...)`, and `from_scopus(...)`.
+  `from_openalex(...)`, `from_crossref(...)`, `from_scopus(...)`,
+  `from_pubmed(...)`, and `from_pmc(...)`.
 
 Add fixtures under `packages/biblioflow/tests/fixtures/<source>/` and cover:
 
@@ -59,6 +60,11 @@ Add fixtures under `packages/biblioflow/tests/fixtures/<source>/` and cover:
 - missing or partial fields,
 - unicode and multiline values,
 - API normalizers without live network calls.
+
+For PubMed and PubMed Central support, use fake `pymedx.PubMed` and
+`pymedx.PubMedCentral` clients in unit tests. Do not add default CI tests that
+query NCBI directly. If a live check is needed, make it opt-in and require
+`BIBLIOFLOW_NCBI_EMAIL`.
 
 ## Web checks
 

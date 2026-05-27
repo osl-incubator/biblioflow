@@ -1,3 +1,4 @@
+import math
 from pathlib import Path
 
 import biblioflow as bf
@@ -17,6 +18,34 @@ def test_summarize_dataset_and_import():
     import_summary = bf.summarize_import(dataset)
     assert import_summary.records == 2
     assert import_summary.format == "json"
+
+
+def test_summarize_dataset_ignores_missing_and_nan_years():
+    dataset = bf.load(
+        [
+            {
+                "title": "Complete record",
+                "publication_year": 2024,
+                "authors": ["Jane Smith"],
+            },
+            {
+                "title": "Missing year",
+                "publication_year": None,
+                "authors": ["John Doe"],
+            },
+            {
+                "title": "NaN year",
+                "publication_year": math.nan,
+                "authors": ["Aisha Rahman"],
+            },
+        ],
+        source="generic",
+    )
+
+    summary = bf.summarize_dataset(dataset)
+    assert summary.documents == 3
+    assert summary.timespan_start == 2024
+    assert summary.timespan_end == 2024
 
 
 def test_filter_dataset_and_options():

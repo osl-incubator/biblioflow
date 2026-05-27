@@ -42,7 +42,17 @@ from biblioflow.results import (
     summarize_dataset,
     summarize_import,
 )
-from biblioflow.sources import from_crossref, from_openalex, from_scopus
+from biblioflow.sources import (
+    coerce_pymedx_article,
+    from_crossref,
+    from_openalex,
+    from_pmc,
+    from_pubmed,
+    from_pubmed_central,
+    from_scopus,
+    normalize_pmc_article,
+    normalize_pubmed_article,
+)
 
 __version__ = "0.1.0"  # semantic-release
 
@@ -71,6 +81,7 @@ __all__ = [
     "__version__",
     "analyze",
     "available_filter_values",
+    "coerce_pymedx_article",
     "conceptual_structure",
     "deduplicate",
     "enrich",
@@ -78,6 +89,9 @@ __all__ = [
     "filter_dataset",
     "from_crossref",
     "from_openalex",
+    "from_pmc",
+    "from_pubmed",
+    "from_pubmed_central",
     "from_scopus",
     "historiograph",
     "infer_format",
@@ -86,6 +100,8 @@ __all__ = [
     "map_themes",
     "matrix",
     "network",
+    "normalize_pmc_article",
+    "normalize_pubmed_article",
     "summarize_dataset",
     "summarize_filters",
     "summarize_import",

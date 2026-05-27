@@ -5,6 +5,7 @@ title: Provider-specific adapters.
 from biblioflow.providers.adapters import (
     adapt_crossref,
     adapt_openalex,
+    adapt_pmc,
     adapt_pubmed,
     adapt_record,
     adapt_scopus,
@@ -16,6 +17,7 @@ from biblioflow.providers.adapters import (
 __all__ = [
     "adapt_crossref",
     "adapt_openalex",
+    "adapt_pmc",
     "adapt_pubmed",
     "adapt_record",
     "adapt_scopus",

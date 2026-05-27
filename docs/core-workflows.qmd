@@ -46,9 +46,12 @@ Frequently used normalized columns include:
 ```text
 source
 source_id
+pmid
+pmcid
 doi
 title
 abstract
+full_text
 authors
 authors_raw
 publication_year
@@ -60,6 +63,7 @@ keywords_index
 keywords_all
 references
 references_raw
+full_text_url
 affiliations
 institutions
 countries
@@ -117,6 +121,7 @@ scopus = bf.load("scopus.csv", source="scopus")
 wos = bf.load("savedrecs.txt", source="wos")
 openalex = bf.load("openalex.json", source="openalex")
 crossref = bf.load("crossref.json", source="crossref")
+pubmed = bf.load("records.nbib", source="pubmed")
 ```
 
 The loader detects many common cases automatically, but explicit `source=` is
@@ -127,7 +132,22 @@ Dedicated API helpers are available for live metadata retrieval:
 ```python
 openalex = bf.from_openalex(search="bibliometrics", limit=100)
 crossref = bf.from_crossref(query="science mapping", limit=100)
+pubmed = bf.from_pubmed(
+    query="bibliometrics AND reproducibility",
+    limit=100,
+    email="researcher@example.org",
+)
+pmc = bf.from_pmc(
+    query="open science",
+    limit=50,
+    email="researcher@example.org",
+)
 ```
+
+PubMed and PubMed Central datasets are regular `BibliographicDataset` objects,
+so the same filtering, analysis, network, mapping, and export calls apply.
+PMC records can include `pmcid`, `full_text_url`, and `full_text` in addition
+to standard bibliographic metadata.
 
 For a full mapping of supported providers and formats, see
 [Sources and import formats](sources.qmd).

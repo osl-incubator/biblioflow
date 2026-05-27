@@ -4,10 +4,11 @@ title: Provider-specific raw-record adapters.
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from biblioflow.normalize.authors import author_names, normalize_author_name
-from biblioflow.normalize.dates import parse_publication_date
+from biblioflow.normalize.dates import parse_publication_date, parse_year
 from biblioflow.normalize.ids import normalize_doi
 from biblioflow.normalize.references import reference_texts
 from biblioflow.normalize.text import split_keywords
@@ -334,6 +335,372 @@ def adapt_scopus_api(record: dict[str, Any]) -> dict[str, Any]:
     )
 
 
+def _key(value: str) -> str:
+    """
+    title: Normalize provider payload keys for lookup.
+    parameters:
+      value:
+        type: str
+        description: Raw key value.
+    returns:
+      type: str
+    """
+    return re.sub(r"[^a-z0-9]+", "_", value.strip().casefold()).strip("_")
+
+
+def _lookup(record: dict[str, Any], *keys: str) -> Any:
+    """
+    title: Look up the first matching value using exact and normalized keys.
+    parameters:
+      record:
+        type: dict[str, Any]
+        description: Record dictionary.
+      keys:
+        type: str
+        description: Candidate keys.
+        variadic: positional
+    returns:
+      type: Any
+    """
+    for key in keys:
+        if key in record and record[key] not in (None, ""):
+            return record[key]
+    normalized = {_key(str(key)): value for key, value in record.items()}
+    for key in keys:
+        value = normalized.get(_key(key))
+        if value not in (None, ""):
+            return value
+    return None
+
+
+def _first_text(value: Any) -> str | None:
+    """
+    title: Convert the first scalar value to text.
+    parameters:
+      value:
+        type: Any
+        description: Raw value.
+    returns:
+      type: str | None
+    """
+    value = _first(value)
+    if value is None:
+        return None
+    text = str(value).strip()
+    return text or None
+
+
+def _list_texts(value: Any) -> list[str]:
+    """
+    title: Convert nested values into a deduplicated text list.
+    parameters:
+      value:
+        type: Any
+        description: Raw list-like value.
+    returns:
+      type: list[str]
+    """
+    if value is None:
+        return []
+    if isinstance(value, list | tuple | set):
+        output: list[str] = []
+        for item in value:
+            output.extend(_list_texts(item))
+        return _dedupe_texts(output)
+    if isinstance(value, dict):
+        for key in (
+            "name",
+            "display_name",
+            "term",
+            "keyword",
+            "value",
+            "text",
+            "DescriptorName",
+            "descriptor_name",
+        ):
+            text = _first_text(value.get(key))
+            if text:
+                return [text]
+        return []
+    text = _first_text(value)
+    if text is None:
+        return []
+    return _dedupe_texts(split_keywords(text) or [text])
+
+
+def _dedupe_texts(values: list[str]) -> list[str]:
+    """
+    title: Deduplicate text values case-insensitively.
+    parameters:
+      values:
+        type: list[str]
+        description: Text values.
+    returns:
+      type: list[str]
+    """
+    seen: set[str] = set()
+    output: list[str] = []
+    for value in values:
+        text = str(value).strip()
+        if not text:
+            continue
+        marker = text.casefold()
+        if marker in seen:
+            continue
+        seen.add(marker)
+        output.append(text)
+    return output
+
+
+def _identifier(record: dict[str, Any], identifier: str) -> str | None:
+    """
+    title: Extract a typed identifier from common article id containers.
+    parameters:
+      record:
+        type: dict[str, Any]
+        description: Record dictionary.
+      identifier:
+        type: str
+        description: Identifier type, such as doi or pmid.
+    returns:
+      type: str | None
+    """
+    direct = _lookup(record, identifier, identifier.upper())
+    if direct:
+        return _first_text(direct)
+    containers = _lookup(
+        record,
+        "ids",
+        "article_ids",
+        "articleids",
+        "identifiers",
+        "article_id",
+    )
+    if isinstance(containers, dict):
+        direct = _lookup(containers, identifier, identifier.upper())
+        if direct:
+            return _first_text(direct)
+    if isinstance(containers, list | tuple):
+        for item in containers:
+            if not isinstance(item, dict):
+                continue
+            id_type = _lookup(item, "type", "id_type", "idtype", "IdType")
+            id_type_text = _first_text(id_type)
+            if id_type_text and id_type_text.casefold() == identifier.casefold():
+                value = _lookup(item, "value", "id", "identifier", "text")
+                if value:
+                    return _first_text(value)
+    return None
+
+
+def _pubmed_authors(value: Any) -> list[str]:
+    """
+    title: Normalize PubMed author payloads to display names.
+    parameters:
+      value:
+        type: Any
+        description: Author payload.
+    returns:
+      type: list[str]
+    """
+    if value is None:
+        return []
+    if isinstance(value, list | tuple | set):
+        output: list[str] = []
+        for item in value:
+            output.extend(_pubmed_authors(item))
+        return _dedupe_texts(output)
+    if isinstance(value, dict):
+        name = _lookup(value, "name", "full_name", "fullname", "display_name")
+        if name:
+            return [_first_text(name) or ""]
+        collective = _lookup(value, "collective_name", "CollectiveName")
+        if collective:
+            return [_first_text(collective) or ""]
+        family = _first_text(_lookup(value, "last_name", "lastname", "LastName"))
+        given = _first_text(
+            _lookup(value, "fore_name", "forename", "first_name", "initials")
+        )
+        name = " ".join(part for part in (given, family) if part)
+        return [name] if name else []
+    return author_names(value, source="pubmed")
+
+
+def _pubmed_publication_date(record: dict[str, Any]) -> str | None:
+    """
+    title: Parse PubMed publication date fields.
+    parameters:
+      record:
+        type: dict[str, Any]
+        description: Record dictionary.
+    returns:
+      type: str | None
+    """
+    value = _lookup(
+        record,
+        "publication_date",
+        "pub_date",
+        "pubdate",
+        "date",
+        "pubmed_date",
+        "article_date",
+    )
+    if isinstance(value, dict):
+        year = _first_text(_lookup(value, "year", "Year"))
+        month = _first_text(_lookup(value, "month", "Month"))
+        day = _first_text(_lookup(value, "day", "Day"))
+        if year and month and day and month.isdigit() and day.isdigit():
+            return f"{int(year):04d}-{int(month):02d}-{int(day):02d}"
+        if year and month and month.isdigit():
+            return f"{int(year):04d}-{int(month):02d}"
+        if year:
+            return f"{int(year):04d}"
+    return parse_publication_date(value)
+
+
+def _pubmed_year(record: dict[str, Any]) -> int | None:
+    """
+    title: Extract a PubMed publication year.
+    parameters:
+      record:
+        type: dict[str, Any]
+        description: Record dictionary.
+    returns:
+      type: int | None
+    """
+    date = _pubmed_publication_date(record)
+    return parse_year(
+        _lookup(record, "publication_year", "year", "pub_year", "pubdate", "date")
+        or date
+    )
+
+
+def _pmcid(value: Any) -> str | None:
+    """
+    title: Normalize a PubMed Central identifier.
+    parameters:
+      value:
+        type: Any
+        description: Raw PMCID value.
+    returns:
+      type: str | None
+    """
+    text = _first_text(value)
+    if not text:
+        return None
+    text = text.strip()
+    if text.upper().startswith("PMC"):
+        return f"PMC{text[3:].strip()}"
+    if text.isdigit():
+        return f"PMC{text}"
+    return text
+
+
+def _pubmed_url(pmid: str | None) -> str | None:
+    """
+    title: Build a PubMed URL for a PMID.
+    parameters:
+      pmid:
+        type: str | None
+        description: PubMed identifier.
+    returns:
+      type: str | None
+    """
+    return f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/" if pmid else None
+
+
+def _pmc_url(pmcid: str | None) -> str | None:
+    """
+    title: Build a PubMed Central article URL for a PMCID.
+    parameters:
+      pmcid:
+        type: str | None
+        description: PubMed Central identifier.
+    returns:
+      type: str | None
+    """
+    return f"https://www.ncbi.nlm.nih.gov/pmc/articles/{pmcid}/" if pmcid else None
+
+
+def _adapt_pubmed_common(record: dict[str, Any], *, source: str) -> dict[str, Any]:
+    """
+    title: Adapt PubMed-family records to biblioflow-friendly keys.
+    parameters:
+      record:
+        type: dict[str, Any]
+        description: Raw PubMed-family record.
+      source:
+        type: str
+        description: Normalized source name.
+    returns:
+      type: dict[str, Any]
+    """
+    pmid = _identifier(record, "pmid") or _lookup(record, "source_id", "pubmed_id")
+    pmid_text = _first_text(pmid)
+    pmcid_text = _pmcid(
+        _identifier(record, "pmcid") or _lookup(record, "pmc_id", "pmc")
+    )
+    doi = normalize_doi(_identifier(record, "doi") or _lookup(record, "doi", "DOI"))
+    journal = _lookup(record, "source_title", "journal", "journal_title", "journal")
+    journal_abbrev = _lookup(
+        record,
+        "journal_abbrev",
+        "journal_abbreviation",
+        "iso_abbreviation",
+        "medline_ta",
+    )
+    keywords_author = _list_texts(_lookup(record, "keywords_author", "keywords"))
+    mesh_terms = _list_texts(_lookup(record, "keywords_index", "mesh_terms", "mesh"))
+    pub_date = _pubmed_publication_date(record)
+    pmc_url = _pmc_url(pmcid_text)
+    pubmed_url = _pubmed_url(pmid_text)
+    full_text = _lookup(record, "full_text", "article_text", "body", "text")
+    full_text_url = _lookup(record, "full_text_url", "pmc_url") or pmc_url
+
+    return {
+        **record,
+        "source": source,
+        "source_id": pmcid_text if source == "pmc" and pmcid_text else pmid_text,
+        "pmid": pmid_text,
+        "pmcid": pmcid_text,
+        "doi": doi,
+        "title": _lookup(record, "title", "article_title"),
+        "abstract": _lookup(record, "abstract", "summary"),
+        "full_text": full_text,
+        "authors": _pubmed_authors(_lookup(record, "authors", "author", "author_list")),
+        "authors_raw": _lookup(record, "authors_raw", "authors", "author"),
+        "source_title": journal,
+        "journal": journal,
+        "journal_abbrev": journal_abbrev,
+        "publication_year": _pubmed_year(record),
+        "publication_date": pub_date,
+        "keywords_author": keywords_author,
+        "keywords_index": mesh_terms,
+        "document_type": "; ".join(
+            _list_texts(_lookup(record, "document_type", "publication_type", "type"))
+        )
+        or None,
+        "language": _lookup(record, "language", "languages"),
+        "volume": _lookup(record, "volume"),
+        "issue": _lookup(record, "issue"),
+        "pages": _lookup(record, "pages", "page", "pagination"),
+        "start_page": _lookup(record, "start_page"),
+        "end_page": _lookup(record, "end_page"),
+        "issn": _lookup(record, "issn"),
+        "eissn": _lookup(record, "eissn"),
+        "publisher": _lookup(record, "publisher"),
+        "affiliations": _list_texts(_lookup(record, "affiliations", "affiliation")),
+        "grants": _list_texts(_lookup(record, "grants", "grant")),
+        "references": _lookup(record, "references"),
+        "references_raw": _lookup(record, "references_raw", "references"),
+        "url": _lookup(record, "url", "link")
+        or (pmc_url if source == "pmc" else pubmed_url),
+        "full_text_url": full_text_url,
+        "open_access_url": _lookup(record, "open_access_url") or full_text_url,
+        "raw": dict(record),
+    }
+
+
 def adapt_pubmed(record: dict[str, Any]) -> dict[str, Any]:
     """
     title: Adapt PubMed/PubMed XML-like records.
@@ -344,13 +711,20 @@ def adapt_pubmed(record: dict[str, Any]) -> dict[str, Any]:
     returns:
       type: dict[str, Any]
     """
-    return {
-        **record,
-        "source_id": record.get("pmid")
-        or record.get("PMID")
-        or record.get("source_id"),
-        "keywords_index": record.get("mesh_terms") or record.get("keywords_index"),
-    }
+    return _adapt_pubmed_common(record, source="pubmed")
+
+
+def adapt_pmc(record: dict[str, Any]) -> dict[str, Any]:
+    """
+    title: Adapt PubMed Central records.
+    parameters:
+      record:
+        type: dict[str, Any]
+        description: Record value.
+    returns:
+      type: dict[str, Any]
+    """
+    return _adapt_pubmed_common(record, source="pmc")
 
 
 def adapt_record(provider: str, record: dict[str, Any]) -> dict[str, Any]:
@@ -375,6 +749,8 @@ def adapt_record(provider: str, record: dict[str, Any]) -> dict[str, Any]:
         return adapt_scopus(record)
     if provider_key == "scopus_api":
         return adapt_scopus_api(record)
-    if provider_key in {"pubmed", "pmc"}:
+    if provider_key == "pubmed":
         return adapt_pubmed(record)
+    if provider_key == "pmc":
+        return adapt_pmc(record)
     return record

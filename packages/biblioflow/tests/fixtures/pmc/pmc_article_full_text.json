@@ -1,0 +1,18 @@
+{
+  "pmcid": "PMC7654321",
+  "pmid": "87654321",
+  "doi": "10.1000/pmc",
+  "title": "Open science mapping in full text archives",
+  "abstract": "A full-text PubMed Central record for science mapping.",
+  "full_text": "Introduction. Science mapping can use open full text. Methods. We used biblioflow.",
+  "authors": ["Alice Researcher", "Bob Analyst"],
+  "journal_title": "PMC Open Research",
+  "publication_date": { "year": "2025", "month": "02", "day": "03" },
+  "keywords": "open science; full text; PubMed Central",
+  "mesh": ["Open Access Publishing", "Text Mining"],
+  "publication_type": "Research Article",
+  "language": "English",
+  "volume": "1",
+  "issue": "1",
+  "pages": "1-9"
+}

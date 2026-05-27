@@ -16,6 +16,7 @@ from biblioflow.load import load
 from biblioflow.matrices import matrix
 from biblioflow.networks import network
 from biblioflow.normalize.deduplicate import deduplicate
+from biblioflow.sources import from_pubmed, from_pubmed_central
 
 
 def _add_load_options(parser: argparse.ArgumentParser) -> None:
@@ -137,6 +138,36 @@ def _cmd_matrix(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_search(args: argparse.Namespace) -> int:
+    """
+    title: Run an API-backed search command.
+    parameters:
+      args:
+        type: argparse.Namespace
+        description: Parsed command arguments.
+    returns:
+      type: int
+    """
+    if args.source == "pubmed":
+        dataset = from_pubmed(
+            query=args.query,
+            limit=args.limit,
+            tool=args.tool,
+            email=args.email,
+            api_key=args.api_key,
+        )
+    else:
+        dataset = from_pubmed_central(
+            query=args.query,
+            limit=args.limit,
+            tool=args.tool,
+            email=args.email,
+            api_key=args.api_key,
+        )
+    export(dataset, args.output, format=args.to)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     """
     title: Build the command-line parser.
@@ -191,6 +222,26 @@ def build_parser() -> argparse.ArgumentParser:
     network_parser.add_argument("--min-occurrences", type=int, default=1)
     network_parser.add_argument("--deduplicate", action="store_true")
     network_parser.set_defaults(func=_cmd_network)
+
+    search_parser = subparsers.add_parser("search", help="Search remote sources")
+    search_subparsers = search_parser.add_subparsers(dest="source")
+    for source, help_text in (
+        ("pubmed", "Search PubMed"),
+        ("pmc", "Search PubMed Central"),
+    ):
+        source_parser = search_subparsers.add_parser(source, help=help_text)
+        source_parser.add_argument("--query", required=True, help="Search query")
+        source_parser.add_argument("--email", help="NCBI contact email")
+        source_parser.add_argument("--api-key", help="NCBI API key")
+        source_parser.add_argument(
+            "--tool", default="biblioflow", help="NCBI tool name"
+        )
+        source_parser.add_argument("--limit", type=int, default=100)
+        source_parser.add_argument("-o", "--output", required=True)
+        source_parser.add_argument(
+            "--to", choices=["json", "csv", "yaml"], default="json"
+        )
+        source_parser.set_defaults(func=_cmd_search, source=source)
 
     return parser
 

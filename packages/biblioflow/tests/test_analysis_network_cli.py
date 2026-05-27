@@ -1,4 +1,5 @@
 import json
+import math
 from pathlib import Path
 
 import biblioflow as bf
@@ -29,6 +30,25 @@ def test_analyze_matrix_network_and_themes():
 
     evolution = bf.trace_themes(records)
     assert len(evolution.to_dataframe()) >= 2
+
+
+def test_analyze_ignores_missing_and_nan_years():
+    dataset = bf.load(
+        [
+            {"title": "Complete record", "publication_year": 2024},
+            {"title": "Missing year", "publication_year": None},
+            {"title": "NaN year", "publication_year": math.nan},
+        ],
+        source="generic",
+    )
+
+    summary = bf.analyze(dataset)
+    assert summary.main_information["documents"] == 3
+    assert summary.main_information["timespan_start"] == 2024
+    assert summary.main_information["timespan_end"] == 2024
+    assert summary.annual_production.to_dict(orient="records") == [
+        {"publication_year": 2024, "documents": 1}
+    ]
 
 
 def test_export_dataset_and_network(tmp_path):
