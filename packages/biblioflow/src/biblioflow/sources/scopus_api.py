@@ -4,6 +4,7 @@ title: Scopus API source helpers.
 
 from __future__ import annotations
 
+from importlib import import_module
 from typing import Any
 
 from biblioflow.core.dataset import BibliographicDataset
@@ -51,13 +52,17 @@ def from_scopus(
       type: BibliographicDataset
     """
     try:
-        from pybliometrics.scopus import ScopusSearch  # type: ignore[import-not-found]
+        scopus_module = import_module("pybliometrics.scopus")
     except ImportError as exc:
         msg = "Install biblioflow[scopus] to use from_scopus()."
         raise OptionalDependencyError(msg) from exc
 
     try:
-        search = ScopusSearch(query, refresh=refresh, subscriber=subscriber)
+        search = scopus_module.ScopusSearch(
+            query,
+            refresh=refresh,
+            subscriber=subscriber,
+        )
     except Exception as exc:  # pragma: no cover - depends on local config
         msg = "Scopus API access requires pybliometrics configuration and an API key."
         raise APIConfigurationError(msg) from exc
