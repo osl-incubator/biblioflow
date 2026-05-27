@@ -54,7 +54,7 @@ from biblioflow.sources import (
     normalize_pubmed_article,
 )
 
-__version__ = "0.1.0"  # semantic-release
+__version__ = "0.2.0"  # semantic-release
 
 __all__ = [
     "APIConfigurationError",

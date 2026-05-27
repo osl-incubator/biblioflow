@@ -1,6 +1,6 @@
 [project]
 name = "biblioflow"
-version = "0.1.0"  # semantic-release
+version = "0.2.0"  # semantic-release
 description = "Python-native workflows for bibliographic metadata, bibliometrics, and science mapping."
 readme = "README.md"
 requires-python = ">=3.10,<4"
