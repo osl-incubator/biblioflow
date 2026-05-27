@@ -12,6 +12,7 @@ import { FiltersPage } from "./routes/dashboard/FiltersPage";
 import { MatrixPage } from "./routes/dashboard/MatrixPage";
 import { NetworkPage } from "./routes/dashboard/NetworkPage";
 import { OverviewPage } from "./routes/dashboard/OverviewPage";
+import { PrismaPage } from "./routes/dashboard/PrismaPage";
 import { SourcesPage } from "./routes/dashboard/SourcesPage";
 import { StructurePage } from "./routes/dashboard/StructurePage";
 import { ValidationPage } from "./routes/dashboard/ValidationPage";
@@ -47,6 +48,7 @@ export function App() {
           <Route path="networks" element={<NetworkPage />} />
           <Route path="filters" element={<FiltersPage />} />
           <Route path="validation" element={<ValidationPage />} />
+          <Route path="prisma" element={<PrismaPage />} />
         </Route>
         <Route path="projects/:projectId/exports" element={<ExportsPage />} />
       </Route>

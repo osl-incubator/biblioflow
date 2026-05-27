@@ -60,7 +60,12 @@ export const navigationSections: NavigationSection[] = [
         buildPath: (projectId) => dashboardPath(projectId, "validation"),
         fallbackPath: "/projects",
       },
-      { label: "PRISMA Diagram", detail: "Planned", disabled: true },
+      {
+        label: "PRISMA Diagram",
+        detail: "Flow counts",
+        buildPath: (projectId) => dashboardPath(projectId, "prisma"),
+        fallbackPath: "/projects",
+      },
     ],
   },
   {

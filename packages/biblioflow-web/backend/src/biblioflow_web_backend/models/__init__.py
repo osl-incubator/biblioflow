@@ -6,6 +6,7 @@ from biblioflow_web_backend.models.requests import (
     ExportRequest,
     FilterRequest,
     MatrixRequest,
+    PrismaFlowRequest,
     ProjectCreateRequest,
 )
 from biblioflow_web_backend.models.responses import ApiEnvelope, HealthResponse
@@ -18,5 +19,6 @@ __all__ = [
     "FilterRequest",
     "HealthResponse",
     "MatrixRequest",
+    "PrismaFlowRequest",
     "ProjectCreateRequest",
 ]

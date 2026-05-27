@@ -175,6 +175,38 @@ export interface NetworkResult {
   metadata?: Record<string, unknown>;
 }
 
+export interface PrismaValidationMessage {
+  level: "error" | "warning";
+  field: string;
+  message: string;
+  expected?: number | null;
+  found?: number | null;
+}
+
+export interface PrismaValidationReport {
+  errors: PrismaValidationMessage[];
+  warnings: PrismaValidationMessage[];
+}
+
+export interface PrismaRenderPayload {
+  svg: string;
+  mermaid: string;
+}
+
+export interface PrismaFlowPayload {
+  flow: Record<string, unknown>;
+  validation: PrismaValidationReport;
+  renders: PrismaRenderPayload;
+  counts: Record<string, unknown>;
+  metadata: Record<string, unknown>;
+}
+
+export interface PrismaFlowRequest {
+  dataset_id?: string | null;
+  title?: string | null;
+  counts?: Record<string, unknown>;
+}
+
 export interface ExportRequest {
   dataset_id: string;
   kind: string;

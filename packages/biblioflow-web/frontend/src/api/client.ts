@@ -17,6 +17,8 @@ import type {
   MatrixRequest,
   MatrixResult,
   NetworkResult,
+  PrismaFlowPayload,
+  PrismaFlowRequest,
   Project,
   Upload,
   ValidationPayload,
@@ -228,6 +230,29 @@ export async function buildNetwork(
   return request<ApiEnvelope<NetworkResult>>(
     `/projects/${projectId}/datasets/${datasetId}/networks`,
     { method: "POST", body: JSON.stringify(payload) },
+  );
+}
+
+export async function getPrismaFlow(
+  projectId: string,
+  datasetId?: string | null,
+): Promise<ApiEnvelope<PrismaFlowPayload>> {
+  const query = datasetId ? `?dataset_id=${encodeURIComponent(datasetId)}` : "";
+  return request<ApiEnvelope<PrismaFlowPayload>>(
+    `/projects/${projectId}/prisma${query}`,
+  );
+}
+
+export async function buildPrismaFlow(
+  projectId: string,
+  payload: PrismaFlowRequest,
+): Promise<ApiEnvelope<PrismaFlowPayload>> {
+  return request<ApiEnvelope<PrismaFlowPayload>>(
+    `/projects/${projectId}/prisma`,
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    },
   );
 }
 

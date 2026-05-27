@@ -24,6 +24,7 @@ python = ">=3.10,<4"
 biblioflow = { path = "packages/biblioflow", develop = true }
 biblioflow-web = { path = "packages/biblioflow-web/backend", develop = true }
 biblioflow-nb = { path = "packages/biblioflow-nb", develop = true }
+prisma-flow = "^0.5.0"
 
 [tool.poetry.group.dev.dependencies]
 douki = ">=0.12.1"

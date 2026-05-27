@@ -7,6 +7,7 @@ import { useActiveWorkspace } from "./dashboard/workspace";
 const dashboardTabs = [
   ["Overview", "overview"],
   ["Validation", "validation"],
+  ["PRISMA", "prisma"],
   ["Filters", "filters"],
   ["Sources", "sources"],
   ["Authors", "authors"],
@@ -79,18 +80,26 @@ export function DashboardPage() {
             </span>
           </div>
         </div>
-        <div className="run-panel">
+        <div className="run-panel" aria-label="Project actions">
           <Link
-            className="button button-secondary"
+            className="workspace-action-card"
             to={`/projects/${projectId}/upload`}
           >
-            Upload files
+            <span className="workspace-action-icon">⇧</span>
+            <span>
+              <strong>Upload files</strong>
+              <small>Add bibliographic exports to this project</small>
+            </span>
           </Link>
           <Link
-            className="button button-primary"
+            className="workspace-action-card"
             to={`/projects/${projectId}/exports`}
           >
-            Export results
+            <span className="workspace-action-icon">↓</span>
+            <span>
+              <strong>Export results</strong>
+              <small>Download datasets, matrices, and networks</small>
+            </span>
           </Link>
         </div>
       </section>

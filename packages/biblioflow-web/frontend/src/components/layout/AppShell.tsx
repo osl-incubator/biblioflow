@@ -22,7 +22,6 @@ export function AppShell() {
   const project = projectQuery.data?.data;
   const activeDatasetId = project?.active_dataset_id ?? null;
   const pathSegments = location.pathname.split("/").filter(Boolean);
-  const currentSection = pathSegments.at(-1) ?? "home";
 
   const breadcrumbs =
     pathSegments.length === 0
@@ -139,11 +138,6 @@ export function AppShell() {
                 </span>
               ))}
             </nav>
-          </div>
-          <div className="header-actions">
-            <span className="route-pill">{routeLabel(currentSection)}</span>
-            <NavLink to="/">Home</NavLink>
-            <NavLink to="/projects">Projects</NavLink>
           </div>
         </header>
         <main className="app-main">

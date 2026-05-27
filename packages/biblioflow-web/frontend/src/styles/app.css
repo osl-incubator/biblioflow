@@ -55,8 +55,7 @@ button:disabled {
   box-shadow: 0 12px 24px rgb(31 111 235 / 22%);
 }
 
-.button-secondary,
-.run-panel a {
+.button-secondary {
   background: #e9f1ff;
   color: #1f4d8f;
 }
@@ -285,6 +284,14 @@ button:disabled {
   display: grid;
   gap: 1.5rem;
   grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.7fr);
+}
+
+.dashboard-hero > .button,
+.workflow-hero > .button {
+  align-self: center;
+  justify-self: start;
+  max-width: 100%;
+  width: fit-content;
 }
 
 .workflow-hero {
@@ -805,6 +812,65 @@ button:disabled {
   grid-template-columns: minmax(0, 1fr) auto;
 }
 
+.run-panel {
+  align-self: center;
+  display: grid;
+  gap: 0.75rem;
+  min-width: 280px;
+}
+
+.workspace-action-card {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #d7e5fb;
+  border-radius: 1rem;
+  box-shadow: 0 14px 30px rgb(22 34 51 / 8%);
+  color: #172033;
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: auto minmax(0, 1fr);
+  padding: 0.95rem;
+  text-decoration: none;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.workspace-action-card:hover {
+  border-color: #9fc5ff;
+  box-shadow: 0 18px 38px rgb(31 111 235 / 16%);
+  transform: translateY(-1px);
+}
+
+.workspace-action-icon {
+  align-items: center;
+  background: linear-gradient(135deg, #1f6feb, #4fc3f7);
+  border-radius: 0.85rem;
+  color: #ffffff;
+  display: inline-flex;
+  font-size: 1.1rem;
+  font-weight: 900;
+  height: 2.6rem;
+  justify-content: center;
+  width: 2.6rem;
+}
+
+.workspace-action-card strong,
+.workspace-action-card small {
+  display: block;
+}
+
+.workspace-action-card strong {
+  font-size: 0.96rem;
+}
+
+.workspace-action-card small {
+  color: #64748b;
+  line-height: 1.35;
+  margin-top: 0.15rem;
+}
+
 .workspace-meta {
   display: flex;
   flex-wrap: wrap;
@@ -1244,5 +1310,42 @@ button.button-secondary {
 
   .dashboard-subnav {
     position: static;
+  }
+}
+
+.prisma-grid {
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+}
+
+.prisma-svg-preview {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.9rem;
+  overflow: auto;
+  padding: 1rem;
+}
+
+.prisma-svg-preview svg {
+  display: block;
+  height: auto;
+  margin: 0 auto;
+  max-width: 100%;
+}
+
+.code-textarea {
+  background: #0f172a;
+  border: 0;
+  border-radius: 0.85rem;
+  color: #dbeafe;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  min-height: 280px;
+  padding: 1rem;
+  resize: vertical;
+  width: 100%;
+}
+
+@media (max-width: 1080px) {
+  .prisma-grid {
+    grid-template-columns: 1fr;
   }
 }

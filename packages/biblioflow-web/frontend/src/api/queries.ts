@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   buildMatrix,
   buildNetwork,
+  buildPrismaFlow,
   createExport,
   createProject,
   deleteProject,
@@ -12,6 +13,7 @@ import {
   getDatasetSummary,
   getFilterOptions,
   getHealth,
+  getPrismaFlow,
   getProject,
   getUpload,
   getValidation,
@@ -30,6 +32,7 @@ import type {
   ExportRequest,
   FilterSpec,
   MatrixRequest,
+  PrismaFlowRequest,
 } from "./types";
 
 export function useHealth() {
@@ -182,6 +185,24 @@ export function useNetwork(
   return useMutation({
     mutationFn: (request: MatrixRequest) =>
       buildNetwork(projectId as string, datasetId as string, request),
+  });
+}
+
+export function usePrismaFlow(
+  projectId?: string | null,
+  datasetId?: string | null,
+) {
+  return useQuery({
+    queryKey: ["projects", projectId, "datasets", datasetId, "prisma"],
+    queryFn: () => getPrismaFlow(projectId as string, datasetId),
+    enabled: Boolean(projectId && datasetId),
+  });
+}
+
+export function useBuildPrismaFlow(projectId?: string | null) {
+  return useMutation({
+    mutationFn: (payload: PrismaFlowRequest) =>
+      buildPrismaFlow(projectId as string, payload),
   });
 }
 

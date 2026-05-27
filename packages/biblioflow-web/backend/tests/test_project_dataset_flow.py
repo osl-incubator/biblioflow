@@ -61,3 +61,24 @@ def test_project_upload_load_and_analyze(app_client):
         f"/api/projects/{project_id}/exports/{export_payload['filename']}/download"
     )
     assert download_response.status_code == 200
+
+    prisma_response = app_client.get(f"/api/projects/{project_id}/prisma")
+    assert prisma_response.status_code == 200
+    prisma_payload = prisma_response.json()["data"]
+    assert prisma_payload["counts"]["records_identified_databases"] == 2
+    assert prisma_payload["validation"]["errors"] == []
+    assert "<svg" in prisma_payload["renders"]["svg"]
+    assert "flowchart TD" in prisma_payload["renders"]["mermaid"]
+
+    custom_prisma_response = app_client.post(
+        f"/api/projects/{project_id}/prisma",
+        json={
+            "dataset_id": dataset_id,
+            "title": "Custom PRISMA",
+            "counts": {"records_removed_duplicates": 1},
+        },
+    )
+    assert custom_prisma_response.status_code == 200
+    custom_prisma_payload = custom_prisma_response.json()["data"]
+    assert custom_prisma_payload["counts"]["records_screened"] == 1
+    assert custom_prisma_payload["flow"]["title"] == "Custom PRISMA"

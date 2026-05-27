@@ -146,6 +146,37 @@ groups:
           cd packages/biblioflow-web/backend
           PYTHONPATH=src:../../biblioflow/src uvicorn biblioflow_web_backend.main:app --reload --host "${{ args.host }}" --port "${{ args.port }}"
 
+      seed.demo:
+        help: Seed the biblioflow-web data store with rich demo projects
+        backend: python
+        args:
+          data-dir:
+            help: Optional biblioflow-web data directory. Defaults to the app data dir.
+            type: string
+            default: ""
+          reset:
+            help: Delete existing demo-seeded projects before creating fresh ones.
+            type: string
+            default: "true"
+        run: |
+          import sys
+          from pathlib import Path
+
+          sys.path.insert(
+              0,
+              str(Path("packages/biblioflow-web/backend/scripts").resolve()),
+          )
+          from seed_demo_data import main
+
+          seed_args = []
+          data_dir = "${{ args.data_dir }}"
+          reset = "${{ args.reset }}".lower() in {"1", "true", "yes", "y"}
+          if data_dir:
+              seed_args.extend(["--data-dir", data_dir])
+          if reset:
+              seed_args.append("--reset")
+          main(seed_args)
+
       backend.package.build:
         help: Build the backend Python package without rebuilding frontend assets
         backend: bash

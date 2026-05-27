@@ -8,6 +8,14 @@ export function valueToString(value: unknown): string {
   if (value === null || value === undefined || value === "") {
     return "—";
   }
+  if (typeof value === "object") {
+    const entries = Object.entries(value as Record<string, unknown>);
+    return entries.length
+      ? entries
+          .map(([key, entryValue]) => `${key}: ${valueToString(entryValue)}`)
+          .join("; ")
+      : "—";
+  }
   return String(value);
 }
 

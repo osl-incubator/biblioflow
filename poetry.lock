@@ -2755,6 +2755,26 @@ pyyaml = ">=5.1"
 virtualenv = ">=20.10.0"
 
 [[package]]
+name = "prisma-flow"
+version = "0.5.0"
+description = "Lightweight Python tools for generating PRISMA-style flow diagrams without system dependencies."
+optional = false
+python-versions = "<4,>=3.10"
+groups = ["main"]
+files = [
+    {file = "prisma_flow-0.5.0-py3-none-any.whl", hash = "sha256:a0005454c9f68f2522122569d0dabf21689b1008160084e0d3f94f92b48a9a21"},
+    {file = "prisma_flow-0.5.0.tar.gz", hash = "sha256:36a8f6275706f2491b478dcbb5f5cc05c9075361881d293b3bc16c2be4a883a1"},
+]
+
+[package.dependencies]
+pydantic = ">=2"
+resvg = ">=0.2.0"
+
+[package.extras]
+dev = ["douki (>=0.12.1)", "makim (==1.29.0)", "mypy (>=1.10)", "pre-commit (>=3)", "pytest (>=8)", "pytest-cov (>=5)", "ruff (>=0.6)"]
+yaml = ["pyyaml (>=6)"]
+
+[[package]]
 name = "prometheus-client"
 version = "0.25.0"
 description = "Python client for the Prometheus monitoring system."
@@ -3576,6 +3596,102 @@ urllib3 = ">=1.26,<3"
 [package.extras]
 socks = ["PySocks (>=1.5.6,!=1.5.7)"]
 use-chardet-on-py3 = ["chardet (>=3.0.2,<8)"]
+
+[[package]]
+name = "resvg"
+version = "0.2.0"
+description = "A Python binding of resvg, the high-performance SVG rendering library in Rust"
+optional = false
+python-versions = ">=3.10"
+groups = ["main"]
+files = [
+    {file = "resvg-0.2.0-cp310-cp310-macosx_10_12_x86_64.whl", hash = "sha256:a69eaeabd809e1f560fa0e48e32a3bd5679bae201ddf41772b355e87b5874f37"},
+    {file = "resvg-0.2.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:6c3ba97774c6d59a4dc900c156e22cead10b7669327e97548aded7ea9e55b26d"},
+    {file = "resvg-0.2.0-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:d2b62a4a6b76ae5c82400c4a2559768e9079bcc19c46aa357cc7a6ad7ad96ad2"},
+    {file = "resvg-0.2.0-cp310-cp310-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:da939c925f067d1ab583864adc1b83baaefe1e07bf3dadb56210b538eed7da57"},
+    {file = "resvg-0.2.0-cp310-cp310-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:63eed54c84f9ed9131852afc3677c79080c4578f0fc00bc2071583dc41aabd93"},
+    {file = "resvg-0.2.0-cp310-cp310-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:69d13a5bf52fffcc7e12b1f038ab803c3015589d24253d7ce15605c1455251d2"},
+    {file = "resvg-0.2.0-cp310-cp310-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:88f5dd775fa208379e775d7775d0170859ed962056cba7b6f1a096ad204e5dee"},
+    {file = "resvg-0.2.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:e54e622d441cc433d93280e00d2486f12d1fed1ca9a81a583e3b71e81da464eb"},
+    {file = "resvg-0.2.0-cp310-cp310-musllinux_1_2_aarch64.whl", hash = "sha256:6ee96ef2e3e3f8eacd4b96b734c341d8a322253448c4fdd3958303b9c994e7cd"},
+    {file = "resvg-0.2.0-cp310-cp310-musllinux_1_2_armv7l.whl", hash = "sha256:2e9dc60f137ea8abfa7d121fcf2914571c1ba60d8402b620fbf2a0126848f7a0"},
+    {file = "resvg-0.2.0-cp310-cp310-musllinux_1_2_i686.whl", hash = "sha256:a833fbc62a84843b97954866a82894e123166828d947d525b6dedb5e5fe8d808"},
+    {file = "resvg-0.2.0-cp310-cp310-musllinux_1_2_ppc64le.whl", hash = "sha256:011bf7fa8ecc52e03580ebd3f04ee8f1560269349c11f7cd816ae072fb98022d"},
+    {file = "resvg-0.2.0-cp310-cp310-musllinux_1_2_x86_64.whl", hash = "sha256:12e494c53bfc62678aecf197b2ca27e4451a874f4212f15a54b3d5b440c0f862"},
+    {file = "resvg-0.2.0-cp310-cp310-win32.whl", hash = "sha256:788093959ce5a58407eb98dd99c783c94fb75b5567d1eba628bd220d65c1967a"},
+    {file = "resvg-0.2.0-cp310-cp310-win_amd64.whl", hash = "sha256:4fcc651a08dc3007ed41e8bd5e968873f95d354ae098fe29ef414ff8eb8024c1"},
+    {file = "resvg-0.2.0-cp311-cp311-macosx_10_12_x86_64.whl", hash = "sha256:f9329b18aebbf16d57a856efcd5127c4e8569db675e2be4754b4f6dbb710dc5e"},
+    {file = "resvg-0.2.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:467e0ace6f4f9acdcb023f314361a6416739d245e856c53e06388cd376c54895"},
+    {file = "resvg-0.2.0-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:a745f32d24247f5fef36e3ab781c158df526655013d45d39232b43f19d7fda46"},
+    {file = "resvg-0.2.0-cp311-cp311-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:1942426842927b8ad32003e10831cbc442ce935918985f9b7da716b8e181c480"},
+    {file = "resvg-0.2.0-cp311-cp311-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:31e1a94c74791c50ba0a8147e9e68983cbdbeed75dd887d2fb7d625f71ee1fff"},
+    {file = "resvg-0.2.0-cp311-cp311-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:8ad15e17ead5dc5cce27ad86c776be17fcea286f566bbd1ef4d18eaa02d7823b"},
+    {file = "resvg-0.2.0-cp311-cp311-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:125001faa38f236d5f9ce8f15daf5a98c61396c17a6efa6c16ad07abc7d38485"},
+    {file = "resvg-0.2.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:55609cf035522d1f2e3dd58fe6217ce1af55b0919cb843a5b91c0d8836a51103"},
+    {file = "resvg-0.2.0-cp311-cp311-musllinux_1_2_aarch64.whl", hash = "sha256:99f81af60949fe98299032779b36b218ff7a0be5ec816e61e13af94037cfa6c7"},
+    {file = "resvg-0.2.0-cp311-cp311-musllinux_1_2_armv7l.whl", hash = "sha256:af5cbad18db88ee3a01f48d50b96c43ab9dc472d32d928709a08acf17929a52b"},
+    {file = "resvg-0.2.0-cp311-cp311-musllinux_1_2_i686.whl", hash = "sha256:2c932b497ff8e08fffe64afeaa5129beb0f844550dd8899905a886ba0e343ad0"},
+    {file = "resvg-0.2.0-cp311-cp311-musllinux_1_2_ppc64le.whl", hash = "sha256:242f15e75f34e1178fab5c225b06bf332f6057edf216785f580d7700d0703877"},
+    {file = "resvg-0.2.0-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:aee75d4f6f7fa98782075f206c1e056acce81030f141bb1984b25f8008eb8dd7"},
+    {file = "resvg-0.2.0-cp311-cp311-win32.whl", hash = "sha256:20330abcc6b3c9821e3c02e2c477562eb7e008d98f76a401a54e98d68364149a"},
+    {file = "resvg-0.2.0-cp311-cp311-win_amd64.whl", hash = "sha256:e1147a13980ba37707430b4980d81a19fa7b4a7c4c774174ebbb26888187f77f"},
+    {file = "resvg-0.2.0-cp311-cp311-win_arm64.whl", hash = "sha256:802dc109bbe192d9f089f017bfe5f8e3e2755ee8f828866bddeb9836e0bbbbe6"},
+    {file = "resvg-0.2.0-cp312-cp312-macosx_10_12_x86_64.whl", hash = "sha256:2eeb72998b883d7bba416521a70dce3dbdcbc27289d28afa782c3cce2e320618"},
+    {file = "resvg-0.2.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:bef6664df2e4c4148db4275bf7260beec0379496121ce679faeb37c163523410"},
+    {file = "resvg-0.2.0-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:00ba87a5f355bf4dc19008efae755a6d24c23122da98d4787fb9abbdd2ce6feb"},
+    {file = "resvg-0.2.0-cp312-cp312-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:72164d2def7ec1ed1315566b5a12bdb360902bb59e339d671c97415314193453"},
+    {file = "resvg-0.2.0-cp312-cp312-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:9d2e656c3c3f3efb63a84a79099ba18f0f98f6a983d67d3a1144af5692f718c2"},
+    {file = "resvg-0.2.0-cp312-cp312-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:69ca5af78ed5d8a1482f9635cfc09051f71d2e8b88cba2b49a7988483918e98b"},
+    {file = "resvg-0.2.0-cp312-cp312-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:5a237b08512b0653a2c79e7aed99f3a0bcc8d8d08d05149baeb27cec2a6b4a50"},
+    {file = "resvg-0.2.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:8258678c65cc3deac5b74afbcf47828f176835f00fad3466459bbe376aaafbd1"},
+    {file = "resvg-0.2.0-cp312-cp312-musllinux_1_2_aarch64.whl", hash = "sha256:5e9f3eaba888d8d597c408269bdd0cb0dd9a89f8e3d8911cc71bbcc6dbd1d2fe"},
+    {file = "resvg-0.2.0-cp312-cp312-musllinux_1_2_armv7l.whl", hash = "sha256:5130139ccc5b42082ef8e4239c790127b7786049f13eb6131940d8ecd525de18"},
+    {file = "resvg-0.2.0-cp312-cp312-musllinux_1_2_i686.whl", hash = "sha256:c473fedba24c9c3fcf7ea05724ac2470831df898517312de635f771afa197be2"},
+    {file = "resvg-0.2.0-cp312-cp312-musllinux_1_2_ppc64le.whl", hash = "sha256:1f0b71bde0482bfb6894afd7939427a5bc821a19b3abcceb7ba50f9b824ae1ae"},
+    {file = "resvg-0.2.0-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:e9bb36fcc9c73a63a9e6916c9455d16fff5d540df998d3ca1387a1890853d449"},
+    {file = "resvg-0.2.0-cp312-cp312-win32.whl", hash = "sha256:3ef8eb23e88d32c0e82853d20d1c2d727cf11cbef3d5d665940043de9fb5315c"},
+    {file = "resvg-0.2.0-cp312-cp312-win_amd64.whl", hash = "sha256:e9f3154975e75979c14325c71f3b27d952b1131256d2d1f5ef1a1c9368e1055d"},
+    {file = "resvg-0.2.0-cp312-cp312-win_arm64.whl", hash = "sha256:59d8fc93d573490ae575def08b7a7120d4232d30be319712dca5b2f8a9cbed5a"},
+    {file = "resvg-0.2.0-cp313-cp313-macosx_10_12_x86_64.whl", hash = "sha256:6f4c2707ce3eff03e2353b75fbaad96b682898e08fade4c47f3f78d554f32de5"},
+    {file = "resvg-0.2.0-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:350738ad930becec79f59367066cd0d2092a0194f69ca0ee3cc821a9b95233fe"},
+    {file = "resvg-0.2.0-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:80a8664a2c7ee1d4a8dbdb04559a2738bb41fe9595b82a00a035c7abfd627980"},
+    {file = "resvg-0.2.0-cp313-cp313-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:3c6e5bccca19927e78428efadd1ac9f231cea3e7b157569581071ee01dd4bbe1"},
+    {file = "resvg-0.2.0-cp313-cp313-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:5621ded9d1ac9a4bdc38f0d0229158f790f4c5913354e9ad7ce5bee46ff52c22"},
+    {file = "resvg-0.2.0-cp313-cp313-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:e3fd7ea6a59eaabed57a01879f3a5d1f741708ec6eaa594b5ad0586cfd91f5d4"},
+    {file = "resvg-0.2.0-cp313-cp313-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:cb3ee70f5132333dda9691f9bf0f4e446d0854bd3988dcb29da36409033f01d3"},
+    {file = "resvg-0.2.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:41d194c1003f0a216a566543fae3fd155911ddfec68f30c986b5edf95ed13901"},
+    {file = "resvg-0.2.0-cp313-cp313-musllinux_1_2_aarch64.whl", hash = "sha256:6c8c1911918d318a4d4cfafd21eb1c66dbceac22ba5103270cc08bc1f51ef51c"},
+    {file = "resvg-0.2.0-cp313-cp313-musllinux_1_2_armv7l.whl", hash = "sha256:306f0314456f30dc8bf04efcef64df36c0bd856bde53c7b5fd597f42414bcc1a"},
+    {file = "resvg-0.2.0-cp313-cp313-musllinux_1_2_i686.whl", hash = "sha256:241699b653213bb29684b5e774d27b6606c0a6cff2a5139e840cc9ea88c6beb0"},
+    {file = "resvg-0.2.0-cp313-cp313-musllinux_1_2_ppc64le.whl", hash = "sha256:64305cb254551f887f8e878e07167399b0daa170fdf55ee0968568b420c48076"},
+    {file = "resvg-0.2.0-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:3a1de096ee34035e67011aba2f8ac824a844f0c4c7f4920ea5c896b262781749"},
+    {file = "resvg-0.2.0-cp313-cp313-win32.whl", hash = "sha256:06d5d4f6e3ca7364526258706636b33b6f1cd287b0424fcb9f1399c9b51f574e"},
+    {file = "resvg-0.2.0-cp313-cp313-win_amd64.whl", hash = "sha256:a0e9b233cbda14f4bac9f093c83f7ca46045738131450a45416fa6b50b55bc83"},
+    {file = "resvg-0.2.0-cp313-cp313-win_arm64.whl", hash = "sha256:2b1d767a639c1a2ed61ac2c41d09d407b976232dbed3162b0a2de3f906c01ab1"},
+    {file = "resvg-0.2.0-cp314-cp314-macosx_10_12_x86_64.whl", hash = "sha256:f092412e902d52bc73e6a83318f607e714c160cebbca44509019addc6b2f41fa"},
+    {file = "resvg-0.2.0-cp314-cp314-macosx_11_0_arm64.whl", hash = "sha256:6d67d9a28343ed6d003ca512b2969142e6e0d92f50db9c4cc601d7447c03962a"},
+    {file = "resvg-0.2.0-cp314-cp314-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:574a04efed429d8d19d0cfc38153500185bc80758690f57c0faeb3eec587ecae"},
+    {file = "resvg-0.2.0-cp314-cp314-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:48f017cc85e7e91e5a41055585c09e1f61954e9ec7b7f91494aec23a87dc7aca"},
+    {file = "resvg-0.2.0-cp314-cp314-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:96d1db73dd8c84b82de3d32c26b0d0fa1f88b97cf8f820cdc6dc21ea2c358d77"},
+    {file = "resvg-0.2.0-cp314-cp314-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:22255e09288592857b1c42c30beb92bfa45c278628be1928735fb1a2dd2e012a"},
+    {file = "resvg-0.2.0-cp314-cp314-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:e726ac4cd067758a17369e9c0ef6c96ea526eba29ac033c72c1930f721ee12f4"},
+    {file = "resvg-0.2.0-cp314-cp314-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:26f65c8096af11c4253e9d1c45db87bf2882a84d71deddbb7e3b01ee3d62a7e9"},
+    {file = "resvg-0.2.0-cp314-cp314-musllinux_1_2_aarch64.whl", hash = "sha256:6215b0f1398796488b31070b926a2ad5a07d62594e4bc15023119b93878fc4fb"},
+    {file = "resvg-0.2.0-cp314-cp314-musllinux_1_2_armv7l.whl", hash = "sha256:afcd9b1b8e87e86d631e6a778de53bba9cd1bfcef76ea44fdc7f049f5ba473ee"},
+    {file = "resvg-0.2.0-cp314-cp314-musllinux_1_2_i686.whl", hash = "sha256:4b445b92f91a0417f12c222bc543b149e0780237d7dd47edd58c9ad6b3df450a"},
+    {file = "resvg-0.2.0-cp314-cp314-musllinux_1_2_ppc64le.whl", hash = "sha256:6bf1c5dbfa7029a85719eeb188d617f96e26946a9f9f57fed7bbdec7c8078ec8"},
+    {file = "resvg-0.2.0-cp314-cp314-musllinux_1_2_x86_64.whl", hash = "sha256:5296f118b30b8efbb890c25cf5b745082ed287088457f5b6ea7e63c0beb30264"},
+    {file = "resvg-0.2.0-cp314-cp314-win32.whl", hash = "sha256:9585c8fc6609de714a40fb05b03670458bcbe059bfa80a1562dfb5fd1475fca4"},
+    {file = "resvg-0.2.0-cp314-cp314-win_amd64.whl", hash = "sha256:988bd46d50b050af6055f8959c324b00a163e02077816cdc21a2d40d543065d3"},
+    {file = "resvg-0.2.0-cp314-cp314-win_arm64.whl", hash = "sha256:c250c1e652390bb4adb6b014503cf4e300470ef3fd06d4412cbbf69cf0c197eb"},
+    {file = "resvg-0.2.0-pp311-pypy311_pp73-macosx_10_12_x86_64.whl", hash = "sha256:1454e15f0f722768f898ec2a6f1a9331343f6731326537b675d5bbf77bd410f5"},
+    {file = "resvg-0.2.0-pp311-pypy311_pp73-macosx_11_0_arm64.whl", hash = "sha256:58afdd8f715ee906466c87a8fb6d1fc61fb7c7af4006f98035f729c8d29531bd"},
+    {file = "resvg-0.2.0-pp311-pypy311_pp73-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:cdbe89568ca0c2cd98bb73ae4023f6018e8e1eb5055b1a172388e8163d270536"},
+    {file = "resvg-0.2.0-pp311-pypy311_pp73-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:9a652a4c18bb47d344b675929f244fd63d2808878fa273f440f3489ccc6cf5bc"},
+    {file = "resvg-0.2.0-pp311-pypy311_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a2f2f2c71d38ff4913710643b3e9fadaf61a9e77159269acc3baca83300b50ba"},
+    {file = "resvg-0.2.0-pp311-pypy311_pp73-win_amd64.whl", hash = "sha256:d4cbadce48903e094c82474927a5ab1182384e26f48caf58ecb34abbdd7e95c5"},
+    {file = "resvg-0.2.0.tar.gz", hash = "sha256:0a2dca53359809f45cb940e52e60d382316c7e0580814df2a23ed30a0221774c"},
+]
 
 [[package]]
 name = "rfc3339-validator"
@@ -4743,4 +4859,4 @@ test = ["coverage (>=5.3.1)", "prompt-toolkit (>=3.0.29)", "pygments (>=2.2)", "
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<4"
-content-hash = "ac0c67456dd632b72872b65c168af4f218cd54ec1565fef009d59acf385e1881"
+content-hash = "32903b84638a257d33141575225cd8ffca8bf8c198558b57c06c93c8811ebf66"
