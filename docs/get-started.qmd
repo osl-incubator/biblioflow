@@ -14,7 +14,7 @@ pip install biblioflow
 Optional YAML import/export support is provided as an extra:
 
 ```bash
-pip install "biblioflow[yaml]"
+pip install "biblioflow"
 ```
 
 Provider/API extras are available when you want client libraries installed in
@@ -76,7 +76,6 @@ dataset.to_records()[:3]
 | JSON/JSONL | `.json`, `.jsonl` | Supports generic records and provider payloads. |
 | XML | `.xml` | Includes PubMed XML support. |
 | NBIB | `.nbib` | PubMed/NLM text export format. |
-| YAML | `.yaml`, `.yml` | Optional extra: `biblioflow[yaml]`. |
 
 See [Sources and import formats](sources.qmd) for the complete source guide.
 

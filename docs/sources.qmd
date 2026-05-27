@@ -45,7 +45,7 @@ examples should prefer `source=`.
 | OpenAlex | JSON, CSV-like generic records | `.json`, `.csv` | JSON API response shapes with `results` are detected. |
 | Crossref | JSON | `.json` | Work-list responses with `message.items` are detected. |
 | PubMed | NBIB, XML | `.nbib`, `.xml` | Existing PubMed/NLM loading remains available. |
-| Generic records | JSON, JSONL, CSV, TSV, YAML | `.json`, `.jsonl`, `.csv`, `.tsv`, `.yaml` | YAML requires the `biblioflow[yaml]` extra. |
+| Generic records | JSON, JSONL, CSV, TSV, YAML | `.json`, `.jsonl`, `.csv`, `.tsv`, `.yaml` | |
 
 ## Canonical fields
 
@@ -174,19 +174,3 @@ records = bf.from_scopus(
 
 If Scopus API support is not installed or configured, `biblioflow` raises a
 structured configuration/dependency error.
-
-## Optional extras
-
-Install only the pieces you need:
-
-```bash
-pip install "biblioflow[yaml]"
-pip install "biblioflow[openalex]"
-pip install "biblioflow[crossref]"
-pip install "biblioflow[scopus]"
-pip install "biblioflow[all]"
-```
-
-The current implementation keeps core file parsing lightweight and pure Python.
-The API-client extras are declared for users who want provider-specific client
-libraries in their environment.

@@ -40,7 +40,7 @@ pip install biblioflow
 Optional YAML support:
 
 ```bash
-pip install "biblioflow[yaml]"
+pip install "biblioflow"
 ```
 
 ## Python API
