@@ -1,0 +1,890 @@
+[
+  {
+    "objectID": "release.html",
+    "href": "release.html",
+    "title": "Release process",
+    "section": "",
+    "text": "The repository releases three Python distributions from one semantic-release version:\n\n\n\n\n\n\n\n\nDistribution\nSource directory\nBuild artifact\n\n\n\n\nbiblioflow\npackages/biblioflow\nCore library wheel and sdist.\n\n\nbiblioflow-web\npackages/biblioflow-web/backend\nFastAPI package with bundled React static assets.\n\n\nbiblioflow-nb\npackages/biblioflow-nb\nNotebook widget package and example notebooks.",
+    "crumbs": [
+      "Home",
+      "Contributors",
+      "Release process"
+    ]
+  },
+  {
+    "objectID": "release.html#published-packages",
+    "href": "release.html#published-packages",
+    "title": "Release process",
+    "section": "",
+    "text": "The repository releases three Python distributions from one semantic-release version:\n\n\n\n\n\n\n\n\nDistribution\nSource directory\nBuild artifact\n\n\n\n\nbiblioflow\npackages/biblioflow\nCore library wheel and sdist.\n\n\nbiblioflow-web\npackages/biblioflow-web/backend\nFastAPI package with bundled React static assets.\n\n\nbiblioflow-nb\npackages/biblioflow-nb\nNotebook widget package and example notebooks.",
+    "crumbs": [
+      "Home",
+      "Contributors",
+      "Release process"
+    ]
+  },
+  {
+    "objectID": "release.html#triggering-releases",
+    "href": "release.html#triggering-releases",
+    "title": "Release process",
+    "section": "Triggering releases",
+    "text": "Triggering releases\nThe release workflow is defined in .github/workflows/release.yml.\n\nPushes and pull requests to main run semantic-release in dry-run mode.\nActual publishing is performed with workflow_dispatch.",
+    "crumbs": [
+      "Home",
+      "Contributors",
+      "Release process"
+    ]
+  },
+  {
+    "objectID": "release.html#version-replacement",
+    "href": "release.html#version-replacement",
+    "title": "Release process",
+    "section": "Version replacement",
+    "text": "Version replacement\n.releaserc.json uses @google/semantic-release-replace-plugin to update:\n\npackages/biblioflow/pyproject.toml\npackages/biblioflow/src/biblioflow/__init__.py\npackages/biblioflow-web/backend/pyproject.toml\npackages/biblioflow-web/backend/src/biblioflow_web_backend/__init__.py\npackages/biblioflow-web/backend/src/biblioflow_web_backend/main.py\npackages/biblioflow-nb/pyproject.toml\npackages/biblioflow-nb/src/biblioflow_nb/__init__.py\nCITATION.cff\n\nIt also updates the internal package constraints so the application packages require the released core version:\n\"biblioflow&gt;=${nextRelease.version}\"",
+    "crumbs": [
+      "Home",
+      "Contributors",
+      "Release process"
+    ]
+  },
+  {
+    "objectID": "release.html#build-sequence",
+    "href": "release.html#build-sequence",
+    "title": "Release process",
+    "section": "Build sequence",
+    "text": "Build sequence\nThe semantic-release prepareCmd builds packages in this order:\n\nBuild biblioflow.\nBuild the React frontend and copy its dist/ output into the FastAPI package.\nBuild biblioflow-web.\nBuild biblioflow-nb.\n\nThe GitHub release assets include wheels and source distributions for all three packages.",
+    "crumbs": [
+      "Home",
+      "Contributors",
+      "Release process"
+    ]
+  },
+  {
+    "objectID": "release.html#publish-sequence",
+    "href": "release.html#publish-sequence",
+    "title": "Release process",
+    "section": "Publish sequence",
+    "text": "Publish sequence\nThe semantic-release publishCmd publishes all three Poetry packages to PyPI:\n\nbiblioflow\nbiblioflow-web\nbiblioflow-nb\n\n\n\n\n\n\n\nWarning\n\n\n\nFor the first release of a new PyPI project, the PYPI_TOKEN usually needs account-level permission or project-creation permission. Project-scoped tokens only work after the project already exists and the token has access.",
+    "crumbs": [
+      "Home",
+      "Contributors",
+      "Release process"
+    ]
+  },
+  {
+    "objectID": "release.html#local-pre-release-checklist",
+    "href": "release.html#local-pre-release-checklist",
+    "title": "Release process",
+    "section": "Local pre-release checklist",
+    "text": "Local pre-release checklist\nBefore triggering a real release, run:\nmakim tests.linter\nmakim tests.unit\nmakim web.backend.tests\nmakim web.frontend.install\nmakim web.frontend.lint\nmakim web.frontend.tests\nmakim web.frontend.build\nmakim nb.tests\nmakim package.build\nmakim web.package.build\nmakim nb.package.build\nmakim docs.build\nAlso verify that semantic-release replacement patterns still match exactly once for each managed version field.",
+    "crumbs": [
+      "Home",
+      "Contributors",
+      "Release process"
+    ]
+  },
+  {
+    "objectID": "release.html#frontend-reproducibility",
+    "href": "release.html#frontend-reproducibility",
+    "title": "Release process",
+    "section": "Frontend reproducibility",
+    "text": "Frontend reproducibility\nThe React frontend is not published to npm, but it is part of the Python release artifact. A lockfile is recommended so release builds are reproducible and use npm ci instead of resolving fresh dependency versions on every release.",
+    "crumbs": [
+      "Home",
+      "Contributors",
+      "Release process"
+    ]
+  },
+  {
+    "objectID": "sources.html",
+    "href": "sources.html",
+    "title": "Sources and import formats",
+    "section": "",
+    "text": "biblioflow separates source from format:\n\nsource is the database or provider, such as scopus, wos, openalex, crossref, pubmed, or pmc.\nformat is the file format, such as csv, bibtex, ris, json, or plain_text.\n\nFor convenience, both can be inferred:\nimport biblioflow as bf\n\ndataset = bf.load(\"records.ris\")\ndataset = bf.load(\"scopus_export.csv\")\ndataset = bf.load(\"savedrecs.txt\")\nWhen the source is known, pass it explicitly:\ndataset = bf.load(\"savedrecs.txt\", source=\"wos\")\ndataset = bf.load(\"scopus.csv\", source=\"scopus\")\ndataset = bf.load(\"openalex.json\", source=\"openalex\")\ndataset = bf.load(\"crossref.json\", source=\"crossref\")\ndataset = bf.load(\"pubmed_records.nbib\", source=\"pubmed\")\nThe older provider= keyword remains supported for compatibility, but new examples should prefer source=.",
+    "crumbs": [
+      "Home",
+      "User guide",
+      "Sources and import formats"
+    ]
+  },
+  {
+    "objectID": "sources.html#overview",
+    "href": "sources.html#overview",
+    "title": "Sources and import formats",
+    "section": "",
+    "text": "biblioflow separates source from format:\n\nsource is the database or provider, such as scopus, wos, openalex, crossref, pubmed, or pmc.\nformat is the file format, such as csv, bibtex, ris, json, or plain_text.\n\nFor convenience, both can be inferred:\nimport biblioflow as bf\n\ndataset = bf.load(\"records.ris\")\ndataset = bf.load(\"scopus_export.csv\")\ndataset = bf.load(\"savedrecs.txt\")\nWhen the source is known, pass it explicitly:\ndataset = bf.load(\"savedrecs.txt\", source=\"wos\")\ndataset = bf.load(\"scopus.csv\", source=\"scopus\")\ndataset = bf.load(\"openalex.json\", source=\"openalex\")\ndataset = bf.load(\"crossref.json\", source=\"crossref\")\ndataset = bf.load(\"pubmed_records.nbib\", source=\"pubmed\")\nThe older provider= keyword remains supported for compatibility, but new examples should prefer source=.",
+    "crumbs": [
+      "Home",
+      "User guide",
+      "Sources and import formats"
+    ]
+  },
+  {
+    "objectID": "sources.html#supported-file-inputs",
+    "href": "sources.html#supported-file-inputs",
+    "title": "Sources and import formats",
+    "section": "Supported file inputs",
+    "text": "Supported file inputs\n\n\n\n\n\n\n\n\n\nSource\nFormats\nTypical files\nNotes\n\n\n\n\nGeneric BibTeX\nBibTeX\n.bib, .bibtex\nCommon citation-manager and LaTeX format.\n\n\nGeneric RIS\nRIS\n.ris\nCommon reference-manager and database export format.\n\n\nScopus\nCSV, BibTeX\n.csv, .bib\nCSV headers are mapped to the canonical schema.\n\n\nWeb of Science\nPlain text, BibTeX\nsavedrecs.txt, .bib\nPlain-text exports support repeated and multiline tags.\n\n\nOpenAlex\nJSON, CSV-like generic records\n.json, .csv\nJSON API response shapes with results are detected.\n\n\nCrossref\nJSON\n.json\nWork-list responses with message.items are detected.\n\n\nPubMed\nNBIB, XML\n.nbib, .xml\nPubMed/NLM files with PMID, DOI, MeSH, and journal fields.\n\n\nPubMed Central\nXML, API records\n.xml, API results\nPMC records can include PMCID, full-text URL, and full text when available.\n\n\nGeneric records\nJSON, JSONL, CSV, TSV, YAML\n.json, .jsonl, .csv, .tsv, .yaml",
+    "crumbs": [
+      "Home",
+      "User guide",
+      "Sources and import formats"
+    ]
+  },
+  {
+    "objectID": "sources.html#canonical-fields",
+    "href": "sources.html#canonical-fields",
+    "title": "Sources and import formats",
+    "section": "Canonical fields",
+    "text": "Canonical fields\nSource-specific exports are normalized to one record schema. Common fields include:\nsource\nsource_id\npmid\npmcid\ndoi\ntitle\nabstract\nfull_text\nauthors\nauthors_raw\nyear\npublication_year\npublication_date\njournal\nsource_title\ndocument_type\nlanguage\nvolume\nissue\npages\narticle_number\nauthor_keywords\nkeywords_author\nkeywords_index\nkeywords_all\nreferences\nreferences_raw\nfull_text_url\naffiliations\ninstitutions\ncountries\ncited_by_count\nraw\nThe raw field preserves the source-specific payload inside each normalized record. The dataset also stores the raw records separately in dataset.raw when keep_raw=True.",
+    "crumbs": [
+      "Home",
+      "User guide",
+      "Sources and import formats"
+    ]
+  },
+  {
+    "objectID": "sources.html#source-aliases",
+    "href": "sources.html#source-aliases",
+    "title": "Sources and import formats",
+    "section": "Source aliases",
+    "text": "Source aliases\nsource aliases are normalized before dispatch:\n\n\n\n\n\n\n\nAlias\nNormalized source\n\n\n\n\nwos, webofscience, web-of-science\nweb_of_science\n\n\nscopus\nscopus\n\n\nopenalex\nopenalex\n\n\ncrossref\ncrossref\n\n\nbib, bibtex\nbibtex\n\n\nris\nris\n\n\npubmed\npubmed\n\n\npmc, pubmed_central, pubmed-central, pubmedcentral, pmcid\npmc\n\n\n\nFormat aliases are also normalized. For example, bib becomes bibtex and txt becomes plain_text.",
+    "crumbs": [
+      "Home",
+      "User guide",
+      "Sources and import formats"
+    ]
+  },
+  {
+    "objectID": "sources.html#web-of-science-plain-text",
+    "href": "sources.html#web-of-science-plain-text",
+    "title": "Sources and import formats",
+    "section": "Web of Science plain text",
+    "text": "Web of Science plain text\nWeb of Science plain-text exports are parsed directly:\ndataset = bf.load(\"savedrecs.txt\")\nThe parser handles:\n\nER-delimited records.\nMultiline fields, such as long titles and abstracts.\nRepeated fields, such as authors, addresses, emails, and references.\nCore tags including AU, AF, TI, SO, DE, ID, AB, CR, TC, PY, DI, UT, WC, and SC.\n\nUseful normalized fields include source_id, authors, source_title, keywords_author, keywords_index, references_raw, cited_by_count, wos_categories, and research_areas.",
+    "crumbs": [
+      "Home",
+      "User guide",
+      "Sources and import formats"
+    ]
+  },
+  {
+    "objectID": "sources.html#pubmed-and-pubmed-central-api-search",
+    "href": "sources.html#pubmed-and-pubmed-central-api-search",
+    "title": "Sources and import formats",
+    "section": "PubMed and PubMed Central API search",
+    "text": "PubMed and PubMed Central API search\nPubMed and PubMed Central searches use pymedx, which is installed with the core package. Use PubMed query syntax and provide an NCBI contact email either directly or through an environment variable:\nexport BIBLIOFLOW_NCBI_EMAIL=\"researcher@example.org\"\n# Optional, when you have an NCBI API key:\nexport BIBLIOFLOW_NCBI_API_KEY=\"...\"\nimport biblioflow as bf\n\npubmed = bf.from_pubmed(\n    query=\"bibliometrics AND reproducibility\",\n    limit=100,\n)\n\npmc = bf.from_pmc(\n    query=\"science mapping\",\n    limit=50,\n)\nfrom_pubmed_central(...) is the long-form name for from_pmc(...). PubMed records populate fields such as pmid, doi, title, abstract, authors, source_title, publication_date, keywords_index, and url. PMC records also populate pmcid, full_text_url, open_access_url, and full_text when those values are returned by the source.\nThe loader intentionally requires a contact email before making API calls. Pass email=\"you@example.org\" or set one of BIBLIOFLOW_NCBI_EMAIL, NCBI_EMAIL, or ENTREZ_EMAIL.",
+    "crumbs": [
+      "Home",
+      "User guide",
+      "Sources and import formats"
+    ]
+  },
+  {
+    "objectID": "sources.html#scopus-csv",
+    "href": "sources.html#scopus-csv",
+    "title": "Sources and import formats",
+    "section": "Scopus CSV",
+    "text": "Scopus CSV\nScopus CSV exports are loaded through the same API:\ndataset = bf.load(\"scopus.csv\")\nScopus-specific columns such as Authors, Author full names, Title, Year, Source title, Cited by, DOI, Affiliations, References, and EID are mapped to canonical fields. UTF-8 BOM files are supported.",
+    "crumbs": [
+      "Home",
+      "User guide",
+      "Sources and import formats"
+    ]
+  },
+  {
+    "objectID": "sources.html#openalex-and-crossref-json",
+    "href": "sources.html#openalex-and-crossref-json",
+    "title": "Sources and import formats",
+    "section": "OpenAlex and Crossref JSON",
+    "text": "OpenAlex and Crossref JSON\nSaved API responses can be loaded as files:\nopenalex = bf.load(\"openalex.json\", source=\"openalex\")\ncrossref = bf.load(\"crossref.json\", source=\"crossref\")\nOpenAlex JSON supports a single work, a list of works, or a response object with results. OpenAlex abstract inverted indexes are reconstructed into plain text.\nCrossref JSON supports a single work, a list of works, or a work-list response with message.items. Crossref date-parts are normalized into ISO-like dates.",
+    "crumbs": [
+      "Home",
+      "User guide",
+      "Sources and import formats"
+    ]
+  },
+  {
+    "objectID": "sources.html#api-connectors",
+    "href": "sources.html#api-connectors",
+    "title": "Sources and import formats",
+    "section": "API connectors",
+    "text": "API connectors\nFile loading uses bf.load(...). API imports use dedicated functions:\nrecords = bf.from_openalex(search=\"bibliometrics\", limit=100)\nrecords = bf.from_crossref(query=\"science mapping\", limit=100)\npubmed = bf.from_pubmed(\n    query=\"bibliometrics AND reproducibility\",\n    limit=100,\n    email=\"researcher@example.org\",\n)\npmc = bf.from_pubmed_central(\n    query=\"open science\",\n    limit=50,\n    email=\"researcher@example.org\",\n)\nScopus API access requires optional dependencies and local pybliometrics configuration:\nrecords = bf.from_scopus(\n    query=\"TITLE-ABS-KEY(bibliometrics)\",\n    limit=100,\n)\nIf Scopus API support is not installed or configured, biblioflow raises a structured configuration/dependency error.",
+    "crumbs": [
+      "Home",
+      "User guide",
+      "Sources and import formats"
+    ]
+  },
+  {
+    "objectID": "development.html",
+    "href": "development.html",
+    "title": "Development",
+    "section": "",
+    "text": "packages/\n├── biblioflow/                 # Core Python library and CLI\n├── biblioflow-web/\n│   ├── backend/                # FastAPI package published as biblioflow-web\n│   └── frontend/               # Private React/Vite app bundled into backend\n└── biblioflow-nb/              # Jupyter/Colab widget package\nTop-level project files coordinate documentation, CI, release automation, and Makim tasks.",
+    "crumbs": [
+      "Home",
+      "Contributors",
+      "Development"
+    ]
+  },
+  {
+    "objectID": "development.html#monorepo-layout",
+    "href": "development.html#monorepo-layout",
+    "title": "Development",
+    "section": "",
+    "text": "packages/\n├── biblioflow/                 # Core Python library and CLI\n├── biblioflow-web/\n│   ├── backend/                # FastAPI package published as biblioflow-web\n│   └── frontend/               # Private React/Vite app bundled into backend\n└── biblioflow-nb/              # Jupyter/Colab widget package\nTop-level project files coordinate documentation, CI, release automation, and Makim tasks.",
+    "crumbs": [
+      "Home",
+      "Contributors",
+      "Development"
+    ]
+  },
+  {
+    "objectID": "development.html#environment-setup",
+    "href": "development.html#environment-setup",
+    "title": "Development",
+    "section": "Environment setup",
+    "text": "Environment setup\nconda env create -f conda/dev.yaml\nconda activate biblioflow\ncd packages/biblioflow\npoetry config virtualenvs.create false\npoetry install --extras \"dev yaml\"",
+    "crumbs": [
+      "Home",
+      "Contributors",
+      "Development"
+    ]
+  },
+  {
+    "objectID": "development.html#core-library-checks",
+    "href": "development.html#core-library-checks",
+    "title": "Development",
+    "section": "Core library checks",
+    "text": "Core library checks\nmakim tests.linter\nmakim tests.unit\nmakim package.build\nThe linter task runs pre-commit hooks, including Ruff, Mypy, and Douki for core library docstrings.",
+    "crumbs": [
+      "Home",
+      "Contributors",
+      "Development"
+    ]
+  },
+  {
+    "objectID": "development.html#source-loader-development",
+    "href": "development.html#source-loader-development",
+    "title": "Development",
+    "section": "Source loader development",
+    "text": "Source loader development\nSource-specific import behavior belongs in packages/biblioflow, not in the web or notebook applications. The current loader stack is organized around:\n\nbiblioflow/load/infer.py for source/format aliasing and detection.\nbiblioflow/load/dispatcher.py for bf.load(...) orchestration.\nbiblioflow/io/ for file readers such as BibTeX, RIS, and Web of Science.\nbiblioflow/providers/adapters.py for provider-specific mappings.\nbiblioflow/normalize/ for DOI, date, author, text, and reference helpers.\nbiblioflow/sources/ for public source helpers such as from_openalex(...), from_crossref(...), from_scopus(...), from_pubmed(...), and from_pmc(...).\n\nAdd fixtures under packages/biblioflow/tests/fixtures/&lt;source&gt;/ and cover:\n\ndetection,\nfield mapping,\nraw payload preservation,\nmissing or partial fields,\nunicode and multiline values,\nAPI normalizers without live network calls.\n\nFor PubMed and PubMed Central support, use fake pymedx.PubMed and pymedx.PubMedCentral clients in unit tests. Do not add default CI tests that query NCBI directly. If a live check is needed, make it opt-in and require BIBLIOFLOW_NCBI_EMAIL.",
+    "crumbs": [
+      "Home",
+      "Contributors",
+      "Development"
+    ]
+  },
+  {
+    "objectID": "development.html#web-checks",
+    "href": "development.html#web-checks",
+    "title": "Development",
+    "section": "Web checks",
+    "text": "Web checks\nmakim web.backend.tests\nmakim web.frontend.install\nmakim web.frontend.lint\nmakim web.frontend.tests\nmakim web.frontend.build\nmakim web.package.build\nThe frontend is private but still participates in CI because it is bundled into the published biblioflow-web Python package.",
+    "crumbs": [
+      "Home",
+      "Contributors",
+      "Development"
+    ]
+  },
+  {
+    "objectID": "development.html#notebook-checks",
+    "href": "development.html#notebook-checks",
+    "title": "Development",
+    "section": "Notebook checks",
+    "text": "Notebook checks\nmakim nb.tests\nmakim nb.package.build\nmakim nb.examples.check",
+    "crumbs": [
+      "Home",
+      "Contributors",
+      "Development"
+    ]
+  },
+  {
+    "objectID": "development.html#documentation-checks",
+    "href": "development.html#documentation-checks",
+    "title": "Development",
+    "section": "Documentation checks",
+    "text": "Documentation checks\nThe documentation site is built with Quarto:\nmakim docs.build\nThe Quarto source lives in docs/ and renders to build/.",
+    "crumbs": [
+      "Home",
+      "Contributors",
+      "Development"
+    ]
+  },
+  {
+    "objectID": "development.html#full-ci-workflow",
+    "href": "development.html#full-ci-workflow",
+    "title": "Development",
+    "section": "Full CI workflow",
+    "text": "Full CI workflow\nmakim all.ci\nCI also runs on supported Python versions and builds all three Python packages.",
+    "crumbs": [
+      "Home",
+      "Contributors",
+      "Development"
+    ]
+  },
+  {
+    "objectID": "development.html#documentation-style",
+    "href": "development.html#documentation-style",
+    "title": "Development",
+    "section": "Documentation style",
+    "text": "Documentation style\n\nKeep user-facing docs in docs/*.qmd.\nPrefer short runnable examples and explicit package names.\nDocument new public APIs when adding them to the core package.\nKeep web and notebook documentation clear that they delegate computation to the core biblioflow library.\nAvoid documenting unsupported aliases such as biblio-flow.",
+    "crumbs": [
+      "Home",
+      "Contributors",
+      "Development"
+    ]
+  },
+  {
+    "objectID": "development.html#douki-docstrings",
+    "href": "development.html#douki-docstrings",
+    "title": "Development",
+    "section": "Douki docstrings",
+    "text": "Douki docstrings\nCore library Python docstrings are validated by Douki. Docstrings must be YAML dictionaries with a title field, for example:\ndef example(path: str) -&gt; str:\n    \"\"\"\n    title: Return a normalized path string.\n    parameters:\n      path:\n        type: str\n        description: Input path.\n    returns:\n      type: str\n    \"\"\"\n    return path\nRun the hook directly with:\npre-commit run douki --all-files",
+    "crumbs": [
+      "Home",
+      "Contributors",
+      "Development"
+    ]
+  },
+  {
+    "objectID": "notebook-app.html",
+    "href": "notebook-app.html",
+    "title": "Notebook app",
+    "section": "",
+    "text": "biblioflow-nb provides a notebook-native widget interface that mirrors the core workflow of biblioflow-web without requiring a FastAPI server, React app, or local browser server. It is intended for Jupyter notebooks, JupyterLab, and Google Colab.",
+    "crumbs": [
+      "Home",
+      "Applications",
+      "Notebook app"
+    ]
+  },
+  {
+    "objectID": "notebook-app.html#purpose",
+    "href": "notebook-app.html#purpose",
+    "title": "Notebook app",
+    "section": "",
+    "text": "biblioflow-nb provides a notebook-native widget interface that mirrors the core workflow of biblioflow-web without requiring a FastAPI server, React app, or local browser server. It is intended for Jupyter notebooks, JupyterLab, and Google Colab.",
+    "crumbs": [
+      "Home",
+      "Applications",
+      "Notebook app"
+    ]
+  },
+  {
+    "objectID": "notebook-app.html#installation",
+    "href": "notebook-app.html#installation",
+    "title": "Notebook app",
+    "section": "Installation",
+    "text": "Installation\npip install biblioflow-nb\nFor plotting extras when they are implemented:\npip install \"biblioflow-nb[plot]\"",
+    "crumbs": [
+      "Home",
+      "Applications",
+      "Notebook app"
+    ]
+  },
+  {
+    "objectID": "notebook-app.html#quickstart",
+    "href": "notebook-app.html#quickstart",
+    "title": "Notebook app",
+    "section": "Quickstart",
+    "text": "Quickstart\nimport biblioflow_nb as bfn\n\napp = bfn.launch()\nLaunch with an existing dataset:\nimport biblioflow as bf\nimport biblioflow_nb as bfn\n\ndataset = bf.load(\"records.ris\")\napp = bfn.launch(records=dataset)\nImport PubMed or PubMed Central records directly from a notebook:\nimport os\nimport biblioflow_nb as bfn\n\nos.environ[\"BIBLIOFLOW_NCBI_EMAIL\"] = \"researcher@example.org\"\n\napp = bfn.app(display=False)\napp.from_pubmed(query=\"bibliometrics AND reproducibility\", limit=20)\napp.from_pmc(query=\"open science\", limit=20)\napp.display()\nfrom_pubmed_central(...) is also available as a long-form alias for from_pmc(...). API keys may be passed as api_key=... or configured through BIBLIOFLOW_NCBI_API_KEY; they are not stored in session manifests.",
+    "crumbs": [
+      "Home",
+      "Applications",
+      "Notebook app"
+    ]
+  },
+  {
+    "objectID": "notebook-app.html#google-colab",
+    "href": "notebook-app.html#google-colab",
+    "title": "Notebook app",
+    "section": "Google Colab",
+    "text": "Google Colab\nCall colab_setup() before launching. It is safe to call outside Colab.\nimport biblioflow_nb as bfn\n\nbfn.colab_setup()\napp = bfn.launch()\nColab helper functions are provided for upload/download behavior where the Colab runtime exposes compatible APIs.",
+    "crumbs": [
+      "Home",
+      "Applications",
+      "Notebook app"
+    ]
+  },
+  {
+    "objectID": "notebook-app.html#widget-workflow",
+    "href": "notebook-app.html#widget-workflow",
+    "title": "Notebook app",
+    "section": "Widget workflow",
+    "text": "Widget workflow\nThe notebook application provides panels for:\n\nLoading local paths or uploaded files.\nSearching PubMed and PubMed Central through the PubMed/PMC panel.\nPreviewing validation warnings and normalized records.\nApplying common filters.\nRunning overview analysis.\nInspecting source, author, affiliation, country, document, keyword, and map placeholders as the core implementation evolves.\nBuilding matrices and networks.\nExporting datasets and downloading artifacts in notebook environments.",
+    "crumbs": [
+      "Home",
+      "Applications",
+      "Notebook app"
+    ]
+  },
+  {
+    "objectID": "notebook-app.html#development",
+    "href": "notebook-app.html#development",
+    "title": "Notebook app",
+    "section": "Development",
+    "text": "Development\nmakim nb.tests\nmakim nb.package.build\nmakim nb.examples.check\nDirect package commands:\ncd packages/biblioflow-nb\nPYTHONPATH=src:../biblioflow/src pytest\nPYTHONPATH=src:../biblioflow/src python -m ruff check src tests\nPYTHONPATH=src:../biblioflow/src python -m mypy src\npoetry build",
+    "crumbs": [
+      "Home",
+      "Applications",
+      "Notebook app"
+    ]
+  },
+  {
+    "objectID": "notebook-app.html#design-rule",
+    "href": "notebook-app.html#design-rule",
+    "title": "Notebook app",
+    "section": "Design rule",
+    "text": "Design rule\nNotebook widgets should call the same biblioflow functions as the Python API and web backend. New bibliometric methods, matrix types, network types, normalizers, or exporters belong in the core library first.",
+    "crumbs": [
+      "Home",
+      "Applications",
+      "Notebook app"
+    ]
+  },
+  {
+    "objectID": "core-workflows.html",
+    "href": "core-workflows.html",
+    "title": "Core workflows",
+    "section": "",
+    "text": "A typical biblioflow pipeline looks like this:\n\nLoad bibliographic records from a file or existing data structure.\nNormalize provider-specific fields into the canonical schema.\nInspect metadata, warnings, and validation output.\nOptionally deduplicate, enrich, or filter the dataset.\nRun descriptive analysis, matrix construction, network construction, or science-mapping helpers.\nExport datasets or derived results.\n\nimport biblioflow as bf\n\ndataset = bf.load(\"records.bib\", source=\"auto\", format=\"auto\")\ndataset = bf.deduplicate(dataset)\nsummary = bf.summarize_dataset(dataset)\nanalysis = bf.analyze(dataset)\nnet = bf.network(dataset, kind=\"co_occurrence\", unit=\"keywords_all\")\nbf.export(net, \"network.gexf\", format=\"gexf\")",
+    "crumbs": [
+      "Home",
+      "User guide",
+      "Core workflows"
+    ]
+  },
+  {
+    "objectID": "core-workflows.html#workflow-overview",
+    "href": "core-workflows.html#workflow-overview",
+    "title": "Core workflows",
+    "section": "",
+    "text": "A typical biblioflow pipeline looks like this:\n\nLoad bibliographic records from a file or existing data structure.\nNormalize provider-specific fields into the canonical schema.\nInspect metadata, warnings, and validation output.\nOptionally deduplicate, enrich, or filter the dataset.\nRun descriptive analysis, matrix construction, network construction, or science-mapping helpers.\nExport datasets or derived results.\n\nimport biblioflow as bf\n\ndataset = bf.load(\"records.bib\", source=\"auto\", format=\"auto\")\ndataset = bf.deduplicate(dataset)\nsummary = bf.summarize_dataset(dataset)\nanalysis = bf.analyze(dataset)\nnet = bf.network(dataset, kind=\"co_occurrence\", unit=\"keywords_all\")\nbf.export(net, \"network.gexf\", format=\"gexf\")",
+    "crumbs": [
+      "Home",
+      "User guide",
+      "Core workflows"
+    ]
+  },
+  {
+    "objectID": "core-workflows.html#canonical-dataset",
+    "href": "core-workflows.html#canonical-dataset",
+    "title": "Core workflows",
+    "section": "Canonical dataset",
+    "text": "Canonical dataset\nBibliographicDataset stores the normalized table plus context:\n\n\n\n\n\n\n\nAttribute\nPurpose\n\n\n\n\ndata\nDataFrame-like normalized records. Uses pandas when available, otherwise a lightweight fallback.\n\n\nraw\nRaw records before normalization for traceability.\n\n\nmetadata\nFormat, provider, load time, record counts, and workflow metadata.\n\n\nwarnings\nStructured load warnings.\n\n\nerrors\nNon-fatal errors collected during loading or validation.\n\n\n\nEach canonical record also has a raw field when keep_raw=True, which makes it possible to inspect the original source payload beside normalized fields.\nFrequently used normalized columns include:\nsource\nsource_id\npmid\npmcid\ndoi\ntitle\nabstract\nfull_text\nauthors\nauthors_raw\npublication_year\npublication_date\nsource_title\njournal\nkeywords_author\nkeywords_index\nkeywords_all\nreferences\nreferences_raw\nfull_text_url\naffiliations\ninstitutions\ncountries\ncited_by_count\nraw\nUseful methods:\ndataset.to_records()\ndataset.to_dataframe(schema=\"canonical\")\ndataset.to_dataframe(schema=\"bibliometrix\")\ndataset.warning_dicts()\ndataset.to_json(\"records.json\")\ndataset.to_csv(\"records.csv\")",
+    "crumbs": [
+      "Home",
+      "User guide",
+      "Core workflows"
+    ]
+  },
+  {
+    "objectID": "core-workflows.html#summaries-and-validation",
+    "href": "core-workflows.html#summaries-and-validation",
+    "title": "Core workflows",
+    "section": "Summaries and validation",
+    "text": "Summaries and validation\nUse reusable summary helpers when an application needs small JSON payloads:\nimport biblioflow as bf\n\nsummary = bf.summarize_dataset(dataset)\nimport_summary = bf.summarize_import(dataset)\n\nsummary.to_dict()\nimport_summary.to_dict()\nThe CLI validate command exposes warnings and errors as JSON:\nbiblioflow validate records.ris",
+    "crumbs": [
+      "Home",
+      "User guide",
+      "Core workflows"
+    ]
+  },
+  {
+    "objectID": "core-workflows.html#deduplication-and-enrichment",
+    "href": "core-workflows.html#deduplication-and-enrichment",
+    "title": "Core workflows",
+    "section": "Deduplication and enrichment",
+    "text": "Deduplication and enrichment\ndeduped = bf.deduplicate(dataset)\ndeduplicate() is intended for conservative local deduplication. Local enrichment helpers should also live in the core package so every interface can reuse the same behavior.",
+    "crumbs": [
+      "Home",
+      "User guide",
+      "Core workflows"
+    ]
+  },
+  {
+    "objectID": "core-workflows.html#source-specific-loading",
+    "href": "core-workflows.html#source-specific-loading",
+    "title": "Core workflows",
+    "section": "Source-specific loading",
+    "text": "Source-specific loading\nUse source= when an export is known:\nscopus = bf.load(\"scopus.csv\", source=\"scopus\")\nwos = bf.load(\"savedrecs.txt\", source=\"wos\")\nopenalex = bf.load(\"openalex.json\", source=\"openalex\")\ncrossref = bf.load(\"crossref.json\", source=\"crossref\")\npubmed = bf.load(\"records.nbib\", source=\"pubmed\")\nThe loader detects many common cases automatically, but explicit source= is recommended for ambiguous .csv, .txt, and .json files.\nDedicated API helpers are available for live metadata retrieval:\nopenalex = bf.from_openalex(search=\"bibliometrics\", limit=100)\ncrossref = bf.from_crossref(query=\"science mapping\", limit=100)\npubmed = bf.from_pubmed(\n    query=\"bibliometrics AND reproducibility\",\n    limit=100,\n    email=\"researcher@example.org\",\n)\npmc = bf.from_pmc(\n    query=\"open science\",\n    limit=50,\n    email=\"researcher@example.org\",\n)\nPubMed and PubMed Central datasets are regular BibliographicDataset objects, so the same filtering, analysis, network, mapping, and export calls apply. PMC records can include pmcid, full_text_url, and full_text in addition to standard bibliographic metadata.\nFor a full mapping of supported providers and formats, see Sources and import formats.",
+    "crumbs": [
+      "Home",
+      "User guide",
+      "Core workflows"
+    ]
+  },
+  {
+    "objectID": "core-workflows.html#filters",
+    "href": "core-workflows.html#filters",
+    "title": "Core workflows",
+    "section": "Filters",
+    "text": "Filters\nFilters are represented by DatasetFilterSpec, which is serializable and shared by the core library, web backend, and notebook app.\nspec = bf.DatasetFilterSpec(\n    year_min=2020,\n    year_max=2026,\n    keywords=[\"bibliometrics\", \"open science\"],\n    min_global_citations=5,\n)\n\nfiltered = bf.filter_dataset(dataset, spec)\nfiltered.dataset.to_records()\nfiltered.to_dict()\nAvailable filter values can be derived from any dataset:\noptions = bf.available_filter_values(dataset)\noptions.to_dict()",
+    "crumbs": [
+      "Home",
+      "User guide",
+      "Core workflows"
+    ]
+  },
+  {
+    "objectID": "core-workflows.html#descriptive-analysis",
+    "href": "core-workflows.html#descriptive-analysis",
+    "title": "Core workflows",
+    "section": "Descriptive analysis",
+    "text": "Descriptive analysis\nanalysis = bf.analyze(dataset, top_n=20)\npayload = analysis.to_dict()\nThe payload contains:\n\nmain_information\nannual_production\ntop_authors\ntop_sources\ntop_keywords\nmetadata",
+    "crumbs": [
+      "Home",
+      "User guide",
+      "Core workflows"
+    ]
+  },
+  {
+    "objectID": "core-workflows.html#matrix-construction",
+    "href": "core-workflows.html#matrix-construction",
+    "title": "Core workflows",
+    "section": "Matrix construction",
+    "text": "Matrix construction\nbf.matrix() builds incidence, co-occurrence, collaboration, co-citation, bibliographic coupling, and direct-citation matrices depending on kind and unit.\nmat = bf.matrix(\n    dataset,\n    kind=\"co_occurrence\",\n    unit=\"keywords_all\",\n    normalize=\"association\",\n    min_occurrences=2,\n)\nCommon units include authors, keywords, sources, countries, affiliations, and reference identifiers when present in the dataset.",
+    "crumbs": [
+      "Home",
+      "User guide",
+      "Core workflows"
+    ]
+  },
+  {
+    "objectID": "core-workflows.html#network-construction",
+    "href": "core-workflows.html#network-construction",
+    "title": "Core workflows",
+    "section": "Network construction",
+    "text": "Network construction\nbf.network() converts matrix-like relationships into node/edge records with basic metrics.\nnet = bf.network(\n    dataset,\n    kind=\"co_occurrence\",\n    unit=\"keywords_all\",\n    normalize=\"association\",\n    min_occurrences=2,\n)\n\nnet.to_dict()",
+    "crumbs": [
+      "Home",
+      "User guide",
+      "Core workflows"
+    ]
+  },
+  {
+    "objectID": "core-workflows.html#mapping-helpers",
+    "href": "core-workflows.html#mapping-helpers",
+    "title": "Core workflows",
+    "section": "Mapping helpers",
+    "text": "Mapping helpers\nLightweight science-mapping helpers are available from the main namespace:\nthemes = bf.map_themes(dataset, field=\"keywords_all\")\nevolution = bf.trace_themes(dataset, field=\"keywords_all\", by=\"publication_year\")\nconcepts = bf.conceptual_structure(dataset, field=\"keywords_all\")\nhistory = bf.historiograph(dataset)\nThese helpers are intentionally conservative. More advanced clustering and layout techniques should be implemented in the core package before being wired into the applications.",
+    "crumbs": [
+      "Home",
+      "User guide",
+      "Core workflows"
+    ]
+  },
+  {
+    "objectID": "core-workflows.html#export-formats",
+    "href": "core-workflows.html#export-formats",
+    "title": "Core workflows",
+    "section": "Export formats",
+    "text": "Export formats\n\n\n\nObject\nCommon formats\n\n\n\n\nDataset\nJSON, CSV, optional YAML\n\n\nMatrix\nJSON, CSV\n\n\nNetwork\nJSON, GraphML, GEXF, Pajek, VOSviewer text\n\n\n\nbf.export(dataset, \"records.json\", format=\"json\")\nbf.export(mat, \"matrix.csv\", format=\"csv\")\nbf.export(net, \"network.graphml\", format=\"graphml\")",
+    "crumbs": [
+      "Home",
+      "User guide",
+      "Core workflows"
+    ]
+  },
+  {
+    "objectID": "web-app.html",
+    "href": "web-app.html",
+    "title": "Web app",
+    "section": "",
+    "text": "biblioflow-web is the browser-based application package. It provides an interactive browser workflow while keeping the analysis logic in the core biblioflow library. The current frontend is an intermediate dashboard with Search, Appraisal, Analysis, and Synthesis workflow groups.\nThe package is organized as:\npackages/biblioflow-web/\n├── backend/    # Python package published as biblioflow-web\n└── frontend/   # Private React/Vite application, not published to npm",
+    "crumbs": [
+      "Home",
+      "Applications",
+      "Web app"
+    ]
+  },
+  {
+    "objectID": "web-app.html#purpose",
+    "href": "web-app.html#purpose",
+    "title": "Web app",
+    "section": "",
+    "text": "biblioflow-web is the browser-based application package. It provides an interactive browser workflow while keeping the analysis logic in the core biblioflow library. The current frontend is an intermediate dashboard with Search, Appraisal, Analysis, and Synthesis workflow groups.\nThe package is organized as:\npackages/biblioflow-web/\n├── backend/    # Python package published as biblioflow-web\n└── frontend/   # Private React/Vite application, not published to npm",
+    "crumbs": [
+      "Home",
+      "Applications",
+      "Web app"
+    ]
+  },
+  {
+    "objectID": "web-app.html#installation-and-running",
+    "href": "web-app.html#installation-and-running",
+    "title": "Web app",
+    "section": "Installation and running",
+    "text": "Installation and running\nAfter installation, run the backend CLI:\npip install biblioflow-web\nbiblioflow-web\nFor development from the monorepo:\nmakim web.backend.dev          # defaults to --port 0 for a random free port\nmakim web.backend.dev --port 8000\nmakim web.frontend.install\nmakim web.frontend.dev\nWhen --port 0 is used, Uvicorn prints the selected random port in the logs. Use an explicit port, such as --port 8000, when the Vite development proxy needs a stable backend URL. The frontend development server proxies /api requests to the backend.",
+    "crumbs": [
+      "Home",
+      "Applications",
+      "Web app"
+    ]
+  },
+  {
+    "objectID": "web-app.html#backend-package",
+    "href": "web-app.html#backend-package",
+    "title": "Web app",
+    "section": "Backend package",
+    "text": "Backend package\nThe backend lives in packages/biblioflow-web/backend and is an individual Python package with its own pyproject.toml, src/, tests, and build metadata. It provides:\n\nFastAPI application factory.\nProject, upload, dataset, validation, filter, analysis, matrix, network, and PRISMA/export routes.\nPubMed and PubMed Central import routes that call the core biblioflow API connectors and persist results as normal datasets.\nRuntime file stores for uploaded files, normalized datasets, exports, and project metadata.\nStatic-file serving for the bundled React build in production wheels.\n\nRuntime data is controlled by BIBLIOFLOW_WEB_DATA_DIR and should never be written inside the installed package directory.",
+    "crumbs": [
+      "Home",
+      "Applications",
+      "Web app"
+    ]
+  },
+  {
+    "objectID": "web-app.html#demo-data",
+    "href": "web-app.html#demo-data",
+    "title": "Web app",
+    "section": "Demo data",
+    "text": "Demo data\nFor local interface testing, seed rich synthetic projects with:\nmakim web.seed.demo\nmakim web.seed.demo --data-dir /tmp/biblioflow-web-demo\nThe seed task uses the Python backend and the core biblioflow package to load synthetic records, create projects, set active datasets, and pre-generate JSON/CSV exports. It includes complete projects and a data-quality sandbox with intentional validation warnings.",
+    "crumbs": [
+      "Home",
+      "Applications",
+      "Web app"
+    ]
+  },
+  {
+    "objectID": "web-app.html#frontend-package",
+    "href": "web-app.html#frontend-package",
+    "title": "Web app",
+    "section": "Frontend package",
+    "text": "Frontend package\nThe frontend lives in packages/biblioflow-web/frontend. It is intentionally private and is not published to npm. The release build compiles the React app and copies the production assets into the backend static package data.\nmakim web.frontend.install\nmakim web.frontend.lint\nmakim web.frontend.tests\nmakim web.frontend.build",
+    "crumbs": [
+      "Home",
+      "Applications",
+      "Web app"
+    ]
+  },
+  {
+    "objectID": "web-app.html#pubmed-and-pmc-import",
+    "href": "web-app.html#pubmed-and-pmc-import",
+    "title": "Web app",
+    "section": "PubMed and PMC import",
+    "text": "PubMed and PMC import\nThe Import page supports two data-ingestion modes:\n\nUpload local bibliographic exports and load them into a normalized dataset.\nSearch PubMed or PubMed Central and import the remote results directly.\n\nRemote imports call biblioflow.from_pubmed(...) or biblioflow.from_pmc(...) inside the backend. Imported records are saved with the same dataset payload shape as uploaded files, so all dashboard pages immediately work with the new active dataset.\nThe form accepts a query, source, limit, contact email, optional NCBI API key, tool name, and optional dataset name. API keys are sent only to the backend request handler and are not stored in project metadata or API responses.\nFor deployments, configure a default contact email when users should not type it for every import:\nexport BIBLIOFLOW_NCBI_EMAIL=\"researcher@example.org\"\nexport BIBLIOFLOW_NCBI_API_KEY=\"optional-key\"",
+    "crumbs": [
+      "Home",
+      "Applications",
+      "Web app"
+    ]
+  },
+  {
+    "objectID": "web-app.html#bundling-behavior",
+    "href": "web-app.html#bundling-behavior",
+    "title": "Web app",
+    "section": "Bundling behavior",
+    "text": "Bundling behavior\nThe backend build script compiles and copies frontend assets:\ncd packages/biblioflow-web/backend\npython scripts/build_frontend.py\npoetry build\nThe root Makim task wraps this:\nmakim web.package.build\nUsers installing the final biblioflow-web wheel or sdist do not need Node.js or npm because the compiled frontend is already included in the Python package.",
+    "crumbs": [
+      "Home",
+      "Applications",
+      "Web app"
+    ]
+  },
+  {
+    "objectID": "web-app.html#api-overview",
+    "href": "web-app.html#api-overview",
+    "title": "Web app",
+    "section": "API overview",
+    "text": "API overview\nAll application API routes live under /api by default.\n\n\n\n\n\n\n\n\nArea\nRoute pattern\nPurpose\n\n\n\n\nHealth\nGET /api/health\nService and version metadata.\n\n\nProjects\n/api/projects\nCreate, list, inspect, and delete projects.\n\n\nUploads\n/api/projects/{project_id}/uploads\nUpload and manage bibliographic files.\n\n\nRemote sources\nPOST /api/projects/{project_id}/sources/import\nSearch PubMed/PMC and create an active dataset.\n\n\nDatasets\n/api/projects/{project_id}/datasets\nLoad uploads and retrieve normalized datasets.\n\n\nValidation\n/api/projects/{project_id}/datasets/{dataset_id}/validation\nInspect warnings and validation metadata.\n\n\nFilters\n/api/projects/{project_id}/datasets/{dataset_id}/filters/*\nDiscover filter options and preview filtered results.\n\n\nAnalysis\n/api/projects/{project_id}/datasets/{dataset_id}/analysis/overview\nRun descriptive analysis.\n\n\nMatrices\n/api/projects/{project_id}/datasets/{dataset_id}/matrices\nBuild bibliometric matrices.\n\n\nNetworks\n/api/projects/{project_id}/datasets/{dataset_id}/networks\nBuild bibliometric networks.\n\n\nPRISMA\n/api/projects/{project_id}/prisma\nBuild PRISMA flow diagrams from dataset/project state.\n\n\nExports\n/api/projects/{project_id}/exports\nCreate and download export artifacts.\n\n\n\nThe PRISMA page renders SVG diagrams with prisma-flow and exposes SVG/PNG downloads in the browser interface.",
+    "crumbs": [
+      "Home",
+      "Applications",
+      "Web app"
+    ]
+  },
+  {
+    "objectID": "web-app.html#design-rule",
+    "href": "web-app.html#design-rule",
+    "title": "Web app",
+    "section": "Design rule",
+    "text": "Design rule\nIf a web feature requires new bibliometric behavior, add it to biblioflow first. The FastAPI layer should orchestrate projects, uploads, persistence, request validation, and response shaping; it should not become a second analysis library.",
+    "crumbs": [
+      "Home",
+      "Applications",
+      "Web app"
+    ]
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "biblioflow",
+    "section": "",
+    "text": "biblioflow is a Python-native toolkit for bibliographic metadata, bibliometrics, science mapping, and literature-review data workflows. It is inspired by the R bibliometrics ecosystem, especially bibliometrix, while keeping Pythonic names, plain data objects, and lightweight packaging.\n\nGet started Core workflows Web app Notebook app",
+    "crumbs": [
+      "Home",
+      "Overview",
+      "biblioflow"
+    ]
+  },
+  {
+    "objectID": "index.html#repository-packages",
+    "href": "index.html#repository-packages",
+    "title": "biblioflow",
+    "section": "Repository packages",
+    "text": "Repository packages\n\n\n\n\n\n\n\n\n\nPackage\nDistribution name\nMain entry point\nPurpose\n\n\n\n\nCore library\nbiblioflow\nimport biblioflow as bf\nBibliographic data loading, normalization, analysis, matrices, networks, mapping, and export.\n\n\nWeb app\nbiblioflow-web\nbiblioflow-web\nFastAPI application that serves API routes and bundled React assets.\n\n\nNotebook app\nbiblioflow-nb\nimport biblioflow_nb as bfn\nJupyter/Colab widget application that mirrors the web workflow.",
+    "crumbs": [
+      "Home",
+      "Overview",
+      "biblioflow"
+    ]
+  },
+  {
+    "objectID": "index.html#minimal-python-workflow",
+    "href": "index.html#minimal-python-workflow",
+    "title": "biblioflow",
+    "section": "Minimal Python workflow",
+    "text": "Minimal Python workflow\nimport biblioflow as bf\n\nrecords = bf.load(\"data/scopus_export.bib\", source=\"scopus\")\nsummary = bf.analyze(records)\nnetwork = bf.network(records, kind=\"co_occurrence\", unit=\"keywords_all\")\nbf.export(network, \"keyword-network.graphml\", format=\"graphml\")\nPrefer the source= keyword in new code:\ndataset = bf.load(\"data/scopus_export.csv\", source=\"scopus\")\ndataset = bf.load(\"data/savedrecs.txt\", source=\"wos\")",
+    "crumbs": [
+      "Home",
+      "Overview",
+      "biblioflow"
+    ]
+  },
+  {
+    "objectID": "index.html#what-biblioflow-focuses-on",
+    "href": "index.html#what-biblioflow-focuses-on",
+    "title": "biblioflow",
+    "section": "What biblioflow focuses on",
+    "text": "What biblioflow focuses on\n\nFile-based bibliographic ingestion for common export formats and major providers, including Web of Science, Scopus, OpenAlex, Crossref, PubMed, BibTeX, and RIS.\nCanonical metadata records with raw-record traceability.\nStructured validation warnings instead of silent data loss.\nPythonic APIs for bibliometric summaries, matrix construction, network construction, and science-mapping helpers.\nBrowser and notebook applications that reuse the same core library instead of reimplementing analysis logic.",
+    "crumbs": [
+      "Home",
+      "Overview",
+      "biblioflow"
+    ]
+  },
+  {
+    "objectID": "index.html#naming-policy",
+    "href": "index.html#naming-policy",
+    "title": "biblioflow",
+    "section": "Naming policy",
+    "text": "Naming policy\nThe project name is biblioflow for the PyPI package, Python import package, and command-line interface. The web and notebook applications are published as biblioflow-web and biblioflow-nb. Do not document or add a hyphenated biblio-flow alias.",
+    "crumbs": [
+      "Home",
+      "Overview",
+      "biblioflow"
+    ]
+  },
+  {
+    "objectID": "get-started.html",
+    "href": "get-started.html",
+    "title": "Get started",
+    "section": "",
+    "text": "Install the core library from PyPI:\npip install biblioflow\nThe core package includes common file readers plus API clients for OpenAlex, Crossref, Scopus, PubMed, and PubMed Central.\nInstall application packages only when you need them:\npip install biblioflow-web\npip install biblioflow-nb\n\n\n\n\n\n\nNote\n\n\n\nThe applications depend on the core biblioflow package. New analysis features should be implemented in the core library first and then exposed by the web and notebook interfaces.",
+    "crumbs": [
+      "Home",
+      "Overview",
+      "Get started"
+    ]
+  },
+  {
+    "objectID": "get-started.html#installation",
+    "href": "get-started.html#installation",
+    "title": "Get started",
+    "section": "",
+    "text": "Install the core library from PyPI:\npip install biblioflow\nThe core package includes common file readers plus API clients for OpenAlex, Crossref, Scopus, PubMed, and PubMed Central.\nInstall application packages only when you need them:\npip install biblioflow-web\npip install biblioflow-nb\n\n\n\n\n\n\nNote\n\n\n\nThe applications depend on the core biblioflow package. New analysis features should be implemented in the core library first and then exposed by the web and notebook interfaces.",
+    "crumbs": [
+      "Home",
+      "Overview",
+      "Get started"
+    ]
+  },
+  {
+    "objectID": "get-started.html#load-bibliographic-records",
+    "href": "get-started.html#load-bibliographic-records",
+    "title": "Get started",
+    "section": "Load bibliographic records",
+    "text": "Load bibliographic records\nimport biblioflow as bf\n\ndataset = bf.load(\n    \"records.ris\",\n    source=\"auto\",\n    format=\"auto\",\n)\nbf.load() returns a BibliographicDataset containing normalized records, raw records, metadata, warnings, and errors.\nlen(dataset)\ndataset.metadata\ndataset.warning_dicts()\ndataset.to_records()[:3]",
+    "crumbs": [
+      "Home",
+      "Overview",
+      "Get started"
+    ]
+  },
+  {
+    "objectID": "get-started.html#supported-input-formats",
+    "href": "get-started.html#supported-input-formats",
+    "title": "Get started",
+    "section": "Supported input formats",
+    "text": "Supported input formats\n\n\n\n\n\n\n\n\nFormat/source\nTypical extension\nNotes\n\n\n\n\nRIS\n.ris\nCommon export format from reference managers and scholarly databases.\n\n\nBibTeX\n.bib\nCommon for LaTeX and citation managers.\n\n\nScopus CSV\n.csv\nScopus headers such as EID, Authors, and Source title are detected.\n\n\nWeb of Science plain text\n.txt\nClarivate savedrecs.txt exports with multiline/repeated tags.\n\n\nOpenAlex JSON\n.json\nSingle works, lists, or API responses with results.\n\n\nCrossref JSON\n.json\nSingle works, lists, or work-list responses with message.items.\n\n\nCSV/TSV\n.csv, .tsv\nUseful for spreadsheets and custom exports.\n\n\nJSON/JSONL\n.json, .jsonl\nSupports generic records and provider payloads.\n\n\nXML\n.xml\nIncludes PubMed XML support.\n\n\nNBIB\n.nbib\nPubMed/NLM text export format.\n\n\nPubMed/PMC API\nremote\nSearch live PubMed and PubMed Central with pymedx.\n\n\n\nSee Sources and import formats for the complete source guide.",
+    "crumbs": [
+      "Home",
+      "Overview",
+      "Get started"
+    ]
+  },
+  {
+    "objectID": "get-started.html#source-inference",
+    "href": "get-started.html#source-inference",
+    "title": "Get started",
+    "section": "Source inference",
+    "text": "Source inference\nUse source=\"auto\" and format=\"auto\" for convenience, or pass explicit values when working with known exports:\ndataset = bf.load(\"openalex.json\", source=\"openalex\", format=\"json\")\ndataset = bf.load(\"pubmed.xml\", source=\"pubmed\", format=\"xml\")\ndataset = bf.load(\"crossref.json\", source=\"crossref\", format=\"json\")\ndataset = bf.load(\"savedrecs.txt\", source=\"wos\")\ndataset = bf.load(\"scopus.csv\", source=\"scopus\")\nProvider-aware adapters normalize database-specific field names into the canonical biblioflow schema.\nprovider= remains supported for compatibility with older examples, but new documentation uses source=.",
+    "crumbs": [
+      "Home",
+      "Overview",
+      "Get started"
+    ]
+  },
+  {
+    "objectID": "get-started.html#api-imports",
+    "href": "get-started.html#api-imports",
+    "title": "Get started",
+    "section": "API imports",
+    "text": "API imports\nFile loading and API querying are separate entry points:\nopenalex = bf.from_openalex(search=\"bibliometrics\", limit=100)\ncrossref = bf.from_crossref(query=\"science mapping\", limit=100)\npubmed = bf.from_pubmed(\n    query=\"bibliometrics AND reproducibility\",\n    limit=100,\n    email=\"researcher@example.org\",\n)\npmc = bf.from_pmc(\n    query=\"open science\",\n    limit=50,\n    email=\"researcher@example.org\",\n)\nFor PubMed and PubMed Central, you may also set BIBLIOFLOW_NCBI_EMAIL and optionally BIBLIOFLOW_NCBI_API_KEY instead of passing contact details in each call.\nScopus API imports require pybliometrics configuration and access:\nscopus = bf.from_scopus(\n    query=\"TITLE-ABS-KEY(bibliometrics)\",\n    limit=100,\n)",
+    "crumbs": [
+      "Home",
+      "Overview",
+      "Get started"
+    ]
+  },
+  {
+    "objectID": "get-started.html#descriptive-analysis",
+    "href": "get-started.html#descriptive-analysis",
+    "title": "Get started",
+    "section": "Descriptive analysis",
+    "text": "Descriptive analysis\nsummary = bf.analyze(dataset, top_n=20)\nsummary.to_dict()\nThe descriptive summary includes high-level information, annual production, top authors, top sources, and top keywords.",
+    "crumbs": [
+      "Home",
+      "Overview",
+      "Get started"
+    ]
+  },
+  {
+    "objectID": "get-started.html#matrix-and-network-construction",
+    "href": "get-started.html#matrix-and-network-construction",
+    "title": "Get started",
+    "section": "Matrix and network construction",
+    "text": "Matrix and network construction\nkeyword_matrix = bf.matrix(\n    dataset,\n    kind=\"co_occurrence\",\n    unit=\"keywords_all\",\n    normalize=\"association\",\n    min_occurrences=2,\n)\n\nkeyword_network = bf.network(\n    dataset,\n    kind=\"co_occurrence\",\n    unit=\"keywords_all\",\n    normalize=\"association\",\n    min_occurrences=2,\n)",
+    "crumbs": [
+      "Home",
+      "Overview",
+      "Get started"
+    ]
+  },
+  {
+    "objectID": "get-started.html#export-results",
+    "href": "get-started.html#export-results",
+    "title": "Get started",
+    "section": "Export results",
+    "text": "Export results\nbf.export(dataset, \"records.json\", format=\"json\")\nbf.export(keyword_matrix, \"keywords.csv\", format=\"csv\")\nbf.export(keyword_network, \"keywords.graphml\", format=\"graphml\")\nSupported network exports include JSON, GraphML, GEXF, Pajek, and VOSviewer-style edge lists.",
+    "crumbs": [
+      "Home",
+      "Overview",
+      "Get started"
+    ]
+  },
+  {
+    "objectID": "get-started.html#command-line-interface",
+    "href": "get-started.html#command-line-interface",
+    "title": "Get started",
+    "section": "Command-line interface",
+    "text": "Command-line interface\nThe command name is biblioflow:\nbiblioflow --help\nbiblioflow validate records.ris\nbiblioflow analyze records.ris --top-n 25 -o summary.json\nbiblioflow matrix records.ris -o keywords.csv --kind co_occurrence --unit keywords_all\nbiblioflow network records.ris -o network.graphml --to graphml\nbiblioflow search pubmed --query \"bibliometrics\" --email you@example.org -o pubmed.json\nDo not use or document a hyphenated command alias.",
+    "crumbs": [
+      "Home",
+      "Overview",
+      "Get started"
+    ]
+  }
+]
