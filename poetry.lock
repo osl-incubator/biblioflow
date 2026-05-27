@@ -374,6 +374,7 @@ files = []
 develop = true
 
 [package.dependencies]
+prisma-flow = ">=0.5.0"
 pydantic = ">=2"
 
 [package.extras]
@@ -399,6 +400,7 @@ develop = true
 biblioflow = ">=0.1.0"
 IPython = ">=8"
 ipywidgets = ">=8"
+prisma-flow = ">=0.5.0"
 
 [package.extras]
 dev = ["mypy (>=1.10)", "pytest (>=8)", "ruff (>=0.6)"]
@@ -422,6 +424,7 @@ develop = true
 [package.dependencies]
 biblioflow = ">=0.1.0"
 fastapi = ">=0.115"
+prisma-flow = ">=0.5.0"
 pydantic = ">=2"
 python-multipart = ">=0.0.9"
 uvicorn = {version = ">=0.30", extras = ["standard"]}
@@ -4859,4 +4862,4 @@ test = ["coverage (>=5.3.1)", "prompt-toolkit (>=3.0.29)", "pygments (>=2.2)", "
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<4"
-content-hash = "32903b84638a257d33141575225cd8ffca8bf8c198558b57c06c93c8811ebf66"
+content-hash = "ac0c67456dd632b72872b65c168af4f218cd54ec1565fef009d59acf385e1881"
