@@ -4,18 +4,21 @@ title: PubMed NBIB reader.
 
 from __future__ import annotations
 
+import re
 from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
 _TAG_MAP = {
+    "PMCID": "pmcid",
+    "PMC": "pmcid",
     "PMID": "source_id",
     "TI": "title",
     "AB": "abstract",
     "AU": "authors",
     "FAU": "authors",
     "JT": "source_title",
-    "TA": "source_title",
+    "TA": "journal_abbrev",
     "DP": "publication_year",
     "LID": "doi",
     "AID": "doi",
@@ -23,9 +26,25 @@ _TAG_MAP = {
     "OT": "keywords_author",
     "PT": "document_type",
     "LA": "language",
+    "PG": "pages",
+    "VI": "volume",
+    "IP": "issue",
+    "JID": "nlm_journal_id",
+    "IS": "issn",
+    "AD": "affiliations",
+    "GR": "grants",
+    "SI": "secondary_source_ids",
 }
 
-_MULTI_FIELDS = {"authors", "keywords_author", "keywords_index", "document_type"}
+_MULTI_FIELDS = {
+    "authors",
+    "keywords_author",
+    "keywords_index",
+    "document_type",
+    "affiliations",
+    "grants",
+    "secondary_source_ids",
+}
 
 
 def _append(record: dict[str, Any], key: str, value: str) -> None:
@@ -42,10 +61,19 @@ def _append(record: dict[str, Any], key: str, value: str) -> None:
         type: str
         description: Value value.
     """
-    if key == "doi" and " [doi]" in value.lower():
-        value = value.lower().replace(" [doi]", "").strip()
-    elif key == "doi" and "[doi]" not in value.lower() and record.get("doi"):
-        return
+    if key == "doi":
+        lower = value.lower()
+        if "[pmcid]" in lower:
+            record["pmcid"] = re.sub(r"\s*\[pmcid\]\s*$", "", value, flags=re.I)
+            return
+        if " [doi]" in lower:
+            value = re.sub(r"\s*\[doi\]\s*$", "", value, flags=re.I).strip()
+        elif "[doi]" not in lower and record.get("doi"):
+            return
+    if key == "issn" and "electronic" in value.casefold():
+        key = "eissn"
+    if key in {"issn", "eissn"}:
+        value = re.sub(r"\s*\([^)]*\)\s*$", "", value).strip()
     if key in _MULTI_FIELDS:
         record.setdefault(key, []).append(value)
     elif record.get(key):

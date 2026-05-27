@@ -11,21 +11,8 @@ Install the core library from PyPI:
 pip install biblioflow
 ```
 
-Optional YAML import/export support is provided as an extra:
-
-```bash
-pip install "biblioflow"
-```
-
-Provider/API extras are available when you want client libraries installed in
-the same environment:
-
-```bash
-pip install "biblioflow[openalex]"
-pip install "biblioflow[crossref]"
-pip install "biblioflow[scopus]"
-pip install "biblioflow[all]"
-```
+The core package includes common file readers plus API clients for OpenAlex,
+Crossref, Scopus, PubMed, and PubMed Central.
 
 Install application packages only when you need them:
 
@@ -76,6 +63,7 @@ dataset.to_records()[:3]
 | JSON/JSONL | `.json`, `.jsonl` | Supports generic records and provider payloads. |
 | XML | `.xml` | Includes PubMed XML support. |
 | NBIB | `.nbib` | PubMed/NLM text export format. |
+| PubMed/PMC API | remote | Search live PubMed and PubMed Central with `pymedx`. |
 
 See [Sources and import formats](sources.qmd) for the complete source guide.
 
@@ -105,7 +93,21 @@ File loading and API querying are separate entry points:
 ```python
 openalex = bf.from_openalex(search="bibliometrics", limit=100)
 crossref = bf.from_crossref(query="science mapping", limit=100)
+pubmed = bf.from_pubmed(
+    query="bibliometrics AND reproducibility",
+    limit=100,
+    email="researcher@example.org",
+)
+pmc = bf.from_pmc(
+    query="open science",
+    limit=50,
+    email="researcher@example.org",
+)
 ```
+
+For PubMed and PubMed Central, you may also set `BIBLIOFLOW_NCBI_EMAIL` and
+optionally `BIBLIOFLOW_NCBI_API_KEY` instead of passing contact details in each
+call.
 
 Scopus API imports require pybliometrics configuration and access:
 
@@ -167,6 +169,7 @@ biblioflow validate records.ris
 biblioflow analyze records.ris --top-n 25 -o summary.json
 biblioflow matrix records.ris -o keywords.csv --kind co_occurrence --unit keywords_all
 biblioflow network records.ris -o network.graphml --to graphml
+biblioflow search pubmed --query "bibliometrics" --email you@example.org -o pubmed.json
 ```
 
 Do not use or document a hyphenated command alias.

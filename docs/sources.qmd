@@ -8,7 +8,7 @@ description: Supported bibliographic sources, file formats, and API connectors.
 `biblioflow` separates **source** from **format**:
 
 - `source` is the database or provider, such as `scopus`, `wos`,
-  `openalex`, or `crossref`.
+  `openalex`, `crossref`, `pubmed`, or `pmc`.
 - `format` is the file format, such as `csv`, `bibtex`, `ris`, `json`, or
   `plain_text`.
 
@@ -29,6 +29,7 @@ dataset = bf.load("savedrecs.txt", source="wos")
 dataset = bf.load("scopus.csv", source="scopus")
 dataset = bf.load("openalex.json", source="openalex")
 dataset = bf.load("crossref.json", source="crossref")
+dataset = bf.load("pubmed_records.nbib", source="pubmed")
 ```
 
 The older `provider=` keyword remains supported for compatibility, but new
@@ -44,7 +45,8 @@ examples should prefer `source=`.
 | Web of Science | Plain text, BibTeX | `savedrecs.txt`, `.bib` | Plain-text exports support repeated and multiline tags. |
 | OpenAlex | JSON, CSV-like generic records | `.json`, `.csv` | JSON API response shapes with `results` are detected. |
 | Crossref | JSON | `.json` | Work-list responses with `message.items` are detected. |
-| PubMed | NBIB, XML | `.nbib`, `.xml` | Existing PubMed/NLM loading remains available. |
+| PubMed | NBIB, XML | `.nbib`, `.xml` | PubMed/NLM files with PMID, DOI, MeSH, and journal fields. |
+| PubMed Central | XML, API records | `.xml`, API results | PMC records can include PMCID, full-text URL, and full text when available. |
 | Generic records | JSON, JSONL, CSV, TSV, YAML | `.json`, `.jsonl`, `.csv`, `.tsv`, `.yaml` | |
 
 ## Canonical fields
@@ -55,9 +57,12 @@ include:
 ```text
 source
 source_id
+pmid
+pmcid
 doi
 title
 abstract
+full_text
 authors
 authors_raw
 year
@@ -77,6 +82,7 @@ keywords_index
 keywords_all
 references
 references_raw
+full_text_url
 affiliations
 institutions
 countries
@@ -100,7 +106,8 @@ record. The dataset also stores the raw records separately in
 | `crossref` | `crossref` |
 | `bib`, `bibtex` | `bibtex` |
 | `ris` | `ris` |
-| `pubmed`, `pmc` | `pubmed`, `pmc` |
+| `pubmed` | `pubmed` |
+| `pmc`, `pubmed_central`, `pubmed-central`, `pubmedcentral`, `pmcid` | `pmc` |
 
 Format aliases are also normalized. For example, `bib` becomes `bibtex` and
 `txt` becomes `plain_text`.
@@ -124,6 +131,43 @@ The parser handles:
 Useful normalized fields include `source_id`, `authors`, `source_title`,
 `keywords_author`, `keywords_index`, `references_raw`, `cited_by_count`,
 `wos_categories`, and `research_areas`.
+
+
+## PubMed and PubMed Central API search
+
+PubMed and PubMed Central searches use `pymedx`, which is installed with the
+core package. Use PubMed query syntax and provide an NCBI contact email either
+directly or through an environment variable:
+
+```bash
+export BIBLIOFLOW_NCBI_EMAIL="researcher@example.org"
+# Optional, when you have an NCBI API key:
+export BIBLIOFLOW_NCBI_API_KEY="..."
+```
+
+```python
+import biblioflow as bf
+
+pubmed = bf.from_pubmed(
+    query="bibliometrics AND reproducibility",
+    limit=100,
+)
+
+pmc = bf.from_pmc(
+    query="science mapping",
+    limit=50,
+)
+```
+
+`from_pubmed_central(...)` is the long-form name for `from_pmc(...)`. PubMed
+records populate fields such as `pmid`, `doi`, `title`, `abstract`, `authors`,
+`source_title`, `publication_date`, `keywords_index`, and `url`. PMC records
+also populate `pmcid`, `full_text_url`, `open_access_url`, and `full_text` when
+those values are returned by the source.
+
+The loader intentionally requires a contact email before making API calls. Pass
+`email="you@example.org"` or set one of `BIBLIOFLOW_NCBI_EMAIL`,
+`NCBI_EMAIL`, or `ENTREZ_EMAIL`.
 
 ## Scopus CSV
 
@@ -160,6 +204,16 @@ File loading uses `bf.load(...)`. API imports use dedicated functions:
 ```python
 records = bf.from_openalex(search="bibliometrics", limit=100)
 records = bf.from_crossref(query="science mapping", limit=100)
+pubmed = bf.from_pubmed(
+    query="bibliometrics AND reproducibility",
+    limit=100,
+    email="researcher@example.org",
+)
+pmc = bf.from_pubmed_central(
+    query="open science",
+    limit=50,
+    email="researcher@example.org",
+)
 ```
 
 Scopus API access requires optional dependencies and local pybliometrics

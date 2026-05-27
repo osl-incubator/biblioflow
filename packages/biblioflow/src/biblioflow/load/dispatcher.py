@@ -203,7 +203,8 @@ def load(
             '  bf.load("records.txt", source="wos")\n'
             '  bf.load("records.csv", source="scopus")\n\n'
             "For APIs, use bf.from_openalex(...), bf.from_crossref(...), "
-            "or bf.from_scopus(...)."
+            "bf.from_scopus(...), bf.from_pubmed(...), or "
+            "bf.from_pubmed_central(...)."
         )
         raise AmbiguousSourceError(msg)
 

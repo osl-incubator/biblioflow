@@ -1,0 +1,28 @@
+{
+  "pubmed_id": "12345678",
+  "pmc_id": "PMC1234567",
+  "doi": "https://doi.org/10.1000/pubmed",
+  "title": "Reproducible bibliometrics with Python",
+  "abstract": "A study about reproducible bibliometric workflows.",
+  "authors": [
+    { "first_name": "Jane", "last_name": "Smith" },
+    { "name": "John Doe" }
+  ],
+  "journal": "Journal of Biomedical Bibliometrics",
+  "journal_abbreviation": "J Biomed Bibliometrics",
+  "publication_date": "2024-05-10",
+  "keywords": ["bibliometrics", "reproducibility"],
+  "mesh_terms": [
+    { "term": "Bibliometrics" },
+    { "name": "Reproducibility of Results" }
+  ],
+  "publication_type": ["Journal Article", "Review"],
+  "language": "eng",
+  "volume": "12",
+  "issue": "3",
+  "pages": "100-110",
+  "issn": "1234-5678",
+  "eissn": "8765-4321",
+  "affiliations": ["Department of Information Science, Open University"],
+  "grants": ["Open Grant 123"]
+}

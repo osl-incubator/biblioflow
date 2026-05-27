@@ -46,6 +46,80 @@ def _find_text(element: ET.Element, *paths: str) -> str | None:
     return None
 
 
+def _find_all_text(element: ET.Element, *paths: str) -> list[str]:
+    """
+    title: Find all non-empty text values for XML paths.
+    parameters:
+      element:
+        type: ET.Element
+        description: Element value.
+      paths:
+        type: str
+        description: Additional positional arguments.
+        variadic: positional
+    returns:
+      type: list[str]
+    """
+    values: list[str] = []
+    for path in paths:
+        for child in element.findall(path):
+            value = _text(child)
+            if value:
+                values.append(value)
+    return values
+
+
+def _pub_date(article: ET.Element) -> str | None:
+    """
+    title: Extract a PubMed publication date.
+    parameters:
+      article:
+        type: ET.Element
+        description: PubMed article element.
+    returns:
+      type: str | None
+    """
+    for date in article.findall(".//ArticleDate") + article.findall(".//PubDate"):
+        year = _find_text(date, "Year")
+        if not year:
+            continue
+        month = _find_text(date, "Month")
+        day = _find_text(date, "Day")
+        if month and month.isdigit() and day and day.isdigit():
+            return f"{int(year):04d}-{int(month):02d}-{int(day):02d}"
+        if month and month.isdigit():
+            return f"{int(year):04d}-{int(month):02d}"
+        return f"{int(year):04d}"
+    return None
+
+
+def _article_ids(article: ET.Element) -> dict[str, str]:
+    """
+    title: Extract PubMed article identifiers.
+    parameters:
+      article:
+        type: ET.Element
+        description: PubMed article element.
+    returns:
+      type: dict[str, str]
+    """
+    ids: dict[str, str] = {}
+    pmid = _find_text(article, ".//PMID")
+    if pmid:
+        ids["pmid"] = pmid
+    for article_id in article.findall(".//ArticleId"):
+        id_type = article_id.attrib.get("IdType", "").lower()
+        value = _text(article_id)
+        if id_type and value:
+            ids[id_type] = value
+    for elocation in article.findall(".//ELocationID"):
+        id_type = elocation.attrib.get("EIdType", "").lower()
+        value = _text(elocation)
+        if id_type and value:
+            ids[id_type] = value
+    return ids
+
+
 def _pubmed_article(article: ET.Element) -> dict[str, Any]:
     """
     title: Implement the pubmed article helper.
@@ -68,43 +142,68 @@ def _pubmed_article(article: ET.Element) -> dict[str, Any]:
         if name:
             authors.append(name)
 
-    doi = None
-    for article_id in article.findall(".//ArticleId"):
-        if article_id.attrib.get("IdType", "").lower() == "doi":
-            doi = _text(article_id)
-            break
-    if doi is None:
-        for elocation in article.findall(".//ELocationID"):
-            if elocation.attrib.get("EIdType", "").lower() == "doi":
-                doi = _text(elocation)
-                break
+    ids = _article_ids(article)
 
     mesh_terms = [
         text
         for descriptor in article.findall(".//MeshHeading/DescriptorName")
         if (text := _text(descriptor))
     ]
+    mesh_terms.extend(
+        text
+        for qualifier in article.findall(".//MeshHeading/QualifierName")
+        if (text := _text(qualifier))
+    )
     keywords = [
         text for keyword in article.findall(".//Keyword") if (text := _text(keyword))
     ]
+    abstract = "\n".join(_find_all_text(article, ".//Abstract/AbstractText")) or None
+    publication_types = _find_all_text(article, ".//PublicationType")
+    languages = _find_all_text(article, ".//Language")
+    affiliations = _find_all_text(article, ".//Affiliation")
+    issn = None
+    eissn = None
+    for issn_element in article.findall(".//Journal/ISSN"):
+        value = _text(issn_element)
+        if not value:
+            continue
+        if issn_element.attrib.get("IssnType", "").casefold() == "electronic":
+            eissn = value
+        else:
+            issn = value
+    pmcid = ids.get("pmc") or ids.get("pmcid")
+    pmid = ids.get("pmid")
+    pmc_url = f"https://www.ncbi.nlm.nih.gov/pmc/articles/{pmcid}/" if pmcid else None
+    pubmed_url = f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/" if pmid else None
 
     return {
-        "source_id": _find_text(article, ".//PMID"),
+        "source_id": pmid,
+        "pmid": pmid,
+        "pmcid": pmcid,
         "title": _find_text(article, ".//ArticleTitle"),
-        "abstract": _find_text(article, ".//Abstract/AbstractText"),
+        "abstract": abstract,
         "authors": authors,
         "source_title": _find_text(article, ".//Journal/Title", ".//MedlineTA"),
+        "journal_abbrev": _find_text(article, ".//ISOAbbreviation", ".//MedlineTA"),
         "publication_year": _find_text(
             article, ".//PubDate/Year", ".//ArticleDate/Year"
         ),
-        "doi": doi,
+        "publication_date": _pub_date(article),
+        "doi": ids.get("doi"),
         "keywords_author": keywords,
         "keywords_index": mesh_terms,
-        "document_type": _find_text(article, ".//PublicationType"),
-        "language": _find_text(article, ".//Language"),
+        "document_type": "; ".join(publication_types) if publication_types else None,
+        "language": languages[0] if languages else None,
         "volume": _find_text(article, ".//JournalIssue/Volume"),
         "issue": _find_text(article, ".//JournalIssue/Issue"),
         "start_page": _find_text(article, ".//Pagination/StartPage", ".//MedlinePgn"),
+        "pages": _find_text(article, ".//MedlinePgn"),
+        "issn": issn,
+        "eissn": eissn,
+        "affiliations": affiliations,
+        "url": pubmed_url,
+        "full_text_url": pmc_url,
+        "open_access_url": pmc_url,
     }
 
 

@@ -36,6 +36,7 @@ dependencies = [
   "pyalex>=0.15",
   "habanero>=1.2",
   "pybliometrics>=4",
+  "pymedx>=0.5.1",
   "pandas>=2",
   "pyyaml>=6",
 ]

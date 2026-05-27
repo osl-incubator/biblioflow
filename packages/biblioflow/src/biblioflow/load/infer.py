@@ -25,6 +25,9 @@ SOURCE_ALIASES = {
     "crossref": "crossref",
     "pubmed": "pubmed",
     "pmc": "pmc",
+    "pmcid": "pmc",
+    "pubmed_central": "pmc",
+    "pubmedcentral": "pmc",
 }
 
 FORMAT_ALIASES = {
