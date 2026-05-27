@@ -1,119 +1,159 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, Navigate, NavLink, Outlet, useLocation } from "react-router-dom";
 
-const overviewStats = [
-  { label: "Documents", value: "—", detail: "load a dataset" },
-  { label: "Sources", value: "—", detail: "journals and books" },
-  { label: "Authors", value: "—", detail: "normalized names" },
-  { label: "Timespan", value: "—", detail: "publication years" },
+import { EmptyState } from "../components/common/EmptyState";
+import { useDatasetSummary } from "../api/queries";
+import { useActiveWorkspace } from "./dashboard/workspace";
+
+const dashboardTabs = [
+  ["Overview", "overview"],
+  ["Validation", "validation"],
+  ["PRISMA", "prisma"],
+  ["Filters", "filters"],
+  ["Sources", "sources"],
+  ["Authors", "authors"],
+  ["Documents", "documents"],
+  ["Words", "words"],
+  ["Conceptual", "conceptual-structure"],
+  ["Intellectual", "intellectual-structure"],
+  ["Social", "social-structure"],
+  ["Matrices", "matrices"],
+  ["Networks", "networks"],
 ];
 
-const panels = [
-  {
-    section: "Overview",
-    title: "Main Information",
-    description:
-      "Documents, sources, authors, keywords, citations, and annual scientific production.",
-  },
-  {
-    section: "Sources",
-    title: "Source analysis",
-    description:
-      "Most relevant sources, local impact, Bradford's Law, and source dynamics over time.",
-  },
-  {
-    section: "Authors",
-    title: "Author analysis",
-    description:
-      "Most relevant authors, production over time, affiliations, countries, and collaboration indicators.",
-  },
-  {
-    section: "Documents",
-    title: "Document analysis",
-    description:
-      "Most cited documents, cited references, reference spectroscopy, and trend topics.",
-  },
-  {
-    section: "Conceptual Structure",
-    title: "Co-word and thematic maps",
-    description:
-      "Keyword co-occurrence, thematic map, thematic evolution, and conceptual structure placeholders.",
-  },
-  {
-    section: "Intellectual Structure",
-    title: "Citation structures",
-    description:
-      "Co-citation, bibliographic coupling, direct citations, and historiograph panels.",
-  },
-  {
-    section: "Social Structure",
-    title: "Collaboration networks",
-    description:
-      "Author, affiliation, and country collaboration networks with map-oriented placeholders.",
-  },
-];
+function timespan(start?: number | null, end?: number | null): string {
+  if (!start && !end) {
+    return "—";
+  }
+  if (start === end) {
+    return String(start);
+  }
+  return `${start ?? "?"}–${end ?? "?"}`;
+}
 
 export function DashboardPage() {
-  const { projectId } = useParams();
+  const { projectId, project, projectQuery, activeDatasetId, hasDataset } =
+    useActiveWorkspace();
+  const location = useLocation();
+  const summary = useDatasetSummary(projectId, activeDatasetId);
+  const summaryData = summary.data?.data;
+
+  if (
+    projectId &&
+    location.pathname.endsWith(`/projects/${projectId}/dashboard`)
+  ) {
+    return <Navigate to="overview" replace />;
+  }
+
+  if (projectQuery.isLoading) {
+    return <p>Loading project workspace…</p>;
+  }
+
+  if (projectQuery.isError || !projectId) {
+    return (
+      <EmptyState title="Project not found" icon="!">
+        <p>
+          Select an existing project or create a new one to open the dashboard.
+        </p>
+        <Link className="button button-primary" to="/projects">
+          Back to projects
+        </Link>
+      </EmptyState>
+    );
+  }
 
   return (
-    <div className="page-stack">
-      <section className="dashboard-hero card">
+    <div className="page-stack dashboard-layout">
+      <section className="dashboard-hero card workspace-banner">
         <div>
-          <span className="eyebrow">Analysis</span>
-          <h1>Project dashboard</h1>
+          <span className="eyebrow">Analysis workspace</span>
+          <h1>{project?.name ?? "Project dashboard"}</h1>
           <p>
-            Guided analysis workspace for project {projectId}. The structure is
-            ready for biblioflow-powered API responses as the core analytics
-            expand.
+            Review the normalized dataset, validate records, apply filters, run
+            overview metrics, and prepare matrices or networks from biblioflow.
           </p>
+          <div className="workspace-meta">
+            <span>Project {projectId.slice(0, 8)}</span>
+            <span>
+              {activeDatasetId
+                ? `Active dataset ${activeDatasetId.slice(0, 8)}`
+                : "No active dataset"}
+            </span>
+          </div>
         </div>
-        <div className="run-panel">
-          <button type="button">Run Analysis</button>
-          <Link to={`/projects/${projectId}/exports`}>Export results</Link>
+        <div className="run-panel" aria-label="Project actions">
+          <Link
+            className="workspace-action-card"
+            to={`/projects/${projectId}/upload`}
+          >
+            <span className="workspace-action-icon">⇧</span>
+            <span>
+              <strong>Upload files</strong>
+              <small>Add bibliographic exports to this project</small>
+            </span>
+          </Link>
+          <Link
+            className="workspace-action-card"
+            to={`/projects/${projectId}/exports`}
+          >
+            <span className="workspace-action-icon">↓</span>
+            <span>
+              <strong>Export results</strong>
+              <small>Download datasets, matrices, and networks</small>
+            </span>
+          </Link>
         </div>
       </section>
 
       <section className="stat-grid" aria-label="Dataset statistics">
-        {overviewStats.map((stat) => (
-          <article className="stat-card" key={stat.label}>
-            <span>{stat.label}</span>
-            <strong>{stat.value}</strong>
-            <small>{stat.detail}</small>
-          </article>
-        ))}
+        <article className="stat-card accent-search">
+          <span>Documents</span>
+          <strong>{summaryData?.documents ?? "—"}</strong>
+          <small>normalized records</small>
+        </article>
+        <article className="stat-card accent-analysis">
+          <span>Sources</span>
+          <strong>{summaryData?.sources ?? "—"}</strong>
+          <small>journals, books, venues</small>
+        </article>
+        <article className="stat-card accent-appraisal">
+          <span>Authors</span>
+          <strong>{summaryData?.authors ?? "—"}</strong>
+          <small>unique names</small>
+        </article>
+        <article className="stat-card accent-synthesis">
+          <span>Timespan</span>
+          <strong>
+            {timespan(summaryData?.timespan_start, summaryData?.timespan_end)}
+          </strong>
+          <small>publication years</small>
+        </article>
       </section>
 
-      <section className="analysis-workbench">
-        <aside className="analysis-tabs" aria-label="Dashboard sections">
-          {panels.map((panel) => (
-            <a
-              href={`#${panel.section.toLowerCase().replaceAll(" ", "-")}`}
-              key={panel.section}
-            >
-              {panel.section}
-            </a>
-          ))}
-        </aside>
-        <div className="analysis-panels">
-          {panels.map((panel) => (
-            <article
-              className="card analysis-panel"
-              id={panel.section.toLowerCase().replaceAll(" ", "-")}
-              key={panel.section}
-            >
-              <span className="eyebrow">{panel.section}</span>
-              <h2>{panel.title}</h2>
-              <p>{panel.description}</p>
-              <div className="placeholder-visual">
-                <span />
-                <span />
-                <span />
-                <span />
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
+      <nav className="dashboard-subnav" aria-label="Dashboard sections">
+        {dashboardTabs.map(([label, path]) => (
+          <NavLink key={path} to={`/projects/${projectId}/dashboard/${path}`}>
+            {label}
+          </NavLink>
+        ))}
+      </nav>
+
+      {!hasDataset ? (
+        <EmptyState title="Load a dataset to unlock dashboard panels" icon="⇪">
+          <p>
+            Upload one or more bibliographic export files, then load them into a
+            normalized biblioflow dataset. All analysis routes will use the
+            active dataset stored on this project.
+          </p>
+          <Link
+            className="button button-primary"
+            to={`/projects/${projectId}/upload`}
+          >
+            Upload bibliographic files
+          </Link>
+        </EmptyState>
+      ) : (
+        <Outlet />
+      )}
     </div>
   );
 }

@@ -50,3 +50,11 @@ class ExportRequest(BaseModel):
     dataset_id: str
     kind: str = "dataset"
     format: str = "json"
+
+
+class PrismaFlowRequest(BaseModel):
+    """Request body for PRISMA flow generation."""
+
+    dataset_id: str | None = None
+    title: str | None = None
+    counts: dict[str, Any] = Field(default_factory=dict)

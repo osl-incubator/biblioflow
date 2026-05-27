@@ -17,6 +17,23 @@ class ExportService:
         self.projects = projects
         self.datasets = datasets
 
+    def list_exports(self, project_id: str) -> list[dict[str, Any]]:
+        """List export artifacts for a project."""
+        self.projects.get_project(project_id)
+        exports_dir = self.projects.exports_dir(project_id)
+        artifacts = []
+        for path in sorted(exports_dir.iterdir(), key=lambda item: item.name):
+            if path.is_file():
+                artifacts.append(
+                    self._metadata(
+                        path.stem,
+                        path,
+                        format=path.suffix.removeprefix(".") or "unknown",
+                        kind="dataset",
+                    )
+                )
+        return artifacts
+
     def export_dataset(
         self,
         project_id: str,

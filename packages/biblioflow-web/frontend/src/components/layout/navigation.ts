@@ -1,15 +1,27 @@
+export type NavigationAccent =
+  | "search"
+  | "appraisal"
+  | "analysis"
+  | "synthesis";
+
 export interface NavigationItem {
   label: string;
   detail?: string;
-  path?: string;
   disabled?: boolean;
+  buildPath?: (projectId: string) => string;
+  fallbackPath?: string;
+  requiresProject?: boolean;
 }
 
 export interface NavigationSection {
   label: string;
-  accent: "search" | "appraisal" | "analysis" | "synthesis";
+  accent: NavigationAccent;
   icon: string;
   items: NavigationItem[];
+}
+
+export function dashboardPath(projectId: string, section: string): string {
+  return `/projects/${projectId}/dashboard/${section}`;
 }
 
 export const navigationSections: NavigationSection[] = [
@@ -18,9 +30,15 @@ export const navigationSections: NavigationSection[] = [
     accent: "search",
     icon: "⌕",
     items: [
-      { label: "Import or Load", detail: "Files and APIs", path: "/projects" },
-      { label: "OpenAlex", detail: "API", disabled: true },
-      { label: "PubMed", detail: "API", disabled: true },
+      {
+        label: "Import or Load",
+        detail: "Files and APIs",
+        buildPath: (projectId) => `/projects/${projectId}/upload`,
+        fallbackPath: "/projects",
+        requiresProject: false,
+      },
+      { label: "OpenAlex", detail: "API connector planned", disabled: true },
+      { label: "PubMed", detail: "API connector planned", disabled: true },
       { label: "Merge Collections", detail: "Coming soon", disabled: true },
       { label: "Reference Matching", detail: "Coming soon", disabled: true },
     ],
@@ -30,9 +48,24 @@ export const navigationSections: NavigationSection[] = [
     accent: "appraisal",
     icon: "◆",
     items: [
-      { label: "Filters", detail: "Refine dataset", path: "/projects" },
-      { label: "Validation", detail: "Warnings", path: "/projects" },
-      { label: "PRISMA Diagram", detail: "Planned", disabled: true },
+      {
+        label: "Filters",
+        detail: "Refine dataset",
+        buildPath: (projectId) => dashboardPath(projectId, "filters"),
+        fallbackPath: "/projects",
+      },
+      {
+        label: "Validation",
+        detail: "Warnings",
+        buildPath: (projectId) => dashboardPath(projectId, "validation"),
+        fallbackPath: "/projects",
+      },
+      {
+        label: "PRISMA Diagram",
+        detail: "Flow counts",
+        buildPath: (projectId) => dashboardPath(projectId, "prisma"),
+        fallbackPath: "/projects",
+      },
     ],
   },
   {
@@ -40,19 +73,36 @@ export const navigationSections: NavigationSection[] = [
     accent: "analysis",
     icon: "↗",
     items: [
-      { label: "Overview", detail: "Main information", path: "/projects" },
-      { label: "Sources", detail: "Journals", path: "/projects" },
+      {
+        label: "Overview",
+        detail: "Main information",
+        buildPath: (projectId) => dashboardPath(projectId, "overview"),
+        fallbackPath: "/projects",
+      },
+      {
+        label: "Sources",
+        detail: "Journals",
+        buildPath: (projectId) => dashboardPath(projectId, "sources"),
+        fallbackPath: "/projects",
+      },
       {
         label: "Authors",
         detail: "People and affiliations",
-        path: "/projects",
+        buildPath: (projectId) => dashboardPath(projectId, "authors"),
+        fallbackPath: "/projects",
       },
       {
         label: "Documents",
         detail: "Papers and references",
-        path: "/projects",
+        buildPath: (projectId) => dashboardPath(projectId, "documents"),
+        fallbackPath: "/projects",
       },
-      { label: "Words", detail: "Keywords and terms", path: "/projects" },
+      {
+        label: "Words",
+        detail: "Keywords and terms",
+        buildPath: (projectId) => dashboardPath(projectId, "words"),
+        fallbackPath: "/projects",
+      },
     ],
   },
   {
@@ -63,20 +113,42 @@ export const navigationSections: NavigationSection[] = [
       {
         label: "Conceptual Structure",
         detail: "Co-word maps",
-        path: "/projects",
+        buildPath: (projectId) =>
+          dashboardPath(projectId, "conceptual-structure"),
+        fallbackPath: "/projects",
       },
       {
         label: "Intellectual Structure",
         detail: "Citations",
-        path: "/projects",
+        buildPath: (projectId) =>
+          dashboardPath(projectId, "intellectual-structure"),
+        fallbackPath: "/projects",
       },
       {
         label: "Social Structure",
         detail: "Collaboration",
-        path: "/projects",
+        buildPath: (projectId) => dashboardPath(projectId, "social-structure"),
+        fallbackPath: "/projects",
       },
-      { label: "Report", detail: "Narrative export", disabled: true },
-      { label: "TALL Export", detail: "Artifacts", path: "/projects" },
+      {
+        label: "Matrices",
+        detail: "Adjacency tables",
+        buildPath: (projectId) => dashboardPath(projectId, "matrices"),
+        fallbackPath: "/projects",
+      },
+      {
+        label: "Networks",
+        detail: "Nodes and edges",
+        buildPath: (projectId) => dashboardPath(projectId, "networks"),
+        fallbackPath: "/projects",
+      },
+      { label: "Report", detail: "Narrative export planned", disabled: true },
+      {
+        label: "Export",
+        detail: "Artifacts",
+        buildPath: (projectId) => `/projects/${projectId}/exports`,
+        fallbackPath: "/projects",
+      },
     ],
   },
 ];

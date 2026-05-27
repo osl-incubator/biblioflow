@@ -30,6 +30,7 @@ classifiers = [
 ]
 dependencies = [
   "pydantic>=2",
+  "prisma-flow >=0.5.0",
 ]
 
 [project.urls]
