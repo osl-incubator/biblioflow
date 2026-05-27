@@ -40,6 +40,24 @@ dataset = bf.load("records.ris")
 app = bfn.launch(records=dataset)
 ```
 
+Import PubMed or PubMed Central records directly from a notebook:
+
+```python
+import os
+import biblioflow_nb as bfn
+
+os.environ["BIBLIOFLOW_NCBI_EMAIL"] = "researcher@example.org"
+
+app = bfn.app(display=False)
+app.from_pubmed(query="bibliometrics AND reproducibility", limit=20)
+app.from_pmc(query="open science", limit=20)
+app.display()
+```
+
+`from_pubmed_central(...)` is also available as a long-form alias for
+`from_pmc(...)`. API keys may be passed as `api_key=...` or configured through
+`BIBLIOFLOW_NCBI_API_KEY`; they are not stored in session manifests.
+
 ## Google Colab
 
 Call `colab_setup()` before launching. It is safe to call outside Colab.
@@ -59,6 +77,7 @@ Colab runtime exposes compatible APIs.
 The notebook application provides panels for:
 
 - Loading local paths or uploaded files.
+- Searching PubMed and PubMed Central through the **PubMed/PMC** panel.
 - Previewing validation warnings and normalized records.
 - Applying common filters.
 - Running overview analysis.

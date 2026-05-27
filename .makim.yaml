@@ -52,7 +52,12 @@ groups:
       build:
         help: Build the Quarto documentation website
         backend: bash
-        run: quarto render docs --no-execute-daemon
+        run: |
+          mkdir -p .cache/quarto-tmp .cache/quarto-home .cache/deno
+          TMPDIR="$PWD/.cache/quarto-tmp" \
+            HOME="$PWD/.cache/quarto-home" \
+            DENO_DIR="$PWD/.cache/deno" \
+            quarto render docs --no-execute-daemon
 
       render:
         help: Alias for docs.build
@@ -63,7 +68,12 @@ groups:
       preview:
         help: Preview the Quarto documentation website locally
         backend: bash
-        run: quarto preview docs
+        run: |
+          mkdir -p .cache/quarto-tmp .cache/quarto-home .cache/deno
+          TMPDIR="$PWD/.cache/quarto-tmp" \
+            HOME="$PWD/.cache/quarto-home" \
+            DENO_DIR="$PWD/.cache/deno" \
+            quarto preview docs
 
   tests:
     tasks:
@@ -129,7 +139,11 @@ groups:
         backend: bash
         run: |
           cd packages/biblioflow-web/backend
-          PYTHONPATH=src:../../biblioflow/src pytest
+          PYTHONPATH=src:../../biblioflow/src pytest \
+            --cov=biblioflow_web_backend \
+            --cov-report=term-missing \
+            --cov-report=xml:coverage.xml \
+            --cov-fail-under=90
 
       backend.dev:
         help: Run the biblioflow-web backend development server
@@ -170,7 +184,7 @@ groups:
           from seed_demo_data import main
 
           seed_args = []
-          data_dir = "${{ args.data_dir }}"
+          data_dir = "${{ args.data-dir }}"
           reset = "${{ args.reset }}".lower() in {"1", "true", "yes", "y"}
           if data_dir:
               seed_args.extend(["--data-dir", data_dir])
@@ -206,7 +220,10 @@ groups:
       frontend.tests:
         help: Run frontend tests
         backend: bash
-        run: cd packages/biblioflow-web/frontend && npm test
+        run: |
+          cd packages/biblioflow-web/frontend
+          mkdir -p .tmp-vitest
+          TMPDIR="$PWD/.tmp-vitest" npm run test:coverage
 
       frontend.copy-to-backend:
         help: Copy frontend dist assets into the backend package
@@ -228,7 +245,11 @@ groups:
         backend: bash
         run: |
           cd packages/biblioflow-nb
-          PYTHONPATH=src:../biblioflow/src pytest
+          PYTHONPATH=src:../biblioflow/src pytest \
+            --cov=biblioflow_nb \
+            --cov-report=term-missing \
+            --cov-report=xml:coverage.xml \
+            --cov-fail-under=90
 
       package.build:
         help: Build the biblioflow-nb package

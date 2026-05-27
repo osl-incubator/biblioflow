@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "lint": "tsc -b --noEmit"
   },
   "dependencies": {
@@ -24,6 +25,7 @@
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "@vitejs/plugin-react": "latest",
+    "@vitest/coverage-v8": "4.1.7",
     "jsdom": "latest",
     "typescript": "latest",
     "vite": "latest",

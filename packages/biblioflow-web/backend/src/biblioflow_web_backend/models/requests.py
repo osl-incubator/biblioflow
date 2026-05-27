@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -19,6 +19,18 @@ class DatasetLoadRequest(BaseModel):
     upload_ids: list[str] | None = None
     provider: str = "auto"
     format: str = "auto"
+
+
+class RemoteSourceImportRequest(BaseModel):
+    """Request body for PubMed/PMC dataset import."""
+
+    source: Literal["pubmed", "pmc", "pubmed_central"] = "pubmed"
+    query: str = Field(min_length=1)
+    limit: int = Field(default=100, ge=1, le=1000)
+    email: str | None = None
+    api_key: str | None = None
+    tool: str = "biblioflow-web"
+    name: str | None = None
 
 
 class FilterRequest(BaseModel):

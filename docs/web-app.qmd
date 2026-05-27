@@ -50,6 +50,8 @@ It provides:
 - FastAPI application factory.
 - Project, upload, dataset, validation, filter, analysis, matrix, network, and
   PRISMA/export routes.
+- PubMed and PubMed Central import routes that call the core `biblioflow`
+  API connectors and persist results as normal datasets.
 - Runtime file stores for uploaded files, normalized datasets, exports, and
   project metadata.
 - Static-file serving for the bundled React build in production wheels.
@@ -84,6 +86,30 @@ makim web.frontend.tests
 makim web.frontend.build
 ```
 
+## PubMed and PMC import
+
+The Import page supports two data-ingestion modes:
+
+1. Upload local bibliographic exports and load them into a normalized dataset.
+2. Search PubMed or PubMed Central and import the remote results directly.
+
+Remote imports call `biblioflow.from_pubmed(...)` or `biblioflow.from_pmc(...)`
+inside the backend. Imported records are saved with the same dataset payload
+shape as uploaded files, so all dashboard pages immediately work with the new
+active dataset.
+
+The form accepts a query, source, limit, contact email, optional NCBI API key,
+tool name, and optional dataset name. API keys are sent only to the backend
+request handler and are not stored in project metadata or API responses.
+
+For deployments, configure a default contact email when users should not type it
+for every import:
+
+```bash
+export BIBLIOFLOW_NCBI_EMAIL="researcher@example.org"
+export BIBLIOFLOW_NCBI_API_KEY="optional-key"
+```
+
 ## Bundling behavior
 
 The backend build script compiles and copies frontend assets:
@@ -112,6 +138,7 @@ All application API routes live under `/api` by default.
 | Health | `GET /api/health` | Service and version metadata. |
 | Projects | `/api/projects` | Create, list, inspect, and delete projects. |
 | Uploads | `/api/projects/{project_id}/uploads` | Upload and manage bibliographic files. |
+| Remote sources | `POST /api/projects/{project_id}/sources/import` | Search PubMed/PMC and create an active dataset. |
 | Datasets | `/api/projects/{project_id}/datasets` | Load uploads and retrieve normalized datasets. |
 | Validation | `/api/projects/{project_id}/datasets/{dataset_id}/validation` | Inspect warnings and validation metadata. |
 | Filters | `/api/projects/{project_id}/datasets/{dataset_id}/filters/*` | Discover filter options and preview filtered results. |
