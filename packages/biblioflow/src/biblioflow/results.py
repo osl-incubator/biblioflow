@@ -4,6 +4,7 @@ title: Reusable JSON-serializable result helpers for biblioflow.
 
 from __future__ import annotations
 
+import math
 from collections import Counter
 from dataclasses import dataclass, field
 from typing import Any
@@ -135,6 +136,30 @@ def _list_values(value: Any) -> list[str]:
     return [text] if text and text.lower() != "nan" else []
 
 
+def _year_value(value: Any) -> int | None:
+    """
+    title: Convert a year-like value to an integer when finite.
+    parameters:
+      value:
+        type: Any
+        description: Year-like value.
+    returns:
+      type: int | None
+    """
+    if value is None:
+        return None
+    if isinstance(value, float) and not math.isfinite(value):
+        return None
+    text = str(value).strip()
+    if not text or text.casefold() == "nan":
+        return None
+    try:
+        year = int(float(text))
+    except ValueError:
+        return None
+    return year
+
+
 def summarize_dataset(dataset: BibliographicDataset) -> DatasetSummary:
     """
     title: Build a reusable high-level dataset summary.
@@ -147,7 +172,9 @@ def summarize_dataset(dataset: BibliographicDataset) -> DatasetSummary:
     """
     rows = dataset.to_records()
     years = [
-        int(row["publication_year"]) for row in rows if row.get("publication_year")
+        year
+        for row in rows
+        if (year := _year_value(row.get("publication_year"))) is not None
     ]
     sources = Counter(
         str(row["source_title"]) for row in rows if row.get("source_title")

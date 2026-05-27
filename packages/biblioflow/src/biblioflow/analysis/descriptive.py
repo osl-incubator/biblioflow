@@ -4,6 +4,7 @@ title: Descriptive bibliometric analysis.
 
 from __future__ import annotations
 
+import math
 from collections import Counter
 from dataclasses import dataclass
 from typing import Any
@@ -84,6 +85,30 @@ def _counter_frame(counter: Counter[str], *, key: str, value: str, limit: int) -
     return make_record_frame(rows, [key, value])
 
 
+def _year_value(value: Any) -> int | None:
+    """
+    title: Convert a year-like value to an integer when finite.
+    parameters:
+      value:
+        type: Any
+        description: Year-like value.
+    returns:
+      type: int | None
+    """
+    if value is None:
+        return None
+    if isinstance(value, float) and not math.isfinite(value):
+        return None
+    text = str(value).strip()
+    if not text or text.casefold() == "nan":
+        return None
+    try:
+        year = int(float(text))
+    except ValueError:
+        return None
+    return year
+
+
 def analyze(
     records: BibliographicDataset | Any, *, top_n: int = 20
 ) -> DescriptiveSummary:
@@ -105,7 +130,9 @@ def analyze(
     rows = dataset.to_records()
 
     years = [
-        int(row["publication_year"]) for row in rows if row.get("publication_year")
+        year
+        for row in rows
+        if (year := _year_value(row.get("publication_year"))) is not None
     ]
     authors_counter: Counter[str] = Counter()
     keyword_counter: Counter[str] = Counter()
