@@ -47,6 +47,8 @@ class WidgetPanel:
             callback()
         except BiblioFlowNotebookError as exc:
             self._show_error(str(exc))
+        except ValueError as exc:
+            self._show_error(str(exc))
         except Exception as exc:  # pragma: no cover - defensive widget callback path
             self._show_error(f"Unexpected error: {exc}")
 

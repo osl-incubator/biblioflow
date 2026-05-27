@@ -1,153 +1,127 @@
 groups:
   all:
     tasks:
-      ci:
-        help: Run lint, tests, package build, and docs build
-        hooks:
-          pre-run:
-            - task: tests.linter
-            - task: tests.unit
-            - task: package.build
-            - task: nb.tests
-            - task: nb.package.build
-            - task: docs.build
-
-  clean:
-    tasks:
-      tmp:
-        help: Clean unnecessary temporary files
-        backend: bash
-        run: |
-          rm -fr build/
-          rm -fr dist/
-          rm -fr packages/biblioflow/dist/
-          rm -fr .eggs/
-          rm -f .coverage
-          rm -fr htmlcov/
-          rm -fr .pytest_cache
-          rm -fr .mypy_cache
-          rm -fr .ruff_cache
-          rm -fr packages/biblioflow/.pytest_cache
-          rm -fr packages/biblioflow/.mypy_cache
-          rm -fr packages/biblioflow/.ruff_cache
-          rm -fr packages/biblioflow-web/backend/dist/
-          rm -fr packages/biblioflow-web/backend/.pytest_cache
-          rm -fr packages/biblioflow-web/backend/.mypy_cache
-          rm -fr packages/biblioflow-web/backend/.ruff_cache
-          rm -fr packages/biblioflow-web/frontend/dist/
-          rm -fr packages/biblioflow-web/frontend/node_modules/
-          rm -fr packages/biblioflow-nb/dist/
-          rm -fr packages/biblioflow-nb/.pytest_cache
-          rm -fr packages/biblioflow-nb/.mypy_cache
-          rm -fr packages/biblioflow-nb/.ruff_cache
-          find . -name '*.egg-info' -exec rm -fr {} +
-          find . -name '*.egg' -exec rm -f {} +
-          find . -name '*.pyc' -exec rm -f {} +
-          find . -name '__pycache__' -exec rm -fr {} +
-          find . -name '*.pyo' -exec rm -f {} +
-          find . -name '*~' -exec rm -f {} +
-
-  docs:
-    tasks:
-      build:
-        help: Build the Quarto documentation website
-        backend: bash
-        run: quarto render docs --no-execute-daemon
-
-      render:
-        help: Alias for docs.build
-        hooks:
-          pre-run:
-            - task: docs.build
-
-      preview:
-        help: Preview the Quarto documentation website locally
-        backend: bash
-        run: quarto preview docs
-
-  tests:
-    tasks:
-      linter:
-        help: Run linter tools
-        backend: bash
-        run: |
-          PRE_COMMIT_HOME="${PRE_COMMIT_HOME:-.cache/pre-commit}" \
-            pre-commit run --all-files --verbose
-
       unit:
-        help: run tests
+        help: Run unit tests for lib, web, and notebook packages
+        hooks:
+          pre-run:
+            - task: lib.unit
+            - task: web.unit
+            - task: nb.unit
+
+      linter:
+        help: Run linters for lib, web, and notebook packages
+        hooks:
+          pre-run:
+            - task: lib.linter
+            - task: web.linter
+            - task: nb.linter
+
+      build:
+        help: Build lib, web, and notebook packages
+        hooks:
+          pre-run:
+            - task: lib.build
+            - task: web.build
+            - task: nb.build
+
+      ci:
+        help: Run lint, tests, package builds, and docs build
+        hooks:
+          pre-run:
+            - task: all.linter
+            - task: all.unit
+            - task: all.build
+            - task: docs.build
+
+  lib:
+    tasks:
+      unit:
+        help: Run biblioflow library unit tests with 90% coverage gate
         args:
           path:
-            help: Specify the location of the tests
+            help: Optional test path or node id.
             type: string
             default: ""
           params:
-            help: Specify parameters to be used for tests
+            help: Additional pytest parameters.
             type: string
             default: "-vv"
         backend: bash
+        dir: packages/biblioflow
         run: |
-          cd packages/biblioflow
-          PYTHONPATH=src pytest ${{ args.path }} ${{ args.params }}
+          pytest ${{ args.path }} ${{ args.params }} \
+            --cov=biblioflow \
+            --cov-report=term-missing \
+            --cov-report=xml:coverage.xml \
+            --cov-fail-under=90
 
-      ci:
-        help: run the same tests executed on CI
+      linter:
+        help: Run biblioflow library static checks
         hooks:
           pre-run:
-            - task: tests.unit
-            - task: tests.linter
-            - task: docs.build
+            - task: lib.format-check
+            - task: lib.ruff
+            - task: lib.docstrings
+            - task: lib.mypy
 
-  package:
-    tasks:
+      format-check:
+        help: Check biblioflow library Python formatting
+        backend: bash
+        run: cd packages/biblioflow && ruff format --check src tests
+
+      ruff:
+        help: Run biblioflow library Ruff checks
+        backend: bash
+        run: cd packages/biblioflow && ruff check src tests
+
+      docstrings:
+        help: Check biblioflow library Douki docstrings
+        backend: bash
+        run: douki check packages/biblioflow/src/biblioflow --lang python
+
+      mypy:
+        help: Run biblioflow library mypy checks
+        backend: bash
+        run: mypy --config-file packages/biblioflow/pyproject.toml packages/biblioflow/src
+
       build:
-        help: Build the package with Poetry
+        help: Build the biblioflow library package
         backend: bash
         run: cd packages/biblioflow && poetry build
 
   web:
     tasks:
+      unit:
+        help: Run biblioflow-web backend and frontend tests
+        hooks:
+          pre-run:
+            - task: web.backend.unit
+            - task: web.frontend.unit
+
+      linter:
+        help: Run biblioflow-web backend and frontend linters
+        hooks:
+          pre-run:
+            - task: web.backend.linter
+            - task: web.frontend.linter
+
       build:
-        help: Build biblioflow-web
-        backend: bash
+        help: Build biblioflow-web with bundled frontend assets
         hooks:
           pre-run:
             - task: web.frontend.build
             - task: web.frontend.copy-to-backend
-            - task: web.package.build
+            - task: web.backend.build
 
       run:
         help: Run the biblioflow-web application
-        backend: bash
         hooks:
           pre-run:
             - task: web.build
             - task: web.backend.dev
 
-      backend.tests:
-        help: Run biblioflow-web backend tests
-        backend: bash
-        run: |
-          cd packages/biblioflow-web/backend
-          PYTHONPATH=src:../../biblioflow/src pytest
-
-      backend.dev:
-        help: Run the biblioflow-web backend development server
-        args:
-          host:
-            help: Host interface to bind.
-            type: string
-            default: "127.0.0.1"
-          port:
-            help: Port to bind. Use 0 to ask the OS for a random free port.
-            type: string
-            default: "0"
-        backend: bash
-        run: |
-          cd packages/biblioflow-web/backend
-          PYTHONPATH=src:../../biblioflow/src uvicorn biblioflow_web_backend.main:app --reload --host "${{ args.host }}" --port "${{ args.port }}"
-
-      seed.demo:
+      seed-demo:
         help: Seed the biblioflow-web data store with rich demo projects
         backend: python
         args:
@@ -170,7 +144,7 @@ groups:
           from seed_demo_data import main
 
           seed_args = []
-          data_dir = "${{ args.data_dir }}"
+          data_dir = "${{ args.data-dir }}"
           reset = "${{ args.reset }}".lower() in {"1", "true", "yes", "y"}
           if data_dir:
               seed_args.extend(["--data-dir", data_dir])
@@ -178,35 +152,109 @@ groups:
               seed_args.append("--reset")
           main(seed_args)
 
-      backend.package.build:
+      backend.unit:
+        help: Run biblioflow-web backend unit tests with 90% coverage gate
+        backend: bash
+        run: |
+          cd packages/biblioflow-web/backend
+          PYTHONPATH=src:../../biblioflow/src pytest \
+            --cov=biblioflow_web_backend \
+            --cov-report=term-missing \
+            --cov-report=xml:coverage.xml \
+            --cov-fail-under=90
+
+      backend.linter:
+        help: Run biblioflow-web backend static checks
+        hooks:
+          pre-run:
+            - task: web.backend.format-check
+            - task: web.backend.ruff
+            - task: web.backend.mypy
+
+      backend.format-check:
+        help: Check biblioflow-web backend Python formatting
+        backend: bash
+        run: cd packages/biblioflow-web/backend && ruff format --check src tests scripts
+
+      backend.ruff:
+        help: Run biblioflow-web backend Ruff checks
+        backend: bash
+        run: cd packages/biblioflow-web/backend && ruff check src tests scripts
+
+      backend.mypy:
+        help: Run biblioflow-web backend mypy checks
+        backend: bash
+        run: |
+          cd packages/biblioflow-web/backend
+          PYTHONPATH=src:../../biblioflow/src mypy --config-file pyproject.toml src
+
+      backend.dev:
+        help: Run the biblioflow-web backend development server
+        args:
+          host:
+            help: Host interface to bind.
+            type: string
+            default: "127.0.0.1"
+          port:
+            help: Port to bind. Use 0 to ask the OS for a random free port.
+            type: string
+            default: "0"
+        backend: bash
+        run: |
+          cd packages/biblioflow-web/backend
+          PYTHONPATH=src:../../biblioflow/src uvicorn biblioflow_web_backend.main:app --reload --host "${{ args.host }}" --port "${{ args.port }}"
+
+      backend.build:
         help: Build the backend Python package without rebuilding frontend assets
         backend: bash
         run: cd packages/biblioflow-web/backend && poetry build
 
       frontend.install:
-        help: Install frontend dependencies
+        help: Install frontend dependencies from package-lock.json
         backend: bash
-        run: cd packages/biblioflow-web/frontend && npm install
+        run: cd packages/biblioflow-web/frontend && npm ci
+
+      frontend.ensure-install:
+        help: Install frontend dependencies when node_modules is missing
+        backend: bash
+        run: |
+          cd packages/biblioflow-web/frontend
+          test -x node_modules/.bin/tsc || npm ci
 
       frontend.dev:
         help: Run the frontend development server
+        hooks:
+          pre-run:
+            - task: web.frontend.ensure-install
         backend: bash
         run: cd packages/biblioflow-web/frontend && npm run dev
 
       frontend.build:
         help: Build the frontend production assets
+        hooks:
+          pre-run:
+            - task: web.frontend.ensure-install
         backend: bash
         run: cd packages/biblioflow-web/frontend && npm run build
 
-      frontend.lint:
+      frontend.linter:
         help: Run frontend static checks
+        hooks:
+          pre-run:
+            - task: web.frontend.ensure-install
         backend: bash
         run: cd packages/biblioflow-web/frontend && npm run lint
 
-      frontend.tests:
-        help: Run frontend tests
+      frontend.unit:
+        help: Run frontend unit tests with coverage gate
+        hooks:
+          pre-run:
+            - task: web.frontend.ensure-install
         backend: bash
-        run: cd packages/biblioflow-web/frontend && npm test
+        run: |
+          cd packages/biblioflow-web/frontend
+          mkdir -p .tmp-vitest
+          TMPDIR="$PWD/.tmp-vitest" npm run test:coverage
 
       frontend.copy-to-backend:
         help: Copy frontend dist assets into the backend package
@@ -214,33 +262,217 @@ groups:
         run: cd packages/biblioflow-web/backend && python scripts/build_frontend.py --skip-install --skip-build
 
       package.build:
-        help: Build the publishable biblioflow-web package with bundled frontend assets
-        backend: bash
-        run: |
-          cd packages/biblioflow-web/backend
-          python scripts/build_frontend.py
-          poetry build
+        help: Alias for web.build
+        hooks:
+          pre-run:
+            - task: web.build
+
+      seed.demo:
+        help: Alias for web.seed-demo
+        hooks:
+          pre-run:
+            - task: web.seed-demo
+
+      backend.tests:
+        help: Alias for web.backend.unit
+        hooks:
+          pre-run:
+            - task: web.backend.unit
+
+      backend.package.build:
+        help: Alias for web.backend.build
+        hooks:
+          pre-run:
+            - task: web.backend.build
+
+      frontend.tests:
+        help: Alias for web.frontend.unit
+        hooks:
+          pre-run:
+            - task: web.frontend.unit
+
+      frontend.lint:
+        help: Alias for web.frontend.linter
+        hooks:
+          pre-run:
+            - task: web.frontend.linter
 
   nb:
     tasks:
-      tests:
-        help: Run biblioflow-nb tests
+      unit:
+        help: Run biblioflow-nb unit tests with 90% coverage gate
         backend: bash
         run: |
           cd packages/biblioflow-nb
-          PYTHONPATH=src:../biblioflow/src pytest
+          PYTHONPATH=src:../biblioflow/src pytest \
+            --cov=biblioflow_nb \
+            --cov-report=term-missing \
+            --cov-report=xml:coverage.xml \
+            --cov-fail-under=90
 
-      package.build:
+      linter:
+        help: Run biblioflow-nb static checks
+        hooks:
+          pre-run:
+            - task: nb.format-check
+            - task: nb.ruff
+            - task: nb.mypy
+
+      format-check:
+        help: Check biblioflow-nb Python formatting
+        backend: bash
+        run: cd packages/biblioflow-nb && ruff format --check src tests
+
+      ruff:
+        help: Run biblioflow-nb Ruff checks
+        backend: bash
+        run: cd packages/biblioflow-nb && ruff check src tests
+
+      mypy:
+        help: Run biblioflow-nb mypy checks
+        backend: bash
+        run: |
+          cd packages/biblioflow-nb
+          PYTHONPATH=src:../biblioflow/src mypy --config-file pyproject.toml src
+
+      build:
         help: Build the biblioflow-nb package
         backend: bash
         run: cd packages/biblioflow-nb && poetry build
 
-      examples.check:
+      examples-check:
         help: Validate biblioflow-nb example notebooks are present
         backend: bash
         run: |
           test -f packages/biblioflow-nb/src/biblioflow_nb/examples/quickstart.ipynb
           test -f packages/biblioflow-nb/src/biblioflow_nb/examples/colab_quickstart.ipynb
+
+      tests:
+        help: Alias for nb.unit
+        hooks:
+          pre-run:
+            - task: nb.unit
+
+      package.build:
+        help: Alias for nb.build
+        hooks:
+          pre-run:
+            - task: nb.build
+
+      examples.check:
+        help: Alias for nb.examples-check
+        hooks:
+          pre-run:
+            - task: nb.examples-check
+
+  docs:
+    tasks:
+      build:
+        help: Build the Quarto documentation website
+        backend: bash
+        run: |
+          mkdir -p .cache/quarto-tmp .cache/quarto-home .cache/deno
+          TMPDIR="$PWD/.cache/quarto-tmp" \
+            HOME="$PWD/.cache/quarto-home" \
+            DENO_DIR="$PWD/.cache/deno" \
+            quarto render docs --no-execute-daemon
+
+      render:
+        help: Alias for docs.build
+        hooks:
+          pre-run:
+            - task: docs.build
+
+      preview:
+        help: Preview the Quarto documentation website locally
+        backend: bash
+        run: |
+          mkdir -p .cache/quarto-tmp .cache/quarto-home .cache/deno
+          TMPDIR="$PWD/.cache/quarto-tmp" \
+            HOME="$PWD/.cache/quarto-home" \
+            DENO_DIR="$PWD/.cache/deno" \
+            quarto preview docs
+
+  tests:
+    tasks:
+      unit:
+        help: Alias for lib.unit
+        hooks:
+          pre-run:
+            - task: lib.unit
+
+      nb:
+        help: Alias for nb.unit
+        hooks:
+          pre-run:
+            - task: nb.unit
+
+      linter:
+        help: Alias for all.linter
+        hooks:
+          pre-run:
+            - task: all.linter
+
+      ci:
+        help: Alias for all.ci
+        hooks:
+          pre-run:
+            - task: all.ci
+
+  package:
+    tasks:
+      build:
+        help: Alias for lib.build
+        hooks:
+          pre-run:
+            - task: lib.build
+
+  clean:
+    tasks:
+      tmp:
+        help: Clean unnecessary temporary files
+        backend: bash
+        run: |
+          rm -fr build/
+          rm -fr dist/
+          rm -fr .eggs/
+          rm -f .coverage
+          rm -fr htmlcov/
+          rm -fr .pytest_cache
+          rm -fr .mypy_cache
+          rm -fr .ruff_cache
+          rm -fr packages/biblioflow/dist/
+          rm -fr packages/biblioflow/.coverage
+          rm -fr packages/biblioflow/coverage.xml
+          rm -fr packages/biblioflow/htmlcov/
+          rm -fr packages/biblioflow/.pytest_cache
+          rm -fr packages/biblioflow/.mypy_cache
+          rm -fr packages/biblioflow/.ruff_cache
+          rm -fr packages/biblioflow/pytest-of-*/
+          rm -fr packages/biblioflow-web/backend/dist/
+          rm -fr packages/biblioflow-web/backend/.coverage
+          rm -fr packages/biblioflow-web/backend/coverage.xml
+          rm -fr packages/biblioflow-web/backend/htmlcov/
+          rm -fr packages/biblioflow-web/backend/.pytest_cache
+          rm -fr packages/biblioflow-web/backend/.mypy_cache
+          rm -fr packages/biblioflow-web/backend/.ruff_cache
+          rm -fr packages/biblioflow-web/frontend/dist/
+          rm -fr packages/biblioflow-web/frontend/coverage/
+          rm -fr packages/biblioflow-web/frontend/.tmp-vitest/
+          rm -fr packages/biblioflow-web/frontend/node_modules/
+          rm -fr packages/biblioflow-nb/dist/
+          rm -fr packages/biblioflow-nb/.coverage
+          rm -fr packages/biblioflow-nb/coverage.xml
+          rm -fr packages/biblioflow-nb/htmlcov/
+          rm -fr packages/biblioflow-nb/.pytest_cache
+          rm -fr packages/biblioflow-nb/.mypy_cache
+          rm -fr packages/biblioflow-nb/.ruff_cache
+          find . -name '*.egg-info' -exec rm -fr {} +
+          find . -name '*.egg' -exec rm -f {} +
+          find . -name '*.pyc' -exec rm -f {} +
+          find . -name '__pycache__' -exec rm -fr {} +
+          find . -name '*.pyo' -exec rm -f {} +
+          find . -name '*~' -exec rm -f {} +
 
   release:
     vars:

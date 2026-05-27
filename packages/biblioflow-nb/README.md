@@ -25,11 +25,29 @@ dataset = bf.load("records.ris")
 app = bfn.launch(records=dataset)
 ```
 
+Import from PubMed/PMC:
+
+```python
+import os
+import biblioflow_nb as bfn
+
+os.environ["BIBLIOFLOW_NCBI_EMAIL"] = "researcher@example.org"
+
+app = bfn.app(display=False)
+app.from_pubmed(query="bibliometrics AND reproducibility", limit=20)
+app.from_pmc(query="open science", limit=20)
+app.display()
+```
+
+The widget app also includes a **PubMed/PMC** panel. API keys can be provided in
+the panel or through `BIBLIOFLOW_NCBI_API_KEY`; they are not stored in the
+session manifest.
+
 ## Development
 
 ```bash
 cd packages/biblioflow-nb
-PYTHONPATH=src:../biblioflow/src pytest
+PYTHONPATH=src:../biblioflow/src pytest --cov=biblioflow_nb --cov-fail-under=90
 PYTHONPATH=src:../biblioflow/src python -m ruff check src tests
 PYTHONPATH=src:../biblioflow/src python -m mypy src
 poetry build

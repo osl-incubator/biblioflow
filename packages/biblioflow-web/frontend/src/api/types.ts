@@ -133,6 +133,18 @@ export interface DatasetLoadRequest {
   format: string;
 }
 
+export type RemoteSource = "pubmed" | "pmc" | "pubmed_central";
+
+export interface RemoteSourceImportRequest {
+  source: RemoteSource;
+  query: string;
+  limit: number;
+  email?: string | null;
+  api_key?: string | null;
+  tool?: string;
+  name?: string | null;
+}
+
 export interface AnalysisRequest {
   top_n?: number;
   filters?: FilterSpec;

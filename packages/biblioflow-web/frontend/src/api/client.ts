@@ -20,6 +20,7 @@ import type {
   PrismaFlowPayload,
   PrismaFlowRequest,
   Project,
+  RemoteSourceImportRequest,
   Upload,
   ValidationPayload,
 } from "./types";
@@ -132,6 +133,16 @@ export async function loadDataset(
 ): Promise<ApiEnvelope<DatasetPayload>> {
   return request<ApiEnvelope<DatasetPayload>>(
     `/projects/${projectId}/datasets/load`,
+    { method: "POST", body: JSON.stringify(payload) },
+  );
+}
+
+export async function importRemoteSource(
+  projectId: string,
+  payload: RemoteSourceImportRequest,
+): Promise<ApiEnvelope<DatasetPayload>> {
+  return request<ApiEnvelope<DatasetPayload>>(
+    `/projects/${projectId}/sources/import`,
     { method: "POST", body: JSON.stringify(payload) },
   );
 }

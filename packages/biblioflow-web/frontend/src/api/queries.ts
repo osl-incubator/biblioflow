@@ -17,6 +17,7 @@ import {
   getProject,
   getUpload,
   getValidation,
+  importRemoteSource,
   listDatasets,
   listExports,
   listProjects,
@@ -33,6 +34,7 @@ import type {
   FilterSpec,
   MatrixRequest,
   PrismaFlowRequest,
+  RemoteSourceImportRequest,
 } from "./types";
 
 export function useHealth() {
@@ -240,6 +242,24 @@ export function useLoadDataset(projectId?: string | null) {
   return useMutation({
     mutationFn: (payload: DatasetLoadRequest) =>
       loadDataset(projectId as string, payload),
+    onSuccess: (response) => {
+      const datasetId = response.data.dataset_id;
+      queryClient.invalidateQueries({ queryKey: ["projects", projectId] });
+      queryClient.invalidateQueries({
+        queryKey: ["projects", projectId, "datasets"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["projects", projectId, "datasets", datasetId],
+      });
+    },
+  });
+}
+
+export function useImportRemoteSource(projectId?: string | null) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: RemoteSourceImportRequest) =>
+      importRemoteSource(projectId as string, payload),
     onSuccess: (response) => {
       const datasetId = response.data.dataset_id;
       queryClient.invalidateQueries({ queryKey: ["projects", projectId] });

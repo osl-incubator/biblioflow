@@ -42,6 +42,60 @@ class DatasetService:
             )
         return dataset
 
+    def from_pubmed(
+        self,
+        *,
+        query: str,
+        limit: int = 100,
+        email: str | None = None,
+        api_key: str | None = None,
+        tool: str = "biblioflow-nb",
+        name: str | None = None,
+    ) -> Any:
+        """Search PubMed and store the result in the session."""
+        import biblioflow as bf
+
+        search_query = _required_query(query)
+        dataset = bf.from_pubmed(
+            query=search_query,
+            limit=limit,
+            tool=tool,
+            email=_optional_string(email),
+            api_key=_optional_string(api_key),
+        )
+        self.session.set_dataset(
+            dataset,
+            name=_remote_dataset_name("PubMed", search_query, name),
+        )
+        return dataset
+
+    def from_pmc(
+        self,
+        *,
+        query: str,
+        limit: int = 100,
+        email: str | None = None,
+        api_key: str | None = None,
+        tool: str = "biblioflow-nb",
+        name: str | None = None,
+    ) -> Any:
+        """Search PubMed Central and store the result in the session."""
+        import biblioflow as bf
+
+        search_query = _required_query(query)
+        dataset = bf.from_pmc(
+            query=search_query,
+            limit=limit,
+            tool=tool,
+            email=_optional_string(email),
+            api_key=_optional_string(api_key),
+        )
+        self.session.set_dataset(
+            dataset,
+            name=_remote_dataset_name("PMC", search_query, name),
+        )
+        return dataset
+
     def require_dataset(self) -> Any:
         """Return the current dataset or raise a friendly error."""
         dataset = self.session.dataset
@@ -109,3 +163,23 @@ def _source_name(source: Any) -> str | None:
     if _is_dataset(source):
         return "dataset"
     return None
+
+
+def _required_query(query: str) -> str:
+    stripped = query.strip()
+    if not stripped:
+        raise ValueError("Provide a PubMed or PubMed Central query.")
+    return stripped
+
+
+def _optional_string(value: str | None) -> str | None:
+    if value is None:
+        return None
+    stripped = value.strip()
+    return stripped or None
+
+
+def _remote_dataset_name(label: str, query: str, name: str | None) -> str:
+    if name and name.strip():
+        return name.strip()
+    return f"{label}: {query}"

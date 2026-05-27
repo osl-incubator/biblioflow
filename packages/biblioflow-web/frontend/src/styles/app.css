@@ -1085,6 +1085,7 @@ button:disabled {
 
 .form-card input,
 .form-card select,
+.form-card textarea,
 .document-toolbar input,
 .document-toolbar select,
 .project-create-form input {
@@ -1096,6 +1097,11 @@ button:disabled {
   padding: 0.65rem 0.75rem;
 }
 
+.form-card textarea {
+  font: inherit;
+  resize: vertical;
+}
+
 .form-grid {
   display: grid;
   gap: 0.8rem;
@@ -1103,6 +1109,18 @@ button:disabled {
 
 .form-grid.two-columns {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.remote-source-card .form-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.success-callout {
+  background: #eaf8ef;
+  border: 1px solid #b7e4c7;
+  border-radius: 0.85rem;
+  color: #166534;
+  padding: 0.8rem 0.9rem;
 }
 
 .checkbox-row {
@@ -1303,6 +1321,7 @@ button.button-secondary {
   .export-grid-wide,
   .document-toolbar,
   .form-grid.two-columns,
+  .remote-source-card .form-grid,
   .metric-list,
   .compact-stats {
     grid-template-columns: 1fr;

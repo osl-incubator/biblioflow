@@ -29,6 +29,7 @@ from biblioflow_nb.widgets.maps import MapsPanel
 from biblioflow_nb.widgets.matrices import MatrixPanel
 from biblioflow_nb.widgets.networks import NetworkPanel
 from biblioflow_nb.widgets.overview import OverviewPanel
+from biblioflow_nb.widgets.remote_sources import RemoteSourcesPanel
 from biblioflow_nb.widgets.sources import SourcesPanel
 from biblioflow_nb.widgets.upload import UploadPanel
 from biblioflow_nb.widgets.validation import ValidationPanel
@@ -72,6 +73,7 @@ class BiblioFlowNotebookApp:
         self.services = NotebookServices.create(self.session)
         self.panels = [
             UploadPanel(self.session, self.services),
+            RemoteSourcesPanel(self.session, self.services),
             ValidationPanel(self.session, self.services),
             FiltersPanel(self.session, self.services),
             OverviewPanel(self.session, self.services),
@@ -103,6 +105,18 @@ class BiblioFlowNotebookApp:
     def load(self, source: Any, **kwargs: Any) -> Any:
         """Load a dataset into the app session."""
         return self.services.datasets.load(source, **kwargs)
+
+    def from_pubmed(self, **kwargs: Any) -> Any:
+        """Import PubMed records into the app session."""
+        return self.services.datasets.from_pubmed(**kwargs)
+
+    def from_pmc(self, **kwargs: Any) -> Any:
+        """Import PubMed Central records into the app session."""
+        return self.services.datasets.from_pmc(**kwargs)
+
+    def from_pubmed_central(self, **kwargs: Any) -> Any:
+        """Import PubMed Central records into the app session."""
+        return self.from_pmc(**kwargs)
 
     def refresh(self) -> None:
         """Refresh all panels that implement refresh behavior."""

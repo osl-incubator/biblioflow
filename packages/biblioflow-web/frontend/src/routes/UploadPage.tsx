@@ -5,11 +5,13 @@ import { DataTable } from "../components/common/DataTable";
 import { EmptyState } from "../components/common/EmptyState";
 import {
   useDeleteUpload,
+  useImportRemoteSource,
   useLoadDataset,
   useProject,
   useUploadFiles,
   useUploads,
 } from "../api/queries";
+import type { RemoteSource } from "../api/types";
 import { formatDate } from "./dashboard/utils";
 
 const supportedSources = [
@@ -44,6 +46,10 @@ const formatOptions = [
   "nbib",
   "yaml",
 ];
+const remoteSourceOptions: { label: string; value: RemoteSource }[] = [
+  { label: "PubMed", value: "pubmed" },
+  { label: "PubMed Central", value: "pmc" },
+];
 
 function formatSize(size: number): string {
   if (size < 1024) {
@@ -62,11 +68,19 @@ export function UploadPage() {
   const uploads = useUploads(projectId);
   const uploadFiles = useUploadFiles(projectId);
   const loadDataset = useLoadDataset(projectId);
+  const importRemoteSource = useImportRemoteSource(projectId);
   const deleteUpload = useDeleteUpload(projectId);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [selectedUploadIds, setSelectedUploadIds] = useState<string[]>([]);
   const [provider, setProvider] = useState("auto");
   const [format, setFormat] = useState("auto");
+  const [remoteSource, setRemoteSource] = useState<RemoteSource>("pubmed");
+  const [remoteQuery, setRemoteQuery] = useState("");
+  const [remoteLimit, setRemoteLimit] = useState(100);
+  const [remoteEmail, setRemoteEmail] = useState("");
+  const [remoteApiKey, setRemoteApiKey] = useState("");
+  const [remoteTool, setRemoteTool] = useState("biblioflow-web");
+  const [remoteName, setRemoteName] = useState("");
   const [hasAutoSelectedUploads, setHasAutoSelectedUploads] = useState(false);
 
   useEffect(() => {
@@ -131,6 +145,24 @@ export function UploadPage() {
           const target = response.warnings.length ? "validation" : "overview";
           navigate(`/projects/${projectId}/dashboard/${target}`);
         },
+      },
+    );
+  }
+
+  function onImportRemoteSource(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    importRemoteSource.mutate(
+      {
+        source: remoteSource,
+        query: remoteQuery,
+        limit: remoteLimit,
+        email: remoteEmail.trim() || null,
+        api_key: remoteApiKey.trim() || null,
+        tool: remoteTool.trim() || "biblioflow-web",
+        name: remoteName.trim() || null,
+      },
+      {
+        onSuccess: () => setRemoteApiKey(""),
       },
     );
   }
@@ -232,6 +264,121 @@ export function UploadPage() {
           </div>
         </article>
       </section>
+
+      <form
+        className="card form-card remote-source-card"
+        onSubmit={onImportRemoteSource}
+      >
+        <div className="section-heading compact">
+          <span className="eyebrow">Remote sources</span>
+          <h2>Search PubMed or PMC</h2>
+        </div>
+        <p className="muted-copy">
+          Search NCBI sources and save the results as the active project
+          dataset. Provide a contact email here, or configure
+          <code>BIBLIOFLOW_NCBI_EMAIL</code> on the backend.
+        </p>
+        <div className="form-grid">
+          <label>
+            Source
+            <select
+              value={remoteSource}
+              onChange={(event) =>
+                setRemoteSource(event.target.value as RemoteSource)
+              }
+            >
+              {remoteSourceOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Limit
+            <input
+              min="1"
+              max="1000"
+              type="number"
+              value={remoteLimit}
+              onChange={(event) => setRemoteLimit(Number(event.target.value))}
+            />
+          </label>
+          <label>
+            Contact email
+            <input
+              type="email"
+              placeholder="researcher@example.org"
+              value={remoteEmail}
+              onChange={(event) => setRemoteEmail(event.target.value)}
+            />
+          </label>
+          <label>
+            NCBI API key
+            <input
+              autoComplete="off"
+              placeholder="Optional"
+              type="password"
+              value={remoteApiKey}
+              onChange={(event) => setRemoteApiKey(event.target.value)}
+            />
+          </label>
+          <label>
+            Tool name
+            <input
+              value={remoteTool}
+              onChange={(event) => setRemoteTool(event.target.value)}
+            />
+          </label>
+          <label>
+            Dataset name
+            <input
+              placeholder="Optional"
+              value={remoteName}
+              onChange={(event) => setRemoteName(event.target.value)}
+            />
+          </label>
+        </div>
+        <label>
+          Query
+          <textarea
+            placeholder="bibliometrics AND reproducibility"
+            rows={4}
+            value={remoteQuery}
+            onChange={(event) => setRemoteQuery(event.target.value)}
+          />
+        </label>
+        <div className="section-actions">
+          <button
+            type="submit"
+            className="button-primary"
+            disabled={!remoteQuery.trim() || importRemoteSource.isPending}
+          >
+            {importRemoteSource.isPending
+              ? "Searching…"
+              : "Search and import records"}
+          </button>
+          {importRemoteSource.data?.data.dataset_id && (
+            <Link
+              className="button button-secondary"
+              to={`/projects/${projectId}/dashboard/overview`}
+            >
+              Go to dashboard
+            </Link>
+          )}
+        </div>
+        {importRemoteSource.isError && (
+          <p role="alert">{importRemoteSource.error.message}</p>
+        )}
+        {importRemoteSource.data?.data && (
+          <div className="success-callout" role="status">
+            Imported{" "}
+            <strong>{importRemoteSource.data.data.records.length}</strong>{" "}
+            records into dataset{" "}
+            <code>{importRemoteSource.data.data.dataset_id}</code>.
+          </div>
+        )}
+      </form>
 
       <section className="dashboard-grid">
         <article className="card">
