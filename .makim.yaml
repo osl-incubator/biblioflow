@@ -210,27 +210,46 @@ groups:
         run: cd packages/biblioflow-web/backend && poetry build
 
       frontend.install:
-        help: Install frontend dependencies
+        help: Install frontend dependencies from package-lock.json
         backend: bash
-        run: cd packages/biblioflow-web/frontend && npm install
+        run: cd packages/biblioflow-web/frontend && npm ci
+
+      frontend.ensure-install:
+        help: Install frontend dependencies when node_modules is missing
+        backend: bash
+        run: |
+          cd packages/biblioflow-web/frontend
+          test -x node_modules/.bin/tsc || npm ci
 
       frontend.dev:
         help: Run the frontend development server
+        hooks:
+          pre-run:
+            - task: web.frontend.ensure-install
         backend: bash
         run: cd packages/biblioflow-web/frontend && npm run dev
 
       frontend.build:
         help: Build the frontend production assets
+        hooks:
+          pre-run:
+            - task: web.frontend.ensure-install
         backend: bash
         run: cd packages/biblioflow-web/frontend && npm run build
 
       frontend.linter:
         help: Run frontend static checks
+        hooks:
+          pre-run:
+            - task: web.frontend.ensure-install
         backend: bash
         run: cd packages/biblioflow-web/frontend && npm run lint
 
       frontend.unit:
         help: Run frontend unit tests with coverage gate
+        hooks:
+          pre-run:
+            - task: web.frontend.ensure-install
         backend: bash
         run: |
           cd packages/biblioflow-web/frontend
