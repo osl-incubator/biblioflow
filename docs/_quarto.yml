@@ -20,6 +20,8 @@ website:
         text: Get started
       - href: core-workflows.qmd
         text: Core workflows
+      - href: sources.qmd
+        text: Sources
       - text: Apps
         menu:
           - href: web-app.qmd
@@ -41,6 +43,7 @@ website:
       - section: User guide
         contents:
           - core-workflows.qmd
+          - sources.qmd
       - section: Applications
         contents:
           - web-app.qmd

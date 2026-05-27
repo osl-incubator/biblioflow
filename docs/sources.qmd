@@ -1,0 +1,192 @@
+---
+title: Sources and import formats
+description: Supported bibliographic sources, file formats, and API connectors.
+---
+
+## Overview
+
+`biblioflow` separates **source** from **format**:
+
+- `source` is the database or provider, such as `scopus`, `wos`,
+  `openalex`, or `crossref`.
+- `format` is the file format, such as `csv`, `bibtex`, `ris`, `json`, or
+  `plain_text`.
+
+For convenience, both can be inferred:
+
+```python
+import biblioflow as bf
+
+dataset = bf.load("records.ris")
+dataset = bf.load("scopus_export.csv")
+dataset = bf.load("savedrecs.txt")
+```
+
+When the source is known, pass it explicitly:
+
+```python
+dataset = bf.load("savedrecs.txt", source="wos")
+dataset = bf.load("scopus.csv", source="scopus")
+dataset = bf.load("openalex.json", source="openalex")
+dataset = bf.load("crossref.json", source="crossref")
+```
+
+The older `provider=` keyword remains supported for compatibility, but new
+examples should prefer `source=`.
+
+## Supported file inputs
+
+| Source | Formats | Typical files | Notes |
+|---|---|---|---|
+| Generic BibTeX | BibTeX | `.bib`, `.bibtex` | Common citation-manager and LaTeX format. |
+| Generic RIS | RIS | `.ris` | Common reference-manager and database export format. |
+| Scopus | CSV, BibTeX | `.csv`, `.bib` | CSV headers are mapped to the canonical schema. |
+| Web of Science | Plain text, BibTeX | `savedrecs.txt`, `.bib` | Plain-text exports support repeated and multiline tags. |
+| OpenAlex | JSON, CSV-like generic records | `.json`, `.csv` | JSON API response shapes with `results` are detected. |
+| Crossref | JSON | `.json` | Work-list responses with `message.items` are detected. |
+| PubMed | NBIB, XML | `.nbib`, `.xml` | Existing PubMed/NLM loading remains available. |
+| Generic records | JSON, JSONL, CSV, TSV, YAML | `.json`, `.jsonl`, `.csv`, `.tsv`, `.yaml` | YAML requires the `biblioflow[yaml]` extra. |
+
+## Canonical fields
+
+Source-specific exports are normalized to one record schema. Common fields
+include:
+
+```text
+source
+source_id
+doi
+title
+abstract
+authors
+authors_raw
+year
+publication_year
+publication_date
+journal
+source_title
+document_type
+language
+volume
+issue
+pages
+article_number
+author_keywords
+keywords_author
+keywords_index
+keywords_all
+references
+references_raw
+affiliations
+institutions
+countries
+cited_by_count
+raw
+```
+
+The `raw` field preserves the source-specific payload inside each normalized
+record. The dataset also stores the raw records separately in
+`dataset.raw` when `keep_raw=True`.
+
+## Source aliases
+
+`source` aliases are normalized before dispatch:
+
+| Alias | Normalized source |
+|---|---|
+| `wos`, `webofscience`, `web-of-science` | `web_of_science` |
+| `scopus` | `scopus` |
+| `openalex` | `openalex` |
+| `crossref` | `crossref` |
+| `bib`, `bibtex` | `bibtex` |
+| `ris` | `ris` |
+| `pubmed`, `pmc` | `pubmed`, `pmc` |
+
+Format aliases are also normalized. For example, `bib` becomes `bibtex` and
+`txt` becomes `plain_text`.
+
+## Web of Science plain text
+
+Web of Science plain-text exports are parsed directly:
+
+```python
+dataset = bf.load("savedrecs.txt")
+```
+
+The parser handles:
+
+- `ER`-delimited records.
+- Multiline fields, such as long titles and abstracts.
+- Repeated fields, such as authors, addresses, emails, and references.
+- Core tags including `AU`, `AF`, `TI`, `SO`, `DE`, `ID`, `AB`, `CR`, `TC`,
+  `PY`, `DI`, `UT`, `WC`, and `SC`.
+
+Useful normalized fields include `source_id`, `authors`, `source_title`,
+`keywords_author`, `keywords_index`, `references_raw`, `cited_by_count`,
+`wos_categories`, and `research_areas`.
+
+## Scopus CSV
+
+Scopus CSV exports are loaded through the same API:
+
+```python
+dataset = bf.load("scopus.csv")
+```
+
+Scopus-specific columns such as `Authors`, `Author full names`, `Title`,
+`Year`, `Source title`, `Cited by`, `DOI`, `Affiliations`, `References`, and
+`EID` are mapped to canonical fields. UTF-8 BOM files are supported.
+
+## OpenAlex and Crossref JSON
+
+Saved API responses can be loaded as files:
+
+```python
+openalex = bf.load("openalex.json", source="openalex")
+crossref = bf.load("crossref.json", source="crossref")
+```
+
+OpenAlex JSON supports a single work, a list of works, or a response object
+with `results`. OpenAlex abstract inverted indexes are reconstructed into
+plain text.
+
+Crossref JSON supports a single work, a list of works, or a work-list response
+with `message.items`. Crossref date-parts are normalized into ISO-like dates.
+
+## API connectors
+
+File loading uses `bf.load(...)`. API imports use dedicated functions:
+
+```python
+records = bf.from_openalex(search="bibliometrics", limit=100)
+records = bf.from_crossref(query="science mapping", limit=100)
+```
+
+Scopus API access requires optional dependencies and local pybliometrics
+configuration:
+
+```python
+records = bf.from_scopus(
+    query="TITLE-ABS-KEY(bibliometrics)",
+    limit=100,
+)
+```
+
+If Scopus API support is not installed or configured, `biblioflow` raises a
+structured configuration/dependency error.
+
+## Optional extras
+
+Install only the pieces you need:
+
+```bash
+pip install "biblioflow[yaml]"
+pip install "biblioflow[openalex]"
+pip install "biblioflow[crossref]"
+pip install "biblioflow[scopus]"
+pip install "biblioflow[all]"
+```
+
+The current implementation keeps core file parsing lightweight and pure Python.
+The API-client extras are declared for users who want provider-specific client
+libraries in their environment.
