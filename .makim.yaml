@@ -100,11 +100,18 @@ groups:
           cd packages/biblioflow
           PYTHONPATH=src pytest ${{ args.path }} ${{ args.params }}
 
+      nb:
+        help: Run biblioflow-nb tests with 90% coverage gate
+        hooks:
+          pre-run:
+            - task: nb.tests
+
       ci:
         help: run the same tests executed on CI
         hooks:
           pre-run:
             - task: tests.unit
+            - task: tests.nb
             - task: tests.linter
             - task: docs.build
 
