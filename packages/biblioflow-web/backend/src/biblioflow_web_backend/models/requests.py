@@ -105,6 +105,30 @@ class ScreeningCandidateDecisionRequest(BaseModel):
     notes: str | None = None
 
 
+class ScreeningCandidateReference(BaseModel):
+    """Reference to one staged candidate in one screening run."""
+
+    screening_run_id: str
+    candidate_id: str
+
+
+class BulkScreeningCandidateDecisionRequest(BaseModel):
+    """Request body for applying decisions across screening runs."""
+
+    candidates: list[ScreeningCandidateReference] = Field(default_factory=list)
+    status: Literal[
+        "candidate",
+        "selected",
+        "maybe",
+        "excluded",
+        "duplicate",
+        "error",
+    ] = "selected"
+    decision_reason: str | None = None
+    labels: list[str] | None = None
+    notes: str | None = None
+
+
 class ScreeningCandidatePromotionRequest(BaseModel):
     """Request body for promoting generic screening candidates."""
 

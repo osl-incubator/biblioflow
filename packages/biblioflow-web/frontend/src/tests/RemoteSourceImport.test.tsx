@@ -38,14 +38,15 @@ function renderProjectUpload() {
   );
 }
 
-function renderProjectScreening(runId = "search-1") {
+function renderProjectScreening(runId = "search-1", query?: string) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
+  const screeningQuery = query ?? `run=${runId}`;
   return render(
     <QueryClientProvider client={queryClient}>
       <MemoryRouter
-        initialEntries={[`/projects/project-1/screening?run=${runId}`]}
+        initialEntries={[`/projects/project-1/screening?${screeningQuery}`]}
       >
         <App />
       </MemoryRouter>
@@ -531,6 +532,210 @@ describe("remote source import", () => {
     expect((await screen.findByRole("alert")).textContent).toMatch(
       /Promotion failed/i,
     );
+  });
+
+  it("shows all staged records together with duplicate groups", async () => {
+    const bulkDecisionBodies: unknown[] = [];
+    const firstCandidate = {
+      candidate_id: "candidate-1",
+      status: "candidate",
+      created_at: "2026-01-01T00:00:00Z",
+      updated_at: "2026-01-01T00:00:00Z",
+      record: { title: "Shared duplicate", doi: "10.1/shared" },
+      identifiers: { doi: "10.1/shared" },
+      deduplication_key: "doi:10.1/shared",
+      duplicate_group_id: "doi:10.1/shared",
+      duplicate_group_size: 2,
+      duplicate_match_basis: "DOI",
+      duplicate_confidence: "high",
+      title: "Shared duplicate",
+      year: 2026,
+      authors: ["Ada Lovelace"],
+      source_title: "Methods Journal",
+      screening_run_id: "first-run",
+      screening_run_name: "First import",
+      source: "generic",
+      source_label: "Generic",
+      origin_type: "records",
+      id: "first-run:candidate-1",
+    };
+    const secondCandidate = {
+      ...firstCandidate,
+      candidate_id: "candidate-2",
+      screening_run_id: "second-run",
+      screening_run_name: "Second import",
+      id: "second-run:candidate-2",
+      title: "Shared duplicate from another source",
+      record: {
+        title: "Shared duplicate from another source",
+        doi: "10.1/shared",
+      },
+    };
+    const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      const method = init?.method ?? "GET";
+      if (url.endsWith("/projects/project-1")) {
+        return Promise.resolve(
+          jsonResponse({
+            data: {
+              project_id: "project-1",
+              name: "All staged project",
+              created_at: "2026-01-01T00:00:00Z",
+              updated_at: "2026-01-01T00:00:00Z",
+              active_dataset_id: null,
+              source_files: [],
+              datasets: [],
+              filters: {},
+              metadata: {},
+            },
+            warnings: [],
+            metadata: {},
+          }),
+        );
+      }
+      if (url.endsWith("/projects/project-1/screening/runs")) {
+        return Promise.resolve(
+          jsonResponse({
+            data: [
+              {
+                screening_run_id: "first-run",
+                created_at: "2026-01-01T00:00:00Z",
+                updated_at: "2026-01-01T00:00:00Z",
+                source: "generic",
+                source_label: "Generic",
+                origin_type: "records",
+                name: "First import",
+                records: 1,
+                status_counts: { candidate: 1 },
+                metadata: {},
+              },
+              {
+                screening_run_id: "second-run",
+                created_at: "2026-01-01T00:00:00Z",
+                updated_at: "2026-01-01T00:00:00Z",
+                source: "generic",
+                source_label: "Generic",
+                origin_type: "records",
+                name: "Second import",
+                records: 1,
+                status_counts: { candidate: 1 },
+                metadata: {},
+              },
+            ],
+            warnings: [],
+            metadata: {},
+          }),
+        );
+      }
+      if (
+        url.endsWith("/projects/project-1/screening/candidates") &&
+        method === "PATCH"
+      ) {
+        bulkDecisionBodies.push(JSON.parse(String(init?.body)));
+        return Promise.resolve(
+          jsonResponse({
+            data: {
+              records: 2,
+              runs: [],
+              candidates: [
+                { ...firstCandidate, status: "excluded" },
+                { ...secondCandidate, status: "excluded" },
+              ],
+              status_counts: { excluded: 2 },
+              duplicate_groups: [
+                {
+                  duplicate_group_id: "doi:10.1/shared",
+                  match_basis: "DOI",
+                  confidence: "high",
+                  size: 2,
+                  candidate_ids: ["candidate-1", "candidate-2"],
+                  screening_run_ids: ["first-run", "second-run"],
+                  screening_run_names: ["First import", "Second import"],
+                  label: "Shared duplicate",
+                  years: [2026],
+                  source_labels: ["Generic"],
+                },
+              ],
+              metadata: {
+                run_count: 2,
+                duplicate_group_count: 1,
+                duplicate_candidate_count: 2,
+              },
+            },
+            warnings: [],
+            metadata: {},
+          }),
+        );
+      }
+      if (
+        url.endsWith("/projects/project-1/screening/candidates") &&
+        method === "GET"
+      ) {
+        return Promise.resolve(
+          jsonResponse({
+            data: {
+              records: 2,
+              runs: [],
+              candidates: [firstCandidate, secondCandidate],
+              status_counts: { candidate: 2 },
+              duplicate_groups: [
+                {
+                  duplicate_group_id: "doi:10.1/shared",
+                  match_basis: "DOI",
+                  confidence: "high",
+                  size: 2,
+                  candidate_ids: ["candidate-1", "candidate-2"],
+                  screening_run_ids: ["first-run", "second-run"],
+                  screening_run_names: ["First import", "Second import"],
+                  label: "Shared duplicate",
+                  years: [2026],
+                  source_labels: ["Generic"],
+                },
+              ],
+              metadata: {
+                run_count: 2,
+                duplicate_group_count: 1,
+                duplicate_candidate_count: 2,
+              },
+            },
+            warnings: [],
+            metadata: {},
+          }),
+        );
+      }
+      return Promise.resolve(
+        jsonResponse({ error: { message: "Not found" } }, { status: 404 }),
+      );
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    renderProjectScreening("first-run", "view=all");
+
+    expect(
+      await screen.findByRole("region", { name: /All staged records/i }),
+    ).toBeDefined();
+    expect(screen.getByText(/Project-level staging queue/i)).toBeDefined();
+    expect(screen.getAllByText(/Shared duplicate/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/DOI · 2 records/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText("First import").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Second import").length).toBeGreaterThan(0);
+
+    await userEvent.click(
+      screen.getByRole("button", { name: /Select visible/i }),
+    );
+    expect(screen.getByText(/Selected 2 records/i)).toBeDefined();
+    await userEvent.click(
+      screen.getByRole("button", { name: /Exclude selected/i }),
+    );
+    await waitFor(() => expect(bulkDecisionBodies).toHaveLength(1));
+    expect(bulkDecisionBodies[0]).toEqual({
+      candidates: [
+        { screening_run_id: "first-run", candidate_id: "candidate-1" },
+        { screening_run_id: "second-run", candidate_id: "candidate-2" },
+      ],
+      status: "excluded",
+    });
+    expect(await screen.findByText(/excluded: 2/i)).toBeDefined();
   });
 
   it("renders upload size formats and ignores empty file events", async () => {

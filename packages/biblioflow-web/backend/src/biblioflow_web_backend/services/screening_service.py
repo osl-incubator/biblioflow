@@ -116,6 +116,76 @@ class ScreeningService:
             )
         return cast(dict[str, Any], json.loads(path.read_text(encoding="utf-8")))
 
+    def list_candidates(self, project_id: str) -> dict[str, Any]:
+        """Return all staged candidates in a project with duplicate groups."""
+        runs = [
+            self.get_run(project_id, str(run["screening_run_id"]))
+            for run in self.list_runs(project_id)
+        ]
+        run_summaries = [_run_list_item(run) for run in runs]
+        candidates: list[dict[str, Any]] = []
+        keyed_candidates: dict[str, list[dict[str, Any]]] = {}
+
+        for run in runs:
+            run_id = str(run["screening_run_id"])
+            run_name = str(run.get("name") or "Untitled screening run")
+            for candidate in _screening_candidates(run):
+                row = {
+                    **dict(candidate),
+                    "id": f"{run_id}:{candidate['candidate_id']}",
+                    "screening_run_id": run_id,
+                    "screening_run_name": run_name,
+                    "origin_type": run.get("origin_type"),
+                    "source": run.get("source"),
+                    "source_label": run.get("source_label"),
+                    "format": run.get("format"),
+                    "query": run.get("query"),
+                    "upload_ids": run.get("upload_ids", []),
+                    "duplicate_group_id": None,
+                    "duplicate_group_size": 1,
+                    "duplicate_match_basis": None,
+                    "duplicate_confidence": None,
+                }
+                candidates.append(row)
+                deduplication_key = row.get("deduplication_key")
+                if isinstance(deduplication_key, str) and deduplication_key:
+                    keyed_candidates.setdefault(deduplication_key, []).append(row)
+
+        duplicate_groups = [
+            _duplicate_group(key, group)
+            for key, group in keyed_candidates.items()
+            if len(group) > 1
+        ]
+        duplicate_groups.sort(
+            key=lambda group: (
+                -int(group["size"]),
+                str(group["match_basis"]),
+                str(group["label"]),
+            )
+        )
+
+        for group in duplicate_groups:
+            for candidate in keyed_candidates[str(group["duplicate_group_id"])]:
+                candidate["duplicate_group_id"] = group["duplicate_group_id"]
+                candidate["duplicate_group_size"] = group["size"]
+                candidate["duplicate_match_basis"] = group["match_basis"]
+                candidate["duplicate_confidence"] = group["confidence"]
+
+        return {
+            "records": len(candidates),
+            "runs": run_summaries,
+            "candidates": candidates,
+            "duplicate_groups": duplicate_groups,
+            "status_counts": _candidate_status_counts(candidates),
+            "metadata": {
+                "run_count": len(run_summaries),
+                "duplicate_group_count": len(duplicate_groups),
+                "duplicate_candidate_count": sum(
+                    int(group["size"]) for group in duplicate_groups
+                ),
+            },
+        }
+
     def update_candidates(
         self,
         project_id: str,
@@ -168,6 +238,71 @@ class ScreeningService:
                 if notes is not None:
                     candidate["notes"] = _optional_string(notes)
         return self._save_run(project_id, payload, updated_at=updated_at)
+
+    def update_candidates_bulk(
+        self,
+        project_id: str,
+        *,
+        candidate_refs: list[dict[str, str]],
+        status: str,
+        decision_reason: str | None = None,
+        labels: list[str] | None = None,
+        notes: str | None = None,
+    ) -> dict[str, Any]:
+        """Apply one decision to candidates spanning multiple screening runs."""
+        grouped_refs: dict[str, set[str]] = {}
+        for ref in candidate_refs:
+            run_id = str(ref.get("screening_run_id") or "").strip()
+            candidate_id = str(ref.get("candidate_id") or "").strip()
+            if run_id and candidate_id:
+                grouped_refs.setdefault(run_id, set()).add(candidate_id)
+        if not grouped_refs:
+            raise ApiError(
+                "no_candidates_selected",
+                "Select at least one candidate before applying a decision.",
+                400,
+            )
+        normalized_status = status.strip().casefold()
+        if normalized_status not in SCREENING_STATUSES - {"imported"}:
+            raise ApiError(
+                "unsupported_candidate_status",
+                f"Unsupported candidate status: {status}.",
+                400,
+            )
+
+        payloads = {run_id: self.get_run(project_id, run_id) for run_id in grouped_refs}
+        missing: list[str] = []
+        for run_id, payload in payloads.items():
+            existing_ids = _candidate_ids(_screening_candidates(payload))
+            missing.extend(
+                f"{run_id}:{candidate_id}"
+                for candidate_id in sorted(grouped_refs[run_id] - existing_ids)
+            )
+        if missing:
+            raise ApiError(
+                "candidate_not_found",
+                "One or more candidates were not found.",
+                404,
+                details={"candidate_ids": missing},
+            )
+
+        updated_at = utc_now()
+        for run_id, payload in payloads.items():
+            selected_ids = grouped_refs[run_id]
+            for candidate in _screening_candidates(payload):
+                if str(candidate["candidate_id"]) in selected_ids:
+                    candidate["status"] = normalized_status
+                    candidate["updated_at"] = updated_at
+                    if decision_reason is not None:
+                        candidate["decision_reason"] = _optional_string(decision_reason)
+                    if labels is not None:
+                        candidate["labels"] = [
+                            label.strip() for label in labels if label.strip()
+                        ]
+                    if notes is not None:
+                        candidate["notes"] = _optional_string(notes)
+            self._save_run(project_id, payload, updated_at=updated_at)
+        return self.list_candidates(project_id)
 
     def promote_candidates(
         self,
@@ -624,6 +759,46 @@ def _run_list_item(payload: dict[str, Any]) -> dict[str, Any]:
         "promoted_dataset_ids": payload.get("promoted_dataset_ids", []),
         "metadata": _metadata_without_secrets(dict(payload.get("metadata", {}))),
     }
+
+
+def _duplicate_group(key: str, candidates: list[dict[str, Any]]) -> dict[str, Any]:
+    """Return a duplicate group summary for candidates sharing one key."""
+    match_basis = _duplicate_match_basis(key)
+    return {
+        "duplicate_group_id": key,
+        "match_basis": match_basis,
+        "confidence": "medium" if match_basis == "title/year/first-author" else "high",
+        "size": len(candidates),
+        "candidate_ids": [str(candidate["candidate_id"]) for candidate in candidates],
+        "screening_run_ids": sorted(
+            {str(candidate["screening_run_id"]) for candidate in candidates}
+        ),
+        "screening_run_names": sorted(
+            {str(candidate["screening_run_name"]) for candidate in candidates}
+        ),
+        "label": str(candidates[0].get("title") or "Untitled duplicate group"),
+        "years": sorted(
+            {
+                int(candidate["year"])
+                for candidate in candidates
+                if isinstance(candidate.get("year"), int)
+            }
+        ),
+        "source_labels": sorted(
+            {
+                str(candidate["source_label"])
+                for candidate in candidates
+                if candidate.get("source_label")
+            }
+        ),
+    }
+
+
+def _duplicate_match_basis(key: str) -> str:
+    """Return a displayable duplicate-matching basis from a deduplication key."""
+    if key.startswith("title:"):
+        return "title/year/first-author"
+    return key.split(":", 1)[0].upper()
 
 
 def _record_identifiers(record: dict[str, Any]) -> dict[str, str]:

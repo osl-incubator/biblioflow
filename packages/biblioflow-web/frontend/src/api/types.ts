@@ -102,6 +102,44 @@ export interface ScreeningRunPayload extends ScreeningRunListItem {
   metadata: Record<string, unknown>;
 }
 
+export interface ScreeningCandidateAggregateItem extends ScreeningCandidate {
+  id: string;
+  screening_run_id: string;
+  screening_run_name: string;
+  origin_type: string;
+  source: string;
+  source_label: string;
+  format?: string | null;
+  query?: string | null;
+  upload_ids?: string[];
+  duplicate_group_id?: string | null;
+  duplicate_group_size: number;
+  duplicate_match_basis?: string | null;
+  duplicate_confidence?: "high" | "medium" | "low" | string | null;
+}
+
+export interface ScreeningDuplicateGroup {
+  duplicate_group_id: string;
+  match_basis: string;
+  confidence: "high" | "medium" | "low" | string;
+  size: number;
+  candidate_ids: string[];
+  screening_run_ids: string[];
+  screening_run_names: string[];
+  label: string;
+  years: number[];
+  source_labels: string[];
+}
+
+export interface ScreeningCandidateAggregatePayload {
+  records: number;
+  runs: ScreeningRunListItem[];
+  candidates: ScreeningCandidateAggregateItem[];
+  duplicate_groups: ScreeningDuplicateGroup[];
+  status_counts: Record<string, number>;
+  metadata: Record<string, unknown>;
+}
+
 export type RemoteCandidateStatus = Exclude<
   ScreeningCandidateStatus,
   "maybe" | "error"
@@ -250,6 +288,19 @@ export interface CandidatePromotionRequest {
 
 export interface ScreeningCandidateDecisionRequest {
   candidate_ids: string[];
+  status: Exclude<ScreeningCandidateStatus, "imported">;
+  decision_reason?: string | null;
+  labels?: string[] | null;
+  notes?: string | null;
+}
+
+export interface ScreeningCandidateReference {
+  screening_run_id: string;
+  candidate_id: string;
+}
+
+export interface BulkScreeningCandidateDecisionRequest {
+  candidates: ScreeningCandidateReference[];
   status: Exclude<ScreeningCandidateStatus, "imported">;
   decision_reason?: string | null;
   labels?: string[] | null;

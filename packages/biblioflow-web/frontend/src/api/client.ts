@@ -4,6 +4,7 @@ import type {
   ApiEnvelope,
   ApiErrorPayload,
   BibliographicRecord,
+  BulkScreeningCandidateDecisionRequest,
   CandidateDecisionRequest,
   CandidatePromotionRequest,
   DatasetListItem,
@@ -28,6 +29,7 @@ import type {
   RemoteSourceSearchRequest,
   ScreeningCandidateDecisionRequest,
   ScreeningCandidatePromotionRequest,
+  ScreeningCandidateAggregatePayload,
   ScreeningRunCreateRequest,
   ScreeningRunListItem,
   ScreeningRunPayload,
@@ -230,6 +232,24 @@ export async function getScreeningRun(
 ): Promise<ApiEnvelope<ScreeningRunPayload>> {
   return request<ApiEnvelope<ScreeningRunPayload>>(
     `/projects/${projectId}/screening/runs/${screeningRunId}`,
+  );
+}
+
+export async function listScreeningCandidates(
+  projectId: string,
+): Promise<ApiEnvelope<ScreeningCandidateAggregatePayload>> {
+  return request<ApiEnvelope<ScreeningCandidateAggregatePayload>>(
+    `/projects/${projectId}/screening/candidates`,
+  );
+}
+
+export async function updateScreeningCandidatesBulk(
+  projectId: string,
+  payload: BulkScreeningCandidateDecisionRequest,
+): Promise<ApiEnvelope<ScreeningCandidateAggregatePayload>> {
+  return request<ApiEnvelope<ScreeningCandidateAggregatePayload>>(
+    `/projects/${projectId}/screening/candidates`,
+    { method: "PATCH", body: JSON.stringify(payload) },
   );
 }
 

@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends
 
 from biblioflow_web_backend.api.deps import get_screening_service
 from biblioflow_web_backend.models.requests import (
+    BulkScreeningCandidateDecisionRequest,
     ScreeningCandidateDecisionRequest,
     ScreeningCandidatePromotionRequest,
     ScreeningRunCreateRequest,
@@ -56,6 +57,42 @@ def list_screening_runs(
     """List source-agnostic screening runs."""
     return {
         "data": screening.list_runs(project_id),
+        "warnings": [],
+        "metadata": {"project_id": project_id},
+    }
+
+
+@router.get("/{project_id}/screening/candidates")
+def list_screening_candidates(
+    project_id: str,
+    screening: Annotated[ScreeningService, Depends(get_screening_service)],
+) -> dict[str, Any]:
+    """List all staged candidates and project-level duplicate groups."""
+    data = screening.list_candidates(project_id)
+    return {
+        "data": data,
+        "warnings": [],
+        "metadata": {"project_id": project_id},
+    }
+
+
+@router.patch("/{project_id}/screening/candidates")
+def update_screening_candidates_bulk(
+    project_id: str,
+    payload: BulkScreeningCandidateDecisionRequest,
+    screening: Annotated[ScreeningService, Depends(get_screening_service)],
+) -> dict[str, Any]:
+    """Apply one decision to staged candidates across screening runs."""
+    data = screening.update_candidates_bulk(
+        project_id,
+        candidate_refs=[candidate.model_dump() for candidate in payload.candidates],
+        status=payload.status,
+        decision_reason=payload.decision_reason,
+        labels=payload.labels,
+        notes=payload.notes,
+    )
+    return {
+        "data": data,
         "warnings": [],
         "metadata": {"project_id": project_id},
     }

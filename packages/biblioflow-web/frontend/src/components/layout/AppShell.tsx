@@ -1,4 +1,4 @@
-import { NavLink, Outlet, useLocation, useMatch } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation, useMatch } from "react-router-dom";
 
 import { useProject } from "../../api/queries";
 import "../../styles/app.css";
@@ -73,12 +73,23 @@ export function AppShell() {
               ? "Upload and load a dataset"
               : "Select or create a project"}
           </small>
+          <Link className="workspace-project-link" to="/projects">
+            {project ? "Switch project" : "Open existing projects"}
+          </Link>
         </div>
 
         <nav className="sidebar-nav" aria-label="Workflow sections">
           <NavLink to="/" className="sidebar-home">
             <span>⌂</span>
             <span>Welcome</span>
+          </NavLink>
+          <NavLink
+            to="/projects"
+            className="nav-item sidebar-project-link"
+            aria-label="Projects: select existing or create new"
+          >
+            <span>Projects</span>
+            <small>Select existing or create new</small>
           </NavLink>
           {navigationSections.map((section) => (
             <section className="nav-section" key={section.label}>

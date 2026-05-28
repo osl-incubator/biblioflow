@@ -25,6 +25,7 @@ import {
   listExports,
   listProjects,
   listRemoteSearches,
+  listScreeningCandidates,
   listScreeningRuns,
   listUploads,
   loadDataset,
@@ -34,11 +35,13 @@ import {
   runOverview,
   searchRemoteSource,
   updateScreeningCandidates,
+  updateScreeningCandidatesBulk,
   updateRemoteCandidates,
   uploadFiles,
 } from "./client";
 import type {
   AnalysisRequest,
+  BulkScreeningCandidateDecisionRequest,
   CandidateDecisionRequest,
   CandidatePromotionRequest,
   DatasetLoadRequest,
@@ -129,6 +132,14 @@ export function useScreeningRun(
     queryFn: () =>
       getScreeningRun(projectId as string, screeningRunId as string),
     enabled: Boolean(projectId && screeningRunId),
+  });
+}
+
+export function useScreeningCandidates(projectId?: string | null) {
+  return useQuery({
+    queryKey: ["projects", projectId, "screening-candidates"],
+    queryFn: () => listScreeningCandidates(projectId as string),
+    enabled: Boolean(projectId),
   });
 }
 
@@ -358,6 +369,9 @@ export function useCreateScreeningRun(projectId?: string | null) {
       queryClient.invalidateQueries({
         queryKey: ["projects", projectId, "screening-runs"],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["projects", projectId, "screening-candidates"],
+      });
       queryClient.setQueryData(
         ["projects", projectId, "screening-runs", screeningRunId],
         response,
@@ -383,8 +397,29 @@ export function useUpdateScreeningCandidates(
       queryClient.invalidateQueries({
         queryKey: ["projects", projectId, "screening-runs"],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["projects", projectId, "screening-candidates"],
+      });
       queryClient.setQueryData(
         ["projects", projectId, "screening-runs", screeningRunId],
+        response,
+      );
+    },
+  });
+}
+
+export function useUpdateAllScreeningCandidates(projectId?: string | null) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: BulkScreeningCandidateDecisionRequest) =>
+      updateScreeningCandidatesBulk(projectId as string, payload),
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: ["projects", projectId] });
+      queryClient.invalidateQueries({
+        queryKey: ["projects", projectId, "screening-runs"],
+      });
+      queryClient.setQueryData(
+        ["projects", projectId, "screening-candidates"],
         response,
       );
     },
@@ -411,6 +446,9 @@ export function usePromoteScreeningCandidates(
       });
       queryClient.invalidateQueries({
         queryKey: ["projects", projectId, "screening-runs"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["projects", projectId, "screening-candidates"],
       });
       queryClient.invalidateQueries({
         queryKey: ["projects", projectId, "datasets", datasetId],

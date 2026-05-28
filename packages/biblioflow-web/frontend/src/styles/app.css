@@ -246,6 +246,10 @@ button:disabled {
   text-decoration: none;
 }
 
+.project-actions a.button-primary {
+  color: #ffffff;
+}
+
 .app-header a.active {
   color: #0f172a;
 }
@@ -768,6 +772,23 @@ button:disabled {
 .workspace-mini-card small {
   color: #b7c4d8;
   line-height: 1.35;
+}
+
+.workspace-project-link {
+  color: #9bd9ff;
+  font-size: 0.82rem;
+  font-weight: 850;
+  margin-top: 0.35rem;
+  text-decoration: none;
+}
+
+.workspace-project-link:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.sidebar-project-link {
+  margin-top: 0.35rem;
 }
 
 .header-copy {

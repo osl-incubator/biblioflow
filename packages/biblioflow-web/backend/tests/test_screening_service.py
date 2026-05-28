@@ -9,14 +9,18 @@ import pytest
 from biblioflow_web_backend.api.routes.screening import (
     create_screening_run,
     get_screening_run,
+    list_screening_candidates,
     list_screening_runs,
     promote_screening_candidates,
     update_screening_candidates,
+    update_screening_candidates_bulk,
 )
 from biblioflow_web_backend.core.errors import ApiError
 from biblioflow_web_backend.models.requests import (
+    BulkScreeningCandidateDecisionRequest,
     ScreeningCandidateDecisionRequest,
     ScreeningCandidatePromotionRequest,
+    ScreeningCandidateReference,
     ScreeningRunCreateRequest,
 )
 from biblioflow_web_backend.services.dataset_service import DatasetService
@@ -136,6 +140,120 @@ def test_screening_run_from_records_updates_and_promotes(tmp_path: Path) -> None
     refreshed = screening.get_run(project_id, str(run["screening_run_id"]))
     assert refreshed["status_counts"] == {"imported": 2}
     assert refreshed["promoted_dataset_ids"] == [dataset_id]
+
+
+def test_screening_candidates_aggregate_duplicate_groups(tmp_path: Path) -> None:
+    _projects, _files, _datasets, screening, project_id = _services(tmp_path)
+
+    first = screening.create_run(
+        project_id,
+        origin_type="records",
+        source="generic",
+        records=[
+            {
+                "title": "Shared duplicate record",
+                "publication_year": 2024,
+                "authors": ["Ada Lovelace"],
+                "doi": "10.1/shared",
+            }
+        ],
+        name="First import",
+    )
+    second = screening.create_run(
+        project_id,
+        origin_type="records",
+        source="generic",
+        records=[
+            {
+                "title": "Shared duplicate record from another source",
+                "publication_year": 2024,
+                "authors": ["Ada Lovelace"],
+                "doi": "10.1/shared",
+            },
+            {
+                "title": "Unique record",
+                "publication_year": 2025,
+                "authors": ["Grace Hopper"],
+                "doi": "10.1/unique",
+            },
+        ],
+        name="Second import",
+    )
+
+    aggregate = screening.list_candidates(project_id)
+    assert aggregate["records"] == 3
+    assert aggregate["metadata"]["duplicate_group_count"] == 1
+    assert aggregate["metadata"]["duplicate_candidate_count"] == 2
+    assert aggregate["duplicate_groups"][0]["match_basis"] == "DOI"
+    assert aggregate["duplicate_groups"][0]["screening_run_names"] == [
+        "First import",
+        "Second import",
+    ]
+    duplicate_rows = [
+        candidate
+        for candidate in aggregate["candidates"]
+        if candidate["duplicate_group_id"] == "doi:10.1/shared"
+    ]
+    assert len(duplicate_rows) == 2
+    assert {row["screening_run_id"] for row in duplicate_rows} == {
+        first["screening_run_id"],
+        second["screening_run_id"],
+    }
+
+    response = list_screening_candidates(project_id, screening)
+    assert response["data"]["records"] == 3
+    assert response["data"]["duplicate_groups"][0]["size"] == 2
+
+
+def test_screening_candidates_bulk_update_across_runs(tmp_path: Path) -> None:
+    _projects, _files, _datasets, screening, project_id = _services(tmp_path)
+
+    first = screening.create_run(
+        project_id,
+        origin_type="records",
+        source="generic",
+        records=[{"title": "First bulk record", "doi": "10.1/bulk-first"}],
+        name="First import",
+    )
+    second = screening.create_run(
+        project_id,
+        origin_type="records",
+        source="generic",
+        records=[{"title": "Second bulk record", "doi": "10.1/bulk-second"}],
+        name="Second import",
+    )
+
+    aggregate = update_screening_candidates_bulk(
+        project_id,
+        BulkScreeningCandidateDecisionRequest(
+            candidates=[
+                ScreeningCandidateReference(
+                    screening_run_id=str(first["screening_run_id"]),
+                    candidate_id=str(first["candidates"][0]["candidate_id"]),
+                ),
+                ScreeningCandidateReference(
+                    screening_run_id=str(second["screening_run_id"]),
+                    candidate_id=str(second["candidates"][0]["candidate_id"]),
+                ),
+            ],
+            status="excluded",
+            decision_reason="Out of scope",
+            labels=["screened"],
+        ),
+        screening,
+    )
+
+    assert aggregate["data"]["status_counts"] == {"excluded": 2}
+    assert {
+        screening.get_run(project_id, str(first["screening_run_id"]))["status_counts"][
+            "excluded"
+        ],
+        screening.get_run(project_id, str(second["screening_run_id"]))["status_counts"][
+            "excluded"
+        ],
+    } == {1}
+    assert aggregate["data"]["candidates"][0]["decision_reason"] == "Out of scope"
+    assert aggregate["data"]["candidates"][0]["labels"] == ["screened"]
 
 
 def test_screening_run_from_uploads_and_routes(tmp_path: Path) -> None:
