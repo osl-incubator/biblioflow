@@ -73,6 +73,8 @@ class NotebookSession:
     network_cache: dict[str, Any] = field(default_factory=dict)
     exports: list[NotebookExport] = field(default_factory=list)
     warnings: list[dict[str, Any]] = field(default_factory=list)
+    screening_runs: list[dict[str, Any]] = field(default_factory=list)
+    active_screening_run_id: str | None = None
 
     @property
     def dataset(self) -> Any | None:
@@ -104,6 +106,34 @@ class NotebookSession:
         self.exports.append(export)
         self.touch()
 
+    def add_screening_run(self, run: dict[str, Any]) -> None:
+        """Register or replace a screening run in the session."""
+        screening_run_id = str(run["screening_run_id"])
+        self.screening_runs = [
+            item
+            for item in self.screening_runs
+            if str(item.get("screening_run_id")) != screening_run_id
+        ]
+        self.screening_runs.append(run)
+        self.active_screening_run_id = screening_run_id
+        self.touch()
+
+    def get_screening_run(self, screening_run_id: str) -> dict[str, Any]:
+        """Return one screening run by ID."""
+        for run in self.screening_runs:
+            if str(run.get("screening_run_id")) == screening_run_id:
+                return run
+        raise KeyError(screening_run_id)
+
+    def active_screening_run(self) -> dict[str, Any] | None:
+        """Return the active screening run when one is selected."""
+        if self.active_screening_run_id is None:
+            return None
+        try:
+            return self.get_screening_run(self.active_screening_run_id)
+        except KeyError:
+            return None
+
     def clear(self) -> None:
         """Clear datasets, caches, warnings, and exports."""
         self.active_dataset = None
@@ -120,6 +150,8 @@ class NotebookSession:
     def reset(self) -> None:
         """Reset the entire session."""
         self.uploads.clear()
+        self.screening_runs.clear()
+        self.active_screening_run_id = None
         self.clear()
 
     def to_manifest(self) -> dict[str, Any]:
@@ -139,6 +171,9 @@ class NotebookSession:
             "filtered_records": filtered_records,
             "uploads": [upload.to_dict() for upload in self.uploads],
             "exports": [export.to_dict() for export in self.exports],
+            "screening_runs": [
+                _screening_run_manifest(run) for run in self.screening_runs
+            ],
             "warnings": self.warnings,
         }
 
@@ -147,3 +182,17 @@ def _warning_dicts(dataset: Any) -> list[dict[str, Any]]:
     if hasattr(dataset, "warning_dicts"):
         return [dict(warning) for warning in dataset.warning_dicts()]
     return []
+
+
+def _screening_run_manifest(run: dict[str, Any]) -> dict[str, Any]:
+    """Return a compact manifest row for a screening run."""
+    return {
+        "screening_run_id": run.get("screening_run_id"),
+        "name": run.get("name"),
+        "origin_type": run.get("origin_type"),
+        "source": run.get("source"),
+        "format": run.get("format"),
+        "records": run.get("records"),
+        "status_counts": dict(run.get("status_counts", {})),
+        "promoted_dataset_ids": list(run.get("promoted_dataset_ids", [])),
+    }

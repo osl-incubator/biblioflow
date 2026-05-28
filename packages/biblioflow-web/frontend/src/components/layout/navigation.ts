@@ -39,8 +39,8 @@ export const navigationSections: NavigationSection[] = [
       },
       { label: "OpenAlex", detail: "API connector planned", disabled: true },
       {
-        label: "PubMed/PMC",
-        detail: "Search NCBI",
+        label: "Screening",
+        detail: "Review imports",
         buildPath: (projectId) => `/projects/${projectId}/upload`,
         fallbackPath: "/projects",
         requiresProject: false,

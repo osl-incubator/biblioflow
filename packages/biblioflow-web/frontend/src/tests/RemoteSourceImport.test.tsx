@@ -68,7 +68,7 @@ describe("remote source import", () => {
     const decisionBodies: unknown[] = [];
     const promoteBodies: unknown[] = [];
     const stagedSearch = {
-      search_id: "search-1",
+      screening_run_id: "search-1",
       created_at: "2026-01-01T00:00:00Z",
       updated_at: "2026-01-01T00:00:00Z",
       source: "pmc",
@@ -135,7 +135,7 @@ describe("remote source import", () => {
         );
       }
       if (
-        url.endsWith("/projects/project-1/sources/searches") &&
+        url.endsWith("/projects/project-1/screening/runs") &&
         method === "GET"
       ) {
         return Promise.resolve(
@@ -143,21 +143,21 @@ describe("remote source import", () => {
         );
       }
       if (
-        url.endsWith("/projects/project-1/sources/searches/search-1") &&
+        url.endsWith("/projects/project-1/screening/runs/search-1") &&
         method === "GET"
       ) {
         return Promise.resolve(
           jsonResponse({ data: stagedSearch, warnings: [], metadata: {} }),
         );
       }
-      if (url.endsWith("/projects/project-1/sources/search")) {
+      if (url.endsWith("/projects/project-1/screening/runs")) {
         searchBodies.push(JSON.parse(String(init?.body)));
         return Promise.resolve(
           jsonResponse({ data: stagedSearch, warnings: [], metadata: {} }),
         );
       }
       if (
-        url.endsWith("/projects/project-1/sources/searches/search-1/candidates")
+        url.endsWith("/projects/project-1/screening/runs/search-1/candidates")
       ) {
         decisionBodies.push(JSON.parse(String(init?.body)));
         return Promise.resolve(
@@ -176,9 +176,7 @@ describe("remote source import", () => {
           }),
         );
       }
-      if (
-        url.endsWith("/projects/project-1/sources/searches/search-1/promote")
-      ) {
+      if (url.endsWith("/projects/project-1/screening/runs/search-1/promote")) {
         promoteBodies.push(JSON.parse(String(init?.body)));
         return Promise.resolve(
           jsonResponse({
@@ -189,9 +187,9 @@ describe("remote source import", () => {
               records: [{ title: "PMC record" }, { title: "Excluded record" }],
               warnings: [],
               metadata: {
-                remote_source: "pmc",
+                source: "pmc",
                 query: "open science",
-                remote_search_id: "search-1",
+                screening_run_id: "search-1",
               },
             },
             warnings: [],
@@ -207,7 +205,7 @@ describe("remote source import", () => {
 
     renderProjectUpload();
 
-    await screen.findByRole("heading", { name: /Search PubMed or PMC/i });
+    await screen.findByRole("heading", { name: /Search remote sources/i });
     await userEvent.selectOptions(screen.getByLabelText("Source"), "pmc");
     await userEvent.clear(screen.getByLabelText("Limit"));
     await userEvent.type(screen.getByLabelText("Limit"), "12");
@@ -225,6 +223,7 @@ describe("remote source import", () => {
 
     await waitFor(() => expect(searchBodies).toHaveLength(1));
     expect(searchBodies[0]).toEqual({
+      origin_type: "remote_search",
       source: "pmc",
       query: "open science",
       limit: 12,
@@ -301,7 +300,7 @@ describe("remote source import", () => {
           jsonResponse({ data: [], warnings: [], metadata: {} }),
         );
       }
-      if (url.endsWith("/projects/project-1/sources/search")) {
+      if (url.endsWith("/projects/project-1/screening/runs")) {
         return Promise.resolve(
           jsonResponse(
             {
@@ -322,7 +321,7 @@ describe("remote source import", () => {
 
     renderProjectUpload();
 
-    await screen.findByRole("heading", { name: /Search PubMed or PMC/i });
+    await screen.findByRole("heading", { name: /Search remote sources/i });
     await userEvent.type(screen.getByLabelText("Query"), "bibliometrics");
     await userEvent.click(
       screen.getByRole("button", { name: /Search and review records/i }),
@@ -337,7 +336,7 @@ describe("remote source import", () => {
     const decisionBodies: unknown[] = [];
     const promoteBodies: unknown[] = [];
     const historySearch = {
-      search_id: "search-1",
+      screening_run_id: "search-1",
       created_at: "2026-01-01T00:00:00Z",
       updated_at: "2026-01-01T00:00:00Z",
       source: "pubmed",
@@ -404,14 +403,14 @@ describe("remote source import", () => {
         );
       }
       if (
-        url.endsWith("/projects/project-1/sources/searches") &&
+        url.endsWith("/projects/project-1/screening/runs") &&
         method === "GET"
       ) {
         return Promise.resolve(
           jsonResponse({
             data: [
               {
-                search_id: "other-search",
+                screening_run_id: "other-search",
                 created_at: "2026-01-01T00:00:00Z",
                 updated_at: "2026-01-01T00:00:00Z",
                 source: "pubmed",
@@ -424,7 +423,7 @@ describe("remote source import", () => {
                 metadata: {},
               },
               {
-                search_id: "search-1",
+                screening_run_id: "search-1",
                 created_at: "2026-01-01T00:00:00Z",
                 updated_at: "2026-01-01T00:00:00Z",
                 source: "pubmed",
@@ -443,7 +442,7 @@ describe("remote source import", () => {
         );
       }
       if (
-        url.endsWith("/projects/project-1/sources/searches/search-1") &&
+        url.endsWith("/projects/project-1/screening/runs/search-1") &&
         method === "GET"
       ) {
         return Promise.resolve(
@@ -451,7 +450,7 @@ describe("remote source import", () => {
         );
       }
       if (
-        url.endsWith("/projects/project-1/sources/searches/search-1/candidates")
+        url.endsWith("/projects/project-1/screening/runs/search-1/candidates")
       ) {
         decisionBodies.push(JSON.parse(String(init?.body)));
         return Promise.resolve(
@@ -470,9 +469,7 @@ describe("remote source import", () => {
           }),
         );
       }
-      if (
-        url.endsWith("/projects/project-1/sources/searches/search-1/promote")
-      ) {
+      if (url.endsWith("/projects/project-1/screening/runs/search-1/promote")) {
         promoteBodies.push(JSON.parse(String(init?.body)));
         return Promise.resolve(
           jsonResponse(
@@ -728,7 +725,7 @@ describe("remote source import", () => {
     expect(await screen.findByText("Upload failed")).toBeDefined();
 
     await userEvent.click(
-      screen.getByRole("button", { name: /Load selected uploads/i }),
+      screen.getByRole("button", { name: /Load directly/i }),
     );
     expect(await screen.findByText("Load failed")).toBeDefined();
   });
@@ -736,7 +733,53 @@ describe("remote source import", () => {
   it("uploads files and loads selected uploads", async () => {
     const uploadedFiles: string[] = [];
     const loadBodies: unknown[] = [];
+    const screeningBodies: unknown[] = [];
+    const decisionBodies: unknown[] = [];
     const deletedUploadIds: string[] = [];
+    const uploadScreeningRun = {
+      screening_run_id: "upload-run-1",
+      created_at: "2026-01-01T00:00:00Z",
+      updated_at: "2026-01-01T00:00:00Z",
+      origin_type: "uploads",
+      source: "wos",
+      source_label: "Web of Science",
+      format: "ris",
+      query: null,
+      upload_ids: ["upload-2"],
+      limit: 100,
+      name: "Uploaded files: 1 selected",
+      records: 2,
+      status_counts: { candidate: 1, duplicate: 1 },
+      promoted_dataset_ids: [],
+      candidates: [
+        {
+          candidate_id: "upload-candidate-1",
+          status: "candidate",
+          created_at: "2026-01-01T00:00:00Z",
+          updated_at: "2026-01-01T00:00:00Z",
+          record: { title: "Uploaded candidate", doi: "10.1/upload" },
+          identifiers: { doi: "10.1/upload" },
+          title: "Uploaded candidate",
+          year: 2024,
+          authors: ["Upload Author"],
+          source_title: "Upload Journal",
+        },
+        {
+          candidate_id: "upload-candidate-duplicate",
+          status: "duplicate",
+          created_at: "2026-01-01T00:00:00Z",
+          updated_at: "2026-01-01T00:00:00Z",
+          record: { title: "Duplicate upload", doi: "10.1/upload" },
+          identifiers: { doi: "10.1/upload" },
+          title: "Duplicate upload",
+          year: 2024,
+          authors: ["Upload Author"],
+          source_title: "Upload Journal",
+        },
+      ],
+      warnings: [],
+      metadata: { status_counts: { candidate: 1, duplicate: 1 } },
+    };
     const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
       const method = init?.method ?? "GET";
@@ -808,6 +851,63 @@ describe("remote source import", () => {
           }),
         );
       }
+      if (
+        url.endsWith("/projects/project-1/screening/runs") &&
+        method === "GET"
+      ) {
+        return Promise.resolve(
+          jsonResponse({ data: [], warnings: [], metadata: {} }),
+        );
+      }
+      if (
+        url.endsWith("/projects/project-1/screening/runs") &&
+        method === "POST"
+      ) {
+        screeningBodies.push(JSON.parse(String(init?.body)));
+        return Promise.resolve(
+          jsonResponse({
+            data: uploadScreeningRun,
+            warnings: [],
+            metadata: {},
+          }),
+        );
+      }
+      if (
+        url.endsWith("/projects/project-1/screening/runs/upload-run-1") &&
+        method === "GET"
+      ) {
+        return Promise.resolve(
+          jsonResponse({
+            data: uploadScreeningRun,
+            warnings: [],
+            metadata: {},
+          }),
+        );
+      }
+      if (
+        url.endsWith(
+          "/projects/project-1/screening/runs/upload-run-1/candidates",
+        )
+      ) {
+        const body = JSON.parse(String(init?.body));
+        decisionBodies.push(body);
+        return Promise.resolve(
+          jsonResponse({
+            data: {
+              ...uploadScreeningRun,
+              status_counts: { [body.status]: 1, duplicate: 1 },
+              candidates: uploadScreeningRun.candidates.map((candidate) =>
+                candidate.candidate_id === "upload-candidate-1"
+                  ? { ...candidate, status: body.status }
+                  : candidate,
+              ),
+              metadata: { status_counts: { [body.status]: 1, duplicate: 1 } },
+            },
+            warnings: [],
+            metadata: {},
+          }),
+        );
+      }
       if (url.endsWith("/projects/project-1/datasets/load")) {
         loadBodies.push(JSON.parse(String(init?.body)));
         return Promise.resolve(
@@ -869,7 +969,48 @@ describe("remote source import", () => {
     await waitFor(() => expect(uploadedFiles).toEqual(["records.json"]));
 
     await userEvent.click(
-      screen.getByRole("button", { name: /Load selected uploads/i }),
+      screen.getByRole("button", { name: /Review selected uploads/i }),
+    );
+    await waitFor(() =>
+      expect(screeningBodies).toEqual([
+        {
+          origin_type: "uploads",
+          upload_ids: ["upload-2"],
+          source: "wos",
+          format: "ris",
+          name: "Uploaded files: 1 selected",
+        },
+      ]),
+    );
+    expect(await screen.findByText("Uploaded candidate")).toBeDefined();
+    expect(screen.getByText("Duplicate upload")).toBeDefined();
+    expect(screen.getByText(/Selected 1 records/i)).toBeDefined();
+    await userEvent.click(
+      screen.getByRole("button", { name: /Mark as maybe/i }),
+    );
+    await waitFor(() =>
+      expect(decisionBodies).toContainEqual({
+        candidate_ids: ["upload-candidate-1"],
+        status: "maybe",
+      }),
+    );
+    await userEvent.click(screen.getByLabelText("Select Uploaded candidate"));
+    expect(screen.getByText(/Selected 0 records/i)).toBeDefined();
+    await userEvent.click(
+      screen.getByRole("button", { name: /Select visible/i }),
+    );
+    await userEvent.click(
+      screen.getByRole("button", { name: /Mark duplicate/i }),
+    );
+    await waitFor(() =>
+      expect(decisionBodies).toContainEqual({
+        candidate_ids: ["upload-candidate-1"],
+        status: "duplicate",
+      }),
+    );
+
+    await userEvent.click(
+      screen.getByRole("button", { name: /Load directly/i }),
     );
     await waitFor(() =>
       expect(loadBodies).toEqual([
@@ -950,7 +1091,7 @@ describe("remote source import", () => {
 
     await screen.findByText("warning.json");
     await userEvent.click(
-      screen.getByRole("button", { name: /Load selected uploads/i }),
+      screen.getByRole("button", { name: /Load directly/i }),
     );
     await waitFor(() =>
       expect(loadBodies).toEqual([

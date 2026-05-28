@@ -37,6 +37,7 @@ class ProjectStore:
             "source_files": [],
             "datasets": [],
             "remote_searches": [],
+            "screening_runs": [],
             "active_dataset_id": None,
             "filters": {},
             "analysis_cache_keys": [],
@@ -46,6 +47,7 @@ class ProjectStore:
         (project_dir / "uploads").mkdir(parents=True, exist_ok=True)
         (project_dir / "datasets").mkdir(parents=True, exist_ok=True)
         (project_dir / "remote_searches").mkdir(parents=True, exist_ok=True)
+        (project_dir / "screening_runs").mkdir(parents=True, exist_ok=True)
         (project_dir / "exports").mkdir(parents=True, exist_ok=True)
         self.save_project(project)
         return project
@@ -97,6 +99,12 @@ class ProjectStore:
     def remote_searches_dir(self, project_id: str) -> Path:
         """Return the remote search screening directory for a project."""
         path = self.project_dir(project_id) / "remote_searches"
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+
+    def screening_runs_dir(self, project_id: str) -> Path:
+        """Return the generic screening-run directory for a project."""
+        path = self.project_dir(project_id) / "screening_runs"
         path.mkdir(parents=True, exist_ok=True)
         return path
 

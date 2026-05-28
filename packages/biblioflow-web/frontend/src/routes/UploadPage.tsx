@@ -4,18 +4,18 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { DataTable } from "../components/common/DataTable";
 import { EmptyState } from "../components/common/EmptyState";
 import {
+  useCreateScreeningRun,
   useDeleteUpload,
   useLoadDataset,
   useProject,
-  usePromoteRemoteCandidates,
-  useRemoteSearch,
-  useRemoteSearches,
-  useSearchRemoteSource,
-  useUpdateRemoteCandidates,
+  usePromoteScreeningCandidates,
+  useScreeningRun,
+  useScreeningRuns,
+  useUpdateScreeningCandidates,
   useUploadFiles,
   useUploads,
 } from "../api/queries";
-import type { RemoteCandidate, RemoteSource } from "../api/types";
+import type { ScreeningCandidate } from "../api/types";
 import { formatDate } from "./dashboard/utils";
 
 const supportedSources = [
@@ -34,6 +34,7 @@ const providerOptions = [
   "scopus",
   "wos",
   "pubmed",
+  "pmc",
   "openalex",
   "crossref",
   "generic",
@@ -50,9 +51,12 @@ const formatOptions = [
   "nbib",
   "yaml",
 ];
-const remoteSourceOptions: { label: string; value: RemoteSource }[] = [
+const remoteSourceOptions: { label: string; value: string }[] = [
   { label: "PubMed", value: "pubmed" },
   { label: "PubMed Central", value: "pmc" },
+  { label: "OpenAlex", value: "openalex" },
+  { label: "Crossref", value: "crossref" },
+  { label: "Scopus", value: "scopus" },
 ];
 
 function formatSize(size: number): string {
@@ -65,7 +69,10 @@ function formatSize(size: number): string {
   return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function candidateMatches(candidate: RemoteCandidate, query: string): boolean {
+function candidateMatches(
+  candidate: ScreeningCandidate,
+  query: string,
+): boolean {
   const normalized = query.trim().toLowerCase();
   if (!normalized) {
     return true;
@@ -83,7 +90,7 @@ function candidateMatches(candidate: RemoteCandidate, query: string): boolean {
   return searchable.includes(normalized);
 }
 
-function identifiersText(candidate: RemoteCandidate): string {
+function identifiersText(candidate: ScreeningCandidate): string {
   const entries = Object.entries(candidate.identifiers);
   if (!entries.length) {
     return "—";
@@ -105,45 +112,50 @@ export function UploadPage() {
   const [selectedUploadIds, setSelectedUploadIds] = useState<string[]>([]);
   const [provider, setProvider] = useState("auto");
   const [format, setFormat] = useState("auto");
-  const [remoteSource, setRemoteSource] = useState<RemoteSource>("pubmed");
+  const [remoteSource, setRemoteSource] = useState("pubmed");
   const [remoteQuery, setRemoteQuery] = useState("");
   const [remoteLimit, setRemoteLimit] = useState(100);
   const [remoteEmail, setRemoteEmail] = useState("");
   const [remoteApiKey, setRemoteApiKey] = useState("");
   const [remoteTool, setRemoteTool] = useState("biblioflow-web");
   const [remoteName, setRemoteName] = useState("");
-  const [activeRemoteSearchId, setActiveRemoteSearchId] = useState<
+  const [activeScreeningRunId, setActiveScreeningRunId] = useState<
     string | null
   >(null);
   const [selectedCandidateIds, setSelectedCandidateIds] = useState<string[]>(
     [],
   );
   const [candidateFilter, setCandidateFilter] = useState("");
+  const [screeningAction, setScreeningAction] = useState<
+    "remote" | "uploads" | null
+  >(null);
   const [hasAutoSelectedUploads, setHasAutoSelectedUploads] = useState(false);
-  const remoteSearches = useRemoteSearches(projectId);
-  const remoteSearch = useRemoteSearch(projectId, activeRemoteSearchId);
-  const searchRemoteSource = useSearchRemoteSource(projectId);
-  const updateRemoteCandidates = useUpdateRemoteCandidates(
+  const screeningRuns = useScreeningRuns(projectId);
+  const screeningRun = useScreeningRun(projectId, activeScreeningRunId);
+  const createScreeningRun = useCreateScreeningRun(projectId);
+  const updateScreeningCandidates = useUpdateScreeningCandidates(
     projectId,
-    activeRemoteSearchId,
+    activeScreeningRunId,
   );
-  const promoteRemoteCandidates = usePromoteRemoteCandidates(
+  const promoteScreeningCandidates = usePromoteScreeningCandidates(
     projectId,
-    activeRemoteSearchId,
+    activeScreeningRunId,
   );
-  const stagedSearch =
-    remoteSearch.data?.data ??
-    (searchRemoteSource.data?.data.search_id === activeRemoteSearchId
-      ? searchRemoteSource.data.data
+  const stagedRun =
+    screeningRun.data?.data ??
+    (createScreeningRun.data?.data.screening_run_id === activeScreeningRunId
+      ? createScreeningRun.data.data
       : null);
   const visibleCandidates =
-    stagedSearch?.candidates.filter((candidate) =>
+    stagedRun?.candidates.filter((candidate) =>
       candidateMatches(candidate, candidateFilter),
     ) ?? [];
   const promotableVisibleCandidateIds = visibleCandidates
     .filter(
       (candidate) =>
-        candidate.status !== "excluded" && candidate.status !== "imported",
+        !["excluded", "duplicate", "imported", "error"].includes(
+          candidate.status,
+        ),
     )
     .map((candidate) => candidate.candidate_id);
   const selectedVisibleCount = visibleCandidates.filter((candidate) =>
@@ -215,8 +227,10 @@ export function UploadPage() {
 
   function onImportRemoteSource(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    searchRemoteSource.mutate(
+    setScreeningAction("remote");
+    createScreeningRun.mutate(
       {
+        origin_type: "remote_search",
         source: remoteSource,
         query: remoteQuery,
         limit: remoteLimit,
@@ -228,9 +242,34 @@ export function UploadPage() {
       {
         onSuccess: (response) => {
           setRemoteApiKey("");
-          setActiveRemoteSearchId(response.data.search_id);
+          setActiveScreeningRunId(response.data.screening_run_id);
           setSelectedCandidateIds(
             response.data.candidates.map((candidate) => candidate.candidate_id),
+          );
+        },
+      },
+    );
+  }
+
+  function reviewSelectedUploads() {
+    setScreeningAction("uploads");
+    createScreeningRun.mutate(
+      {
+        origin_type: "uploads",
+        upload_ids: selectedUploadIds,
+        source: provider,
+        format,
+        name: selectedUploadIds.length
+          ? `Uploaded files: ${selectedUploadIds.length} selected`
+          : null,
+      },
+      {
+        onSuccess: (response) => {
+          setActiveScreeningRunId(response.data.screening_run_id);
+          setSelectedCandidateIds(
+            response.data.candidates
+              .filter((candidate) => candidate.status !== "duplicate")
+              .map((candidate) => candidate.candidate_id),
           );
         },
       },
@@ -260,13 +299,13 @@ export function UploadPage() {
   }
 
   function applyCandidateDecision(
-    status: "candidate" | "selected" | "excluded",
+    status: "candidate" | "selected" | "maybe" | "excluded" | "duplicate",
   ) {
-    updateRemoteCandidates.mutate(
+    updateScreeningCandidates.mutate(
       { candidate_ids: selectedCandidateIds, status },
       {
         onSuccess: () => {
-          if (status === "excluded") {
+          if (["excluded", "duplicate"].includes(status)) {
             setSelectedCandidateIds([]);
           }
         },
@@ -275,7 +314,7 @@ export function UploadPage() {
   }
 
   function promoteSelectedCandidates() {
-    promoteRemoteCandidates.mutate(
+    promoteScreeningCandidates.mutate(
       {
         candidate_ids: selectedCandidateIds,
         name: remoteName.trim() || null,
@@ -390,12 +429,12 @@ export function UploadPage() {
       >
         <div className="section-heading compact">
           <span className="eyebrow">Remote sources</span>
-          <h2>Search PubMed or PMC</h2>
+          <h2>Search remote sources</h2>
         </div>
         <p className="muted-copy">
-          Search NCBI sources and stage the results as screening candidates
-          before creating the active project dataset. Provide a contact email
-          here, or configure
+          Search a supported API source and stage the results as screening
+          candidates before creating the active project dataset. For NCBI
+          sources, provide a contact email here or configure
           <code>BIBLIOFLOW_NCBI_EMAIL</code> on the backend.
         </p>
         <div className="form-grid">
@@ -403,9 +442,7 @@ export function UploadPage() {
             Source
             <select
               value={remoteSource}
-              onChange={(event) =>
-                setRemoteSource(event.target.value as RemoteSource)
-              }
+              onChange={(event) => setRemoteSource(event.target.value)}
             >
               {remoteSourceOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -472,41 +509,41 @@ export function UploadPage() {
           <button
             type="submit"
             className="button-primary"
-            disabled={!remoteQuery.trim() || searchRemoteSource.isPending}
+            disabled={!remoteQuery.trim() || createScreeningRun.isPending}
           >
-            {searchRemoteSource.isPending
+            {createScreeningRun.isPending
               ? "Searching…"
               : "Search and review records"}
           </button>
         </div>
-        {searchRemoteSource.isError && (
-          <p role="alert">{searchRemoteSource.error.message}</p>
+        {createScreeningRun.isError && screeningAction === "remote" && (
+          <p role="alert">{createScreeningRun.error.message}</p>
         )}
-        {remoteSearches.data?.data.length ? (
+        {screeningRuns.data?.data.length ? (
           <div className="remote-search-history">
-            <strong>Recent staged searches</strong>
+            <strong>Recent screening runs</strong>
             <div className="remote-search-list">
-              {remoteSearches.data.data.slice(-4).map((search) => (
+              {screeningRuns.data.data.slice(-4).map((run) => (
                 <button
-                  key={search.search_id}
+                  key={run.screening_run_id}
                   type="button"
                   className={
-                    search.search_id === activeRemoteSearchId
+                    run.screening_run_id === activeScreeningRunId
                       ? "chip-button active"
                       : "chip-button"
                   }
                   onClick={() => {
-                    setActiveRemoteSearchId(search.search_id);
+                    setActiveScreeningRunId(run.screening_run_id);
                     setSelectedCandidateIds([]);
                   }}
                 >
-                  {search.name} · {search.records}
+                  {run.name} · {run.records}
                 </button>
               ))}
             </div>
           </div>
         ) : null}
-        {stagedSearch && (
+        {stagedRun && (
           <div
             className="screening-panel"
             role="region"
@@ -515,18 +552,18 @@ export function UploadPage() {
             <div className="screening-summary">
               <div>
                 <span className="eyebrow">Screening queue</span>
-                <h3>{stagedSearch.name}</h3>
+                <h3>{stagedRun.name}</h3>
                 <p className="muted-copy">
-                  {stagedSearch.candidates.length} candidates staged from{" "}
-                  {stagedSearch.source_label}. Select records to promote into
-                  the active dataset, or mark obvious misses as excluded.
+                  {stagedRun.candidates.length} candidates staged from{" "}
+                  {stagedRun.source_label}. Select records to promote into the
+                  active dataset, or mark obvious misses as excluded.
                 </p>
               </div>
               <div
                 className="screening-counts"
                 aria-label="Candidate status counts"
               >
-                {Object.entries(stagedSearch.status_counts ?? {}).map(
+                {Object.entries(stagedRun.status_counts ?? {}).map(
                   ([status, count]) => (
                     <span className={`status-pill ${status}`} key={status}>
                       {status}: {String(count)}
@@ -573,7 +610,10 @@ export function UploadPage() {
                       aria-label={`Select ${row.title}`}
                       checked={selectedCandidateIds.includes(row.candidate_id)}
                       disabled={
-                        row.status === "excluded" || row.status === "imported"
+                        row.status === "excluded" ||
+                        row.status === "duplicate" ||
+                        row.status === "imported" ||
+                        row.status === "error"
                       }
                       onChange={() => toggleCandidate(row.candidate_id)}
                     />
@@ -617,7 +657,7 @@ export function UploadPage() {
                 onClick={() => applyCandidateDecision("selected")}
                 disabled={
                   !selectedCandidateIds.length ||
-                  updateRemoteCandidates.isPending
+                  updateScreeningCandidates.isPending
                 }
               >
                 Mark selected as keep
@@ -628,10 +668,32 @@ export function UploadPage() {
                 onClick={() => applyCandidateDecision("excluded")}
                 disabled={
                   !selectedCandidateIds.length ||
-                  updateRemoteCandidates.isPending
+                  updateScreeningCandidates.isPending
                 }
               >
                 Exclude selected
+              </button>
+              <button
+                type="button"
+                className="button-secondary"
+                onClick={() => applyCandidateDecision("maybe")}
+                disabled={
+                  !selectedCandidateIds.length ||
+                  updateScreeningCandidates.isPending
+                }
+              >
+                Mark as maybe
+              </button>
+              <button
+                type="button"
+                className="button-secondary"
+                onClick={() => applyCandidateDecision("duplicate")}
+                disabled={
+                  !selectedCandidateIds.length ||
+                  updateScreeningCandidates.isPending
+                }
+              >
+                Mark duplicate
               </button>
               <button
                 type="button"
@@ -639,27 +701,29 @@ export function UploadPage() {
                 onClick={promoteSelectedCandidates}
                 disabled={
                   !selectedCandidateIds.length ||
-                  promoteRemoteCandidates.isPending
+                  promoteScreeningCandidates.isPending
                 }
               >
-                {promoteRemoteCandidates.isPending
+                {promoteScreeningCandidates.isPending
                   ? "Creating dataset…"
                   : "Create dataset from selected"}
               </button>
             </div>
-            {updateRemoteCandidates.isError && (
-              <p role="alert">{updateRemoteCandidates.error.message}</p>
+            {updateScreeningCandidates.isError && (
+              <p role="alert">{updateScreeningCandidates.error.message}</p>
             )}
-            {promoteRemoteCandidates.isError && (
-              <p role="alert">{promoteRemoteCandidates.error.message}</p>
+            {promoteScreeningCandidates.isError && (
+              <p role="alert">{promoteScreeningCandidates.error.message}</p>
             )}
           </div>
         )}
-        {promoteRemoteCandidates.data?.data && (
+        {promoteScreeningCandidates.data?.data && (
           <div className="success-callout" role="status">
             Created dataset{" "}
-            <code>{promoteRemoteCandidates.data.data.dataset_id}</code> from{" "}
-            <strong>{promoteRemoteCandidates.data.data.records.length}</strong>{" "}
+            <code>{promoteScreeningCandidates.data.data.dataset_id}</code> from{" "}
+            <strong>
+              {promoteScreeningCandidates.data.data.records.length}
+            </strong>{" "}
             screened records.
             <Link
               className="button button-secondary"
@@ -781,15 +845,29 @@ export function UploadPage() {
               ))}
             </select>
           </label>
-          <button
-            type="submit"
-            className="button-primary"
-            disabled={!selectedUploadIds.length || loadDataset.isPending}
-          >
-            {loadDataset.isPending
-              ? "Loading dataset…"
-              : "Load selected uploads"}
-          </button>
+          <div className="section-actions">
+            <button
+              type="button"
+              onClick={reviewSelectedUploads}
+              disabled={
+                !selectedUploadIds.length || createScreeningRun.isPending
+              }
+            >
+              {createScreeningRun.isPending
+                ? "Creating screening run…"
+                : "Review selected uploads"}
+            </button>
+            <button
+              type="submit"
+              className="button-primary"
+              disabled={!selectedUploadIds.length || loadDataset.isPending}
+            >
+              {loadDataset.isPending ? "Loading dataset…" : "Load directly"}
+            </button>
+          </div>
+          {createScreeningRun.isError && screeningAction === "uploads" && (
+            <p role="alert">{createScreeningRun.error.message}</p>
+          )}
           {loadDataset.isError && (
             <p role="alert">{loadDataset.error.message}</p>
           )}

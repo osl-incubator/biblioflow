@@ -26,6 +26,11 @@ import type {
   RemoteSearchPayload,
   RemoteSourceImportRequest,
   RemoteSourceSearchRequest,
+  ScreeningCandidateDecisionRequest,
+  ScreeningCandidatePromotionRequest,
+  ScreeningRunCreateRequest,
+  ScreeningRunListItem,
+  ScreeningRunPayload,
   Upload,
   ValidationPayload,
 } from "./types";
@@ -197,6 +202,55 @@ export async function promoteRemoteCandidates(
 ): Promise<ApiEnvelope<DatasetPayload>> {
   return request<ApiEnvelope<DatasetPayload>>(
     `/projects/${projectId}/sources/searches/${searchId}/promote`,
+    { method: "POST", body: JSON.stringify(payload) },
+  );
+}
+
+export async function createScreeningRun(
+  projectId: string,
+  payload: ScreeningRunCreateRequest,
+): Promise<ApiEnvelope<ScreeningRunPayload>> {
+  return request<ApiEnvelope<ScreeningRunPayload>>(
+    `/projects/${projectId}/screening/runs`,
+    { method: "POST", body: JSON.stringify(payload) },
+  );
+}
+
+export async function listScreeningRuns(
+  projectId: string,
+): Promise<ApiEnvelope<ScreeningRunListItem[]>> {
+  return request<ApiEnvelope<ScreeningRunListItem[]>>(
+    `/projects/${projectId}/screening/runs`,
+  );
+}
+
+export async function getScreeningRun(
+  projectId: string,
+  screeningRunId: string,
+): Promise<ApiEnvelope<ScreeningRunPayload>> {
+  return request<ApiEnvelope<ScreeningRunPayload>>(
+    `/projects/${projectId}/screening/runs/${screeningRunId}`,
+  );
+}
+
+export async function updateScreeningCandidates(
+  projectId: string,
+  screeningRunId: string,
+  payload: ScreeningCandidateDecisionRequest,
+): Promise<ApiEnvelope<ScreeningRunPayload>> {
+  return request<ApiEnvelope<ScreeningRunPayload>>(
+    `/projects/${projectId}/screening/runs/${screeningRunId}/candidates`,
+    { method: "PATCH", body: JSON.stringify(payload) },
+  );
+}
+
+export async function promoteScreeningCandidates(
+  projectId: string,
+  screeningRunId: string,
+  payload: ScreeningCandidatePromotionRequest,
+): Promise<ApiEnvelope<DatasetPayload>> {
+  return request<ApiEnvelope<DatasetPayload>>(
+    `/projects/${projectId}/screening/runs/${screeningRunId}/promote`,
     { method: "POST", body: JSON.stringify(payload) },
   );
 }

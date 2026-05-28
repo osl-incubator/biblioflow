@@ -50,9 +50,9 @@ It provides:
 - FastAPI application factory.
 - Project, upload, dataset, validation, filter, analysis, matrix, network, and
   PRISMA/export routes.
-- PubMed and PubMed Central routes that call the core `biblioflow` API
-  connectors, stage results as screening candidates, and promote selected
-  records into normal datasets.
+- Source-agnostic screening routes that stage uploaded files, raw records, and
+  supported remote API searches as candidates before promotion into normal
+  datasets.
 - Runtime file stores for uploaded files, normalized datasets, exports, and
   project metadata.
 - Static-file serving for the bundled React build in production wheels.
@@ -87,26 +87,27 @@ makim web.frontend.tests
 makim web.frontend.build
 ```
 
-## PubMed and PMC screening import
+## Source-agnostic screening imports
 
 The Import page supports two data-ingestion modes:
 
 1. Upload local bibliographic exports and load them into a normalized dataset.
-2. Search PubMed or PubMed Central, review staged candidates, and create a
-   dataset from selected records.
+2. Review uploaded files or remote search results as screening candidates, then
+   create a dataset from selected records.
 
-Remote searches call `biblioflow.from_pubmed(...)` or
-`biblioflow.from_pmc(...)` inside the backend. Search results are first saved as
-a project-level screening queue with candidate statuses such as `candidate`,
-`selected`, `excluded`, and `imported`. This preserves the original search run
-for reproducibility and makes it possible to inspect, filter, and bulk-select
-records before they enter the active analysis dataset.
+Screening runs are generic. They can be created from uploaded exports, raw
+records supplied by a client, or supported remote sources such as PubMed, PubMed
+Central, OpenAlex, Crossref, and Scopus. Results are first saved as a
+project-level screening queue with candidate statuses such as `candidate`,
+`selected`, `maybe`, `excluded`, `duplicate`, and `imported`. This preserves the
+original import/search run for reproducibility and makes it possible to inspect,
+filter, and bulk-select records before they enter the active analysis dataset.
 
 The staged workflow is:
 
 ```text
-PubMed/PMC query
-→ persisted remote search
+Any source input
+→ persisted screening run
 → candidate screening table
 → selected candidates
 → active biblioflow dataset
@@ -115,10 +116,10 @@ PubMed/PMC query
 Promoted records are saved with the same dataset payload shape as uploaded
 files, so all dashboard pages immediately work with the new active dataset.
 
-The form accepts a query, source, limit, contact email, optional NCBI API key,
-tool name, and optional search/dataset name. API keys are sent only to the
-backend request handler and are not stored in project metadata, staged search
-payloads, datasets, or API responses.
+Remote forms accept a query, source, limit, contact email, optional API key, tool
+name, and optional screening/dataset name. API keys are sent only to the backend
+request handler and are not stored in project metadata, screening payloads,
+datasets, or API responses.
 
 For deployments, configure a default contact email when users should not type it
 for every import:
@@ -156,10 +157,12 @@ All application API routes live under `/api` by default.
 | Health | `GET /api/health` | Service and version metadata. |
 | Projects | `/api/projects` | Create, list, inspect, and delete projects. |
 | Uploads | `/api/projects/{project_id}/uploads` | Upload and manage bibliographic files. |
-| Remote sources | `POST /api/projects/{project_id}/sources/search` | Search PubMed/PMC and stage screening candidates. |
-| Remote sources | `GET /api/projects/{project_id}/sources/searches` | List staged remote-source searches. |
-| Remote sources | `PATCH /api/projects/{project_id}/sources/searches/{search_id}/candidates` | Apply keep/exclude/duplicate decisions. |
-| Remote sources | `POST /api/projects/{project_id}/sources/searches/{search_id}/promote` | Create an active dataset from selected candidates. |
+| Screening | `POST /api/projects/{project_id}/screening/runs` | Stage uploaded files, raw records, or supported remote searches as screening candidates. |
+| Screening | `GET /api/projects/{project_id}/screening/runs` | List project screening runs. |
+| Screening | `GET /api/projects/{project_id}/screening/runs/{screening_run_id}` | Fetch one screening run and its candidates. |
+| Screening | `PATCH /api/projects/{project_id}/screening/runs/{screening_run_id}/candidates` | Apply keep/maybe/exclude/duplicate decisions. |
+| Screening | `POST /api/projects/{project_id}/screening/runs/{screening_run_id}/promote` | Create an active dataset from selected candidates. |
+| Remote sources | `/api/projects/{project_id}/sources/search*` | Compatibility wrappers for earlier PubMed/PMC staged imports. |
 | Remote sources | `POST /api/projects/{project_id}/sources/import` | Compatibility direct import that creates an active dataset. |
 | Datasets | `/api/projects/{project_id}/datasets` | Load uploads and retrieve normalized datasets. |
 | Validation | `/api/projects/{project_id}/datasets/{dataset_id}/validation` | Inspect warnings and validation metadata. |

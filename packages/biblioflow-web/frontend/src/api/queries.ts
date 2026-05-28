@@ -6,6 +6,7 @@ import {
   buildPrismaFlow,
   createExport,
   createProject,
+  createScreeningRun,
   deleteProject,
   deleteUpload,
   getDataset,
@@ -16,6 +17,7 @@ import {
   getPrismaFlow,
   getProject,
   getRemoteSearch,
+  getScreeningRun,
   getUpload,
   getValidation,
   importRemoteSource,
@@ -23,12 +25,15 @@ import {
   listExports,
   listProjects,
   listRemoteSearches,
+  listScreeningRuns,
   listUploads,
   loadDataset,
   promoteRemoteCandidates,
+  promoteScreeningCandidates,
   previewFilters,
   runOverview,
   searchRemoteSource,
+  updateScreeningCandidates,
   updateRemoteCandidates,
   uploadFiles,
 } from "./client";
@@ -43,6 +48,9 @@ import type {
   PrismaFlowRequest,
   RemoteSourceImportRequest,
   RemoteSourceSearchRequest,
+  ScreeningCandidateDecisionRequest,
+  ScreeningCandidatePromotionRequest,
+  ScreeningRunCreateRequest,
 } from "./types";
 
 export function useHealth() {
@@ -101,6 +109,26 @@ export function useRemoteSearch(
     queryKey: ["projects", projectId, "remote-searches", searchId],
     queryFn: () => getRemoteSearch(projectId as string, searchId as string),
     enabled: Boolean(projectId && searchId),
+  });
+}
+
+export function useScreeningRuns(projectId?: string | null) {
+  return useQuery({
+    queryKey: ["projects", projectId, "screening-runs"],
+    queryFn: () => listScreeningRuns(projectId as string),
+    enabled: Boolean(projectId),
+  });
+}
+
+export function useScreeningRun(
+  projectId?: string | null,
+  screeningRunId?: string | null,
+) {
+  return useQuery({
+    queryKey: ["projects", projectId, "screening-runs", screeningRunId],
+    queryFn: () =>
+      getScreeningRun(projectId as string, screeningRunId as string),
+    enabled: Boolean(projectId && screeningRunId),
   });
 }
 
@@ -315,6 +343,78 @@ export function useSearchRemoteSource(projectId?: string | null) {
         ["projects", projectId, "remote-searches", searchId],
         response,
       );
+    },
+  });
+}
+
+export function useCreateScreeningRun(projectId?: string | null) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: ScreeningRunCreateRequest) =>
+      createScreeningRun(projectId as string, payload),
+    onSuccess: (response) => {
+      const screeningRunId = response.data.screening_run_id;
+      queryClient.invalidateQueries({ queryKey: ["projects", projectId] });
+      queryClient.invalidateQueries({
+        queryKey: ["projects", projectId, "screening-runs"],
+      });
+      queryClient.setQueryData(
+        ["projects", projectId, "screening-runs", screeningRunId],
+        response,
+      );
+    },
+  });
+}
+
+export function useUpdateScreeningCandidates(
+  projectId?: string | null,
+  screeningRunId?: string | null,
+) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: ScreeningCandidateDecisionRequest) =>
+      updateScreeningCandidates(
+        projectId as string,
+        screeningRunId as string,
+        payload,
+      ),
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: ["projects", projectId] });
+      queryClient.invalidateQueries({
+        queryKey: ["projects", projectId, "screening-runs"],
+      });
+      queryClient.setQueryData(
+        ["projects", projectId, "screening-runs", screeningRunId],
+        response,
+      );
+    },
+  });
+}
+
+export function usePromoteScreeningCandidates(
+  projectId?: string | null,
+  screeningRunId?: string | null,
+) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: ScreeningCandidatePromotionRequest) =>
+      promoteScreeningCandidates(
+        projectId as string,
+        screeningRunId as string,
+        payload,
+      ),
+    onSuccess: (response) => {
+      const datasetId = response.data.dataset_id;
+      queryClient.invalidateQueries({ queryKey: ["projects", projectId] });
+      queryClient.invalidateQueries({
+        queryKey: ["projects", projectId, "datasets"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["projects", projectId, "screening-runs"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["projects", projectId, "datasets", datasetId],
+      });
     },
   });
 }

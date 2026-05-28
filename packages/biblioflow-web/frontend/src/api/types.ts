@@ -50,20 +50,27 @@ export interface DatasetListItem {
 
 export type BibliographicRecord = Record<string, unknown>;
 
-export type RemoteCandidateStatus =
+export type ScreeningCandidateStatus =
   | "candidate"
   | "selected"
+  | "maybe"
   | "excluded"
   | "duplicate"
-  | "imported";
+  | "imported"
+  | "error";
 
-export interface RemoteCandidate {
+export interface ScreeningCandidate {
   candidate_id: string;
-  status: RemoteCandidateStatus;
+  status: ScreeningCandidateStatus;
   created_at: string;
   updated_at: string;
+  decision_reason?: string | null;
+  labels?: string[];
+  notes?: string | null;
   record: BibliographicRecord;
   identifiers: Record<string, string>;
+  deduplication_key?: string | null;
+  duplicate_of_candidate_id?: string | null;
   title: string;
   year?: number | null;
   authors: string[];
@@ -71,6 +78,35 @@ export interface RemoteCandidate {
   imported_dataset_id?: string;
 }
 
+export interface ScreeningRunListItem {
+  screening_run_id: string;
+  created_at: string;
+  updated_at: string;
+  name: string;
+  origin_type: "uploads" | "remote_search" | "records" | string;
+  source: string;
+  source_label: string;
+  format?: string | null;
+  query?: string | null;
+  upload_ids?: string[];
+  limit?: number | null;
+  records: number;
+  status_counts: Record<string, number>;
+  promoted_dataset_ids?: string[];
+  metadata?: Record<string, unknown>;
+}
+
+export interface ScreeningRunPayload extends ScreeningRunListItem {
+  candidates: ScreeningCandidate[];
+  warnings: ApiWarning[];
+  metadata: Record<string, unknown>;
+}
+
+export type RemoteCandidateStatus = Exclude<
+  ScreeningCandidateStatus,
+  "maybe" | "error"
+>;
+export type RemoteCandidate = ScreeningCandidate;
 export interface RemoteSearchListItem {
   search_id: string;
   created_at: string;
@@ -84,7 +120,6 @@ export interface RemoteSearchListItem {
   status_counts: Record<string, number>;
   metadata?: Record<string, unknown>;
 }
-
 export interface RemoteSearchPayload extends RemoteSearchListItem {
   candidates: RemoteCandidate[];
   warnings: ApiWarning[];
@@ -188,6 +223,20 @@ export interface RemoteSourceImportRequest {
 
 export type RemoteSourceSearchRequest = RemoteSourceImportRequest;
 
+export interface ScreeningRunCreateRequest {
+  origin_type: "uploads" | "remote_search" | "records";
+  source?: string;
+  format?: string;
+  upload_ids?: string[] | null;
+  query?: string | null;
+  limit?: number;
+  email?: string | null;
+  api_key?: string | null;
+  tool?: string;
+  name?: string | null;
+  records?: BibliographicRecord[] | null;
+}
+
 export interface CandidateDecisionRequest {
   candidate_ids: string[];
   status: Exclude<RemoteCandidateStatus, "imported">;
@@ -196,6 +245,20 @@ export interface CandidateDecisionRequest {
 export interface CandidatePromotionRequest {
   candidate_ids?: string[] | null;
   include_statuses?: ("candidate" | "selected")[];
+  name?: string | null;
+}
+
+export interface ScreeningCandidateDecisionRequest {
+  candidate_ids: string[];
+  status: Exclude<ScreeningCandidateStatus, "imported">;
+  decision_reason?: string | null;
+  labels?: string[] | null;
+  notes?: string | null;
+}
+
+export interface ScreeningCandidatePromotionRequest {
+  candidate_ids?: string[] | null;
+  include_statuses?: ("candidate" | "selected" | "maybe")[];
   name?: string | null;
 }
 

@@ -11,6 +11,7 @@ from biblioflow_nb.services import (
     ExportService,
     MatrixService,
     NetworkService,
+    ScreeningService,
 )
 from biblioflow_nb.state import NotebookSession
 
@@ -129,6 +130,129 @@ def test_app_remote_source_methods_delegate(monkeypatch: pytest.MonkeyPatch):
     app.from_pubmed(query="bibliometrics")
     app.from_pubmed_central(query="open access")
     app.from_pmc(query="open science")
+    staged = app.stage_pubmed(query="screening")
+    app.update_candidates([staged["candidates"][0]["candidate_id"]])
+    app.promote_candidates(name="Screened PubMed")
 
-    assert calls == ["pubmed", "pmc", "pmc"]
-    assert app.session.active_dataset_name == "PMC: open science"
+    assert calls == ["pubmed", "pmc", "pmc", "pubmed"]
+    assert app.session.active_dataset_name == "Screened PubMed"
+
+
+def test_screening_service_stages_updates_and_promotes_records() -> None:
+    session = NotebookSession()
+    screening = ScreeningService(session)
+
+    run = screening.stage_records(
+        [
+            {
+                "doi": "10.1000/example",
+                "title": "Notebook screening",
+                "publication_year": 2026,
+                "authors": ["Ada Lovelace"],
+                "source_title": "Notebook Journal",
+            },
+            {
+                "doi": "10.1000/example",
+                "title": "Duplicate screening",
+                "publication_year": 2026,
+                "authors": ["Ada Lovelace"],
+                "source_title": "Notebook Journal",
+            },
+        ],
+        source="generic",
+        name="Manual records",
+    )
+    candidate_id = run["candidates"][0]["candidate_id"]
+    duplicate = run["candidates"][1]
+
+    assert run["status_counts"] == {"candidate": 1, "duplicate": 1}
+    assert duplicate["duplicate_of_candidate_id"] == candidate_id
+    assert session.active_screening_run_id == run["screening_run_id"]
+
+    updated = screening.update_candidates(
+        [candidate_id],
+        status="maybe",
+        reason="needs review",
+        labels=["method"],
+        notes="promote for testing",
+    )
+    assert updated["candidates"][0]["status"] == "maybe"
+    assert updated["candidates"][0]["labels"] == ["method"]
+
+    dataset = screening.promote_candidates(include_statuses=("maybe",))
+
+    assert len(dataset) == 1
+    assert session.active_dataset_name == "Manual records — screened records"
+    assert session.screening_runs[0]["status_counts"] == {
+        "imported": 1,
+        "duplicate": 1,
+    }
+    assert session.to_manifest()["screening_runs"][0]["records"] == 2
+
+
+def test_screening_service_stages_file_and_pubmed(
+    data_dir, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import biblioflow as bf
+
+    session = NotebookSession()
+    screening = ScreeningService(session)
+
+    file_run = screening.stage_file(data_dir / "minimal.json", source="generic")
+
+    assert file_run["origin_type"] == "uploads"
+    assert session.uploads[-1].name == "minimal.json"
+
+    calls: list[dict[str, Any]] = []
+
+    def fake_from_pubmed(**kwargs: Any) -> Any:
+        calls.append(kwargs)
+        return _remote_dataset("pubmed")
+
+    monkeypatch.setattr(bf, "from_pubmed", fake_from_pubmed)
+
+    pubmed_run = screening.stage_pubmed(
+        query=" bibliometrics ",
+        limit=5,
+        email="researcher@example.org",
+        api_key="secret-token",
+        tool="tests",
+    )
+
+    assert pubmed_run["source"] == "pubmed"
+    assert calls == [
+        {
+            "query": "bibliometrics",
+            "limit": 5,
+            "tool": "tests",
+            "email": "researcher@example.org",
+            "api_key": "secret-token",
+        }
+    ]
+    assert "secret-token" not in str(session.to_manifest())
+    assert "secret-token" not in str(pubmed_run["metadata"])
+
+
+def test_screening_service_rejects_invalid_actions() -> None:
+    session = NotebookSession()
+    screening = ScreeningService(session)
+
+    with pytest.raises(ValueError, match="records"):
+        screening.stage_records([])
+    with pytest.raises(ValueError, match="query"):
+        screening.stage_pubmed(query=" ")
+    with pytest.raises(ValueError, match="select"):
+        screening.update_candidates([], status="selected")
+
+    run = screening.stage_records([{"title": "One"}])
+
+    with pytest.raises(ValueError, match="Unsupported"):
+        screening.update_candidates(
+            [run["candidates"][0]["candidate_id"]], status="bad"
+        )
+    with pytest.raises(KeyError):
+        screening.update_candidates(["missing"], status="selected")
+    with pytest.raises(ValueError, match="Only candidate"):
+        screening.promote_candidates(include_statuses=("excluded",))
+    with pytest.raises(ValueError, match="Select"):
+        screening.promote_candidates([])

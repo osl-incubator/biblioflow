@@ -15,6 +15,7 @@ from biblioflow_nb.services import (
     ExportService,
     MatrixService,
     NetworkService,
+    ScreeningService,
 )
 from biblioflow_nb.state import NotebookSession
 from biblioflow_nb.widgets.affiliations import AffiliationsPanel
@@ -44,6 +45,7 @@ class NotebookServices:
     matrices: MatrixService
     networks: NetworkService
     exports: ExportService
+    screening: ScreeningService
 
     @classmethod
     def create(cls, session: NotebookSession) -> NotebookServices:
@@ -55,6 +57,7 @@ class NotebookServices:
             matrices=MatrixService(session, datasets),
             networks=NetworkService(session, datasets),
             exports=ExportService(session, datasets),
+            screening=ScreeningService(session),
         )
 
 
@@ -117,6 +120,38 @@ class BiblioFlowNotebookApp:
     def from_pubmed_central(self, **kwargs: Any) -> Any:
         """Import PubMed Central records into the app session."""
         return self.from_pmc(**kwargs)
+
+    def stage_records(self, records: Any, **kwargs: Any) -> dict[str, Any]:
+        """Stage records as screening candidates without importing them."""
+        return self.services.screening.stage_records(records, **kwargs)
+
+    def stage_file(self, path: str, **kwargs: Any) -> dict[str, Any]:
+        """Stage a local file as screening candidates without importing it."""
+        return self.services.screening.stage_file(path, **kwargs)
+
+    def stage_pubmed(self, **kwargs: Any) -> dict[str, Any]:
+        """Stage PubMed results as screening candidates."""
+        return self.services.screening.stage_pubmed(**kwargs)
+
+    def stage_pmc(self, **kwargs: Any) -> dict[str, Any]:
+        """Stage PubMed Central results as screening candidates."""
+        return self.services.screening.stage_pmc(**kwargs)
+
+    def stage_pubmed_central(self, **kwargs: Any) -> dict[str, Any]:
+        """Stage PubMed Central results as screening candidates."""
+        return self.stage_pmc(**kwargs)
+
+    def update_candidates(
+        self, candidate_ids: list[str], **kwargs: Any
+    ) -> dict[str, Any]:
+        """Apply a screening decision to notebook candidates."""
+        return self.services.screening.update_candidates(candidate_ids, **kwargs)
+
+    def promote_candidates(
+        self, candidate_ids: list[str] | None = None, **kwargs: Any
+    ) -> Any:
+        """Promote screening candidates into the active notebook dataset."""
+        return self.services.screening.promote_candidates(candidate_ids, **kwargs)
 
     def refresh(self) -> None:
         """Refresh all panels that implement refresh behavior."""

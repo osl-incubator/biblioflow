@@ -45,7 +45,7 @@ def _remote_dataset(source: str) -> Any:
     )
 
 
-def test_remote_sources_panel_imports_selected_source(
+def test_remote_sources_panel_stages_and_promotes_selected_source(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     calls: list[dict[str, Any]] = []
@@ -78,6 +78,12 @@ def test_remote_sources_panel_imports_selected_source(
         }
     ]
     assert panel.api_key_text.value == ""
+    assert session.active_dataset is None
+    assert session.active_screening_run_id is not None
+    assert session.screening_runs[0]["name"] == "Widget PMC"
+
+    panel.promote_from_ui()
+
     assert session.active_dataset_name == "Widget PMC"
     assert "secret-token" not in str(session.to_manifest())
 

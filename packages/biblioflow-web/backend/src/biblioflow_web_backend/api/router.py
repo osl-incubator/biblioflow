@@ -14,6 +14,7 @@ from biblioflow_web_backend.api.routes import (
     networks,
     prisma,
     projects,
+    screening,
     sources,
     uploads,
     validation,
@@ -22,6 +23,7 @@ from biblioflow_web_backend.api.routes import (
 api_router = APIRouter()
 api_router.include_router(health.router, tags=["health"])
 api_router.include_router(projects.router, prefix="/projects", tags=["projects"])
+api_router.include_router(screening.router, prefix="/projects", tags=["screening"])
 api_router.include_router(sources.router, prefix="/projects", tags=["sources"])
 api_router.include_router(uploads.router, prefix="/projects", tags=["uploads"])
 api_router.include_router(datasets.router, prefix="/projects", tags=["datasets"])
