@@ -4,6 +4,8 @@ import type {
   ApiEnvelope,
   ApiErrorPayload,
   BibliographicRecord,
+  CandidateDecisionRequest,
+  CandidatePromotionRequest,
   DatasetListItem,
   DatasetLoadRequest,
   DatasetPayload,
@@ -20,7 +22,10 @@ import type {
   PrismaFlowPayload,
   PrismaFlowRequest,
   Project,
+  RemoteSearchListItem,
+  RemoteSearchPayload,
   RemoteSourceImportRequest,
+  RemoteSourceSearchRequest,
   Upload,
   ValidationPayload,
 } from "./types";
@@ -143,6 +148,55 @@ export async function importRemoteSource(
 ): Promise<ApiEnvelope<DatasetPayload>> {
   return request<ApiEnvelope<DatasetPayload>>(
     `/projects/${projectId}/sources/import`,
+    { method: "POST", body: JSON.stringify(payload) },
+  );
+}
+
+export async function searchRemoteSource(
+  projectId: string,
+  payload: RemoteSourceSearchRequest,
+): Promise<ApiEnvelope<RemoteSearchPayload>> {
+  return request<ApiEnvelope<RemoteSearchPayload>>(
+    `/projects/${projectId}/sources/search`,
+    { method: "POST", body: JSON.stringify(payload) },
+  );
+}
+
+export async function listRemoteSearches(
+  projectId: string,
+): Promise<ApiEnvelope<RemoteSearchListItem[]>> {
+  return request<ApiEnvelope<RemoteSearchListItem[]>>(
+    `/projects/${projectId}/sources/searches`,
+  );
+}
+
+export async function getRemoteSearch(
+  projectId: string,
+  searchId: string,
+): Promise<ApiEnvelope<RemoteSearchPayload>> {
+  return request<ApiEnvelope<RemoteSearchPayload>>(
+    `/projects/${projectId}/sources/searches/${searchId}`,
+  );
+}
+
+export async function updateRemoteCandidates(
+  projectId: string,
+  searchId: string,
+  payload: CandidateDecisionRequest,
+): Promise<ApiEnvelope<RemoteSearchPayload>> {
+  return request<ApiEnvelope<RemoteSearchPayload>>(
+    `/projects/${projectId}/sources/searches/${searchId}/candidates`,
+    { method: "PATCH", body: JSON.stringify(payload) },
+  );
+}
+
+export async function promoteRemoteCandidates(
+  projectId: string,
+  searchId: string,
+  payload: CandidatePromotionRequest,
+): Promise<ApiEnvelope<DatasetPayload>> {
+  return request<ApiEnvelope<DatasetPayload>>(
+    `/projects/${projectId}/sources/searches/${searchId}/promote`,
     { method: "POST", body: JSON.stringify(payload) },
   );
 }

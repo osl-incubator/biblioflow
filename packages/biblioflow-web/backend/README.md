@@ -23,11 +23,20 @@ Set `BIBLIOFLOW_WEB_DATA_DIR` to control where projects, uploads, datasets,
 exports, and caches are written. Runtime data is never written into the
 installed Python package directory.
 
-## PubMed/PMC imports
+## PubMed/PMC screening imports
 
-The backend exposes `POST /api/projects/{project_id}/sources/import` for PubMed
-and PubMed Central searches. The route calls the core `biblioflow` API
-connectors and stores the result as a regular active dataset.
+The backend exposes staged PubMed and PubMed Central search endpoints. The
+recommended workflow is:
+
+1. `POST /api/projects/{project_id}/sources/search` to call the core
+   `biblioflow` API connectors and persist results as screening candidates.
+2. `PATCH /api/projects/{project_id}/sources/searches/{search_id}/candidates` to
+   mark candidates as selected, excluded, duplicate, or candidate.
+3. `POST /api/projects/{project_id}/sources/searches/{search_id}/promote` to
+   create a regular active dataset from selected candidate IDs or statuses.
+
+The older direct `POST /api/projects/{project_id}/sources/import` route remains
+available for compatibility when an intermediate screening step is not needed.
 
 Configure NCBI contact details with environment variables when desired:
 
@@ -37,7 +46,8 @@ export BIBLIOFLOW_NCBI_API_KEY="optional-key"
 ```
 
 Submitted API keys are passed to `biblioflow` for the request only; they are not
-persisted in project metadata or returned by the API.
+persisted in project metadata, remote-search payloads, datasets, or returned by
+the API.
 
 ## Bundling the frontend
 

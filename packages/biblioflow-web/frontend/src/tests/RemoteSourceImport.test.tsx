@@ -63,10 +63,53 @@ describe("remote source import", () => {
     ).toBeDefined();
   });
 
-  it("submits a PMC import request and shows the imported dataset", async () => {
-    const requestBodies: unknown[] = [];
+  it("stages a PMC search, records a keep decision, and promotes selected candidates", async () => {
+    const searchBodies: unknown[] = [];
+    const decisionBodies: unknown[] = [];
+    const promoteBodies: unknown[] = [];
+    const stagedSearch = {
+      search_id: "search-1",
+      created_at: "2026-01-01T00:00:00Z",
+      updated_at: "2026-01-01T00:00:00Z",
+      source: "pmc",
+      source_label: "PubMed Central",
+      query: "open science",
+      limit: 12,
+      name: "PMC import",
+      records: 2,
+      status_counts: { candidate: 2 },
+      candidates: [
+        {
+          candidate_id: "candidate-1",
+          status: "candidate",
+          created_at: "2026-01-01T00:00:00Z",
+          updated_at: "2026-01-01T00:00:00Z",
+          record: { title: "PMC record", pmcid: "PMC1" },
+          identifiers: { pmcid: "PMC1", doi: "10.1234/pmc" },
+          title: "PMC record",
+          year: 2025,
+          authors: ["Grace Hopper"],
+          source_title: "Open Full Text Research",
+        },
+        {
+          candidate_id: "candidate-2",
+          status: "candidate",
+          created_at: "2026-01-01T00:00:00Z",
+          updated_at: "2026-01-01T00:00:00Z",
+          record: { title: "Excluded record", pmcid: "PMC2" },
+          identifiers: { pmcid: "PMC2" },
+          title: "Excluded record",
+          year: 2020,
+          authors: ["Other Author"],
+          source_title: "Other Journal",
+        },
+      ],
+      warnings: [],
+      metadata: { status_counts: { candidate: 2 } },
+    };
     const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
+      const method = init?.method ?? "GET";
       if (url.endsWith("/projects/project-1")) {
         return Promise.resolve(
           jsonResponse({
@@ -91,17 +134,65 @@ describe("remote source import", () => {
           jsonResponse({ data: [], warnings: [], metadata: {} }),
         );
       }
-      if (url.endsWith("/projects/project-1/sources/import")) {
-        requestBodies.push(JSON.parse(String(init?.body)));
+      if (
+        url.endsWith("/projects/project-1/sources/searches") &&
+        method === "GET"
+      ) {
+        return Promise.resolve(
+          jsonResponse({ data: [], warnings: [], metadata: {} }),
+        );
+      }
+      if (
+        url.endsWith("/projects/project-1/sources/searches/search-1") &&
+        method === "GET"
+      ) {
+        return Promise.resolve(
+          jsonResponse({ data: stagedSearch, warnings: [], metadata: {} }),
+        );
+      }
+      if (url.endsWith("/projects/project-1/sources/search")) {
+        searchBodies.push(JSON.parse(String(init?.body)));
+        return Promise.resolve(
+          jsonResponse({ data: stagedSearch, warnings: [], metadata: {} }),
+        );
+      }
+      if (
+        url.endsWith("/projects/project-1/sources/searches/search-1/candidates")
+      ) {
+        decisionBodies.push(JSON.parse(String(init?.body)));
+        return Promise.resolve(
+          jsonResponse({
+            data: {
+              ...stagedSearch,
+              status_counts: { selected: 2 },
+              candidates: stagedSearch.candidates.map((candidate) => ({
+                ...candidate,
+                status: "selected",
+              })),
+              metadata: { status_counts: { selected: 2 } },
+            },
+            warnings: [],
+            metadata: {},
+          }),
+        );
+      }
+      if (
+        url.endsWith("/projects/project-1/sources/searches/search-1/promote")
+      ) {
+        promoteBodies.push(JSON.parse(String(init?.body)));
         return Promise.resolve(
           jsonResponse({
             data: {
               dataset_id: "dataset-1",
               created_at: "2026-01-01T00:00:00Z",
               upload_ids: [],
-              records: [{ title: "PMC record" }],
+              records: [{ title: "PMC record" }, { title: "Excluded record" }],
               warnings: [],
-              metadata: { remote_source: "pmc", query: "open science" },
+              metadata: {
+                remote_source: "pmc",
+                query: "open science",
+                remote_search_id: "search-1",
+              },
             },
             warnings: [],
             metadata: {},
@@ -129,11 +220,11 @@ describe("remote source import", () => {
     await userEvent.type(screen.getByLabelText("Dataset name"), "PMC import");
     await userEvent.type(screen.getByLabelText("Query"), "open science");
     await userEvent.click(
-      screen.getByRole("button", { name: /Search and import records/i }),
+      screen.getByRole("button", { name: /Search and review records/i }),
     );
 
-    await waitFor(() => expect(requestBodies).toHaveLength(1));
-    expect(requestBodies[0]).toEqual({
+    await waitFor(() => expect(searchBodies).toHaveLength(1));
+    expect(searchBodies[0]).toEqual({
       source: "pmc",
       query: "open science",
       limit: 12,
@@ -142,11 +233,42 @@ describe("remote source import", () => {
       tool: "biblioflow-web",
       name: "PMC import",
     });
-    expect(await screen.findByText(/Imported/i)).toBeDefined();
-    expect(screen.getByText("dataset-1")).toBeDefined();
+    expect(await screen.findByText("PMC record")).toBeDefined();
+    expect(screen.getByText(/Selected 2 records/i)).toBeDefined();
     expect(
       (screen.getByLabelText("NCBI API key") as HTMLInputElement).value,
     ).toBe("");
+
+    await userEvent.type(screen.getByLabelText("Filter candidates"), "Grace");
+    expect(screen.getByText(/Selected 2 records \(1 visible\)/i)).toBeDefined();
+    await userEvent.click(
+      screen.getByRole("button", { name: /Clear visible/i }),
+    );
+    expect(screen.getByText(/Selected 1 records \(0 visible\)/i)).toBeDefined();
+    await userEvent.click(
+      screen.getByRole("button", { name: /Select visible/i }),
+    );
+    expect(screen.getByText(/Selected 2 records \(1 visible\)/i)).toBeDefined();
+
+    await userEvent.click(
+      screen.getByRole("button", { name: /Mark selected as keep/i }),
+    );
+    await waitFor(() => expect(decisionBodies).toHaveLength(1));
+    expect(decisionBodies[0]).toEqual({
+      candidate_ids: ["candidate-2", "candidate-1"],
+      status: "selected",
+    });
+
+    await userEvent.click(
+      screen.getByRole("button", { name: /Create dataset from selected/i }),
+    );
+    await waitFor(() => expect(promoteBodies).toHaveLength(1));
+    expect(promoteBodies[0]).toEqual({
+      candidate_ids: ["candidate-2", "candidate-1"],
+      name: "PMC import",
+    });
+    expect(await screen.findByText(/Created dataset/i)).toBeDefined();
+    expect(screen.getByText("dataset-1")).toBeDefined();
     expect(
       screen.getAllByRole("link", { name: /Go to dashboard/i }).length,
     ).toBeGreaterThan(0);
@@ -179,7 +301,7 @@ describe("remote source import", () => {
           jsonResponse({ data: [], warnings: [], metadata: {} }),
         );
       }
-      if (url.endsWith("/projects/project-1/sources/import")) {
+      if (url.endsWith("/projects/project-1/sources/search")) {
         return Promise.resolve(
           jsonResponse(
             {
@@ -203,11 +325,199 @@ describe("remote source import", () => {
     await screen.findByRole("heading", { name: /Search PubMed or PMC/i });
     await userEvent.type(screen.getByLabelText("Query"), "bibliometrics");
     await userEvent.click(
-      screen.getByRole("button", { name: /Search and import records/i }),
+      screen.getByRole("button", { name: /Search and review records/i }),
     );
 
     expect((await screen.findByRole("alert")).textContent).toMatch(
       /BIBLIOFLOW_NCBI_EMAIL/i,
+    );
+  });
+
+  it("reviews staged search history and surfaces screening action errors", async () => {
+    const decisionBodies: unknown[] = [];
+    const promoteBodies: unknown[] = [];
+    const historySearch = {
+      search_id: "search-1",
+      created_at: "2026-01-01T00:00:00Z",
+      updated_at: "2026-01-01T00:00:00Z",
+      source: "pubmed",
+      source_label: "PubMed",
+      query: "history",
+      limit: 2,
+      name: "History run",
+      records: 2,
+      status_counts: { candidate: 2 },
+      candidates: [
+        {
+          candidate_id: "candidate-empty",
+          status: "candidate",
+          created_at: "2026-01-01T00:00:00Z",
+          updated_at: "2026-01-01T00:00:00Z",
+          record: { title: "Sparse record" },
+          identifiers: {},
+          title: "Sparse record",
+          year: null,
+          authors: [],
+          source_title: null,
+        },
+        {
+          candidate_id: "candidate-promote-error",
+          status: "candidate",
+          created_at: "2026-01-01T00:00:00Z",
+          updated_at: "2026-01-01T00:00:00Z",
+          record: { title: "Promote error record", pmid: "77" },
+          identifiers: { pmid: "77" },
+          title: "Promote error record",
+          year: 2026,
+          authors: ["Error Author"],
+          source_title: "Error Journal",
+        },
+      ],
+      warnings: [],
+      metadata: { status_counts: { candidate: 2 } },
+    };
+    const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      const method = init?.method ?? "GET";
+      if (url.endsWith("/projects/project-1")) {
+        return Promise.resolve(
+          jsonResponse({
+            data: {
+              project_id: "project-1",
+              name: "History project",
+              created_at: "2026-01-01T00:00:00Z",
+              updated_at: "2026-01-01T00:00:00Z",
+              active_dataset_id: null,
+              source_files: [],
+              datasets: [],
+              filters: {},
+              metadata: {},
+            },
+            warnings: [],
+            metadata: {},
+          }),
+        );
+      }
+      if (url.endsWith("/projects/project-1/uploads")) {
+        return Promise.resolve(
+          jsonResponse({ data: [], warnings: [], metadata: {} }),
+        );
+      }
+      if (
+        url.endsWith("/projects/project-1/sources/searches") &&
+        method === "GET"
+      ) {
+        return Promise.resolve(
+          jsonResponse({
+            data: [
+              {
+                search_id: "other-search",
+                created_at: "2026-01-01T00:00:00Z",
+                updated_at: "2026-01-01T00:00:00Z",
+                source: "pubmed",
+                source_label: "PubMed",
+                query: "other",
+                limit: 1,
+                name: "Other run",
+                records: 1,
+                status_counts: { imported: 1 },
+                metadata: {},
+              },
+              {
+                search_id: "search-1",
+                created_at: "2026-01-01T00:00:00Z",
+                updated_at: "2026-01-01T00:00:00Z",
+                source: "pubmed",
+                source_label: "PubMed",
+                query: "history",
+                limit: 2,
+                name: "History run",
+                records: 2,
+                status_counts: { candidate: 2 },
+                metadata: {},
+              },
+            ],
+            warnings: [],
+            metadata: {},
+          }),
+        );
+      }
+      if (
+        url.endsWith("/projects/project-1/sources/searches/search-1") &&
+        method === "GET"
+      ) {
+        return Promise.resolve(
+          jsonResponse({ data: historySearch, warnings: [], metadata: {} }),
+        );
+      }
+      if (
+        url.endsWith("/projects/project-1/sources/searches/search-1/candidates")
+      ) {
+        decisionBodies.push(JSON.parse(String(init?.body)));
+        return Promise.resolve(
+          jsonResponse({
+            data: {
+              ...historySearch,
+              status_counts: { excluded: 1, candidate: 1 },
+              candidates: [
+                { ...historySearch.candidates[0], status: "excluded" },
+                historySearch.candidates[1],
+              ],
+              metadata: { status_counts: { excluded: 1, candidate: 1 } },
+            },
+            warnings: [],
+            metadata: {},
+          }),
+        );
+      }
+      if (
+        url.endsWith("/projects/project-1/sources/searches/search-1/promote")
+      ) {
+        promoteBodies.push(JSON.parse(String(init?.body)));
+        return Promise.resolve(
+          jsonResponse(
+            { error: { message: "Promotion failed" } },
+            { status: 500 },
+          ),
+        );
+      }
+      return Promise.resolve(
+        jsonResponse({ error: { message: "Not found" } }, { status: 404 }),
+      );
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    renderProjectUpload();
+
+    await userEvent.click(
+      await screen.findByRole("button", { name: /History run · 2/i }),
+    );
+    expect(await screen.findByText("Sparse record")).toBeDefined();
+    expect(screen.getAllByText("—").length).toBeGreaterThan(0);
+
+    await userEvent.click(screen.getByLabelText("Select Sparse record"));
+    expect(screen.getByText(/Selected 1 records/i)).toBeDefined();
+    await userEvent.click(
+      screen.getByRole("button", { name: /Exclude selected/i }),
+    );
+    await waitFor(() => expect(decisionBodies).toHaveLength(1));
+    expect(decisionBodies[0]).toEqual({
+      candidate_ids: ["candidate-empty"],
+      status: "excluded",
+    });
+    expect(await screen.findByText(/Selected 0 records/i)).toBeDefined();
+
+    await userEvent.click(screen.getByLabelText("Select Promote error record"));
+    await userEvent.click(
+      screen.getByRole("button", { name: /Create dataset from selected/i }),
+    );
+    await waitFor(() => expect(promoteBodies).toHaveLength(1));
+    expect(promoteBodies[0]).toEqual({
+      candidate_ids: ["candidate-promote-error"],
+      name: null,
+    });
+    expect((await screen.findByRole("alert")).textContent).toMatch(
+      /Promotion failed/i,
     );
   });
 

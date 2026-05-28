@@ -5,13 +5,17 @@ import { DataTable } from "../components/common/DataTable";
 import { EmptyState } from "../components/common/EmptyState";
 import {
   useDeleteUpload,
-  useImportRemoteSource,
   useLoadDataset,
   useProject,
+  usePromoteRemoteCandidates,
+  useRemoteSearch,
+  useRemoteSearches,
+  useSearchRemoteSource,
+  useUpdateRemoteCandidates,
   useUploadFiles,
   useUploads,
 } from "../api/queries";
-import type { RemoteSource } from "../api/types";
+import type { RemoteCandidate, RemoteSource } from "../api/types";
 import { formatDate } from "./dashboard/utils";
 
 const supportedSources = [
@@ -61,6 +65,34 @@ function formatSize(size: number): string {
   return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function candidateMatches(candidate: RemoteCandidate, query: string): boolean {
+  const normalized = query.trim().toLowerCase();
+  if (!normalized) {
+    return true;
+  }
+  const searchable = [
+    candidate.title,
+    candidate.year?.toString() ?? "",
+    candidate.source_title ?? "",
+    candidate.status,
+    candidate.authors.join(" "),
+    Object.values(candidate.identifiers).join(" "),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return searchable.includes(normalized);
+}
+
+function identifiersText(candidate: RemoteCandidate): string {
+  const entries = Object.entries(candidate.identifiers);
+  if (!entries.length) {
+    return "—";
+  }
+  return entries
+    .map(([key, value]) => `${key.toUpperCase()}: ${value}`)
+    .join(" · ");
+}
+
 export function UploadPage() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
@@ -68,7 +100,6 @@ export function UploadPage() {
   const uploads = useUploads(projectId);
   const uploadFiles = useUploadFiles(projectId);
   const loadDataset = useLoadDataset(projectId);
-  const importRemoteSource = useImportRemoteSource(projectId);
   const deleteUpload = useDeleteUpload(projectId);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [selectedUploadIds, setSelectedUploadIds] = useState<string[]>([]);
@@ -81,7 +112,43 @@ export function UploadPage() {
   const [remoteApiKey, setRemoteApiKey] = useState("");
   const [remoteTool, setRemoteTool] = useState("biblioflow-web");
   const [remoteName, setRemoteName] = useState("");
+  const [activeRemoteSearchId, setActiveRemoteSearchId] = useState<
+    string | null
+  >(null);
+  const [selectedCandidateIds, setSelectedCandidateIds] = useState<string[]>(
+    [],
+  );
+  const [candidateFilter, setCandidateFilter] = useState("");
   const [hasAutoSelectedUploads, setHasAutoSelectedUploads] = useState(false);
+  const remoteSearches = useRemoteSearches(projectId);
+  const remoteSearch = useRemoteSearch(projectId, activeRemoteSearchId);
+  const searchRemoteSource = useSearchRemoteSource(projectId);
+  const updateRemoteCandidates = useUpdateRemoteCandidates(
+    projectId,
+    activeRemoteSearchId,
+  );
+  const promoteRemoteCandidates = usePromoteRemoteCandidates(
+    projectId,
+    activeRemoteSearchId,
+  );
+  const stagedSearch =
+    remoteSearch.data?.data ??
+    (searchRemoteSource.data?.data.search_id === activeRemoteSearchId
+      ? searchRemoteSource.data.data
+      : null);
+  const visibleCandidates =
+    stagedSearch?.candidates.filter((candidate) =>
+      candidateMatches(candidate, candidateFilter),
+    ) ?? [];
+  const promotableVisibleCandidateIds = visibleCandidates
+    .filter(
+      (candidate) =>
+        candidate.status !== "excluded" && candidate.status !== "imported",
+    )
+    .map((candidate) => candidate.candidate_id);
+  const selectedVisibleCount = visibleCandidates.filter((candidate) =>
+    selectedCandidateIds.includes(candidate.candidate_id),
+  ).length;
 
   useEffect(() => {
     if (!hasAutoSelectedUploads && uploads.data?.data.length) {
@@ -108,9 +175,6 @@ export function UploadPage() {
   }
 
   function onUpload() {
-    if (!selectedFiles.length) {
-      return;
-    }
     uploadFiles.mutate(selectedFiles, {
       onSuccess: (response) => {
         setSelectedFiles([]);
@@ -151,7 +215,7 @@ export function UploadPage() {
 
   function onImportRemoteSource(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    importRemoteSource.mutate(
+    searchRemoteSource.mutate(
       {
         source: remoteSource,
         query: remoteQuery,
@@ -162,7 +226,62 @@ export function UploadPage() {
         name: remoteName.trim() || null,
       },
       {
-        onSuccess: () => setRemoteApiKey(""),
+        onSuccess: (response) => {
+          setRemoteApiKey("");
+          setActiveRemoteSearchId(response.data.search_id);
+          setSelectedCandidateIds(
+            response.data.candidates.map((candidate) => candidate.candidate_id),
+          );
+        },
+      },
+    );
+  }
+
+  function toggleCandidate(candidateId: string) {
+    setSelectedCandidateIds((current) =>
+      current.includes(candidateId)
+        ? current.filter((item) => item !== candidateId)
+        : [...current, candidateId],
+    );
+  }
+
+  function selectVisibleCandidates() {
+    setSelectedCandidateIds((current) => [
+      ...new Set([...current, ...promotableVisibleCandidateIds]),
+    ]);
+  }
+
+  function clearVisibleCandidates() {
+    setSelectedCandidateIds((current) =>
+      current.filter(
+        (candidateId) => !promotableVisibleCandidateIds.includes(candidateId),
+      ),
+    );
+  }
+
+  function applyCandidateDecision(
+    status: "candidate" | "selected" | "excluded",
+  ) {
+    updateRemoteCandidates.mutate(
+      { candidate_ids: selectedCandidateIds, status },
+      {
+        onSuccess: () => {
+          if (status === "excluded") {
+            setSelectedCandidateIds([]);
+          }
+        },
+      },
+    );
+  }
+
+  function promoteSelectedCandidates() {
+    promoteRemoteCandidates.mutate(
+      {
+        candidate_ids: selectedCandidateIds,
+        name: remoteName.trim() || null,
+      },
+      {
+        onSuccess: () => setSelectedCandidateIds([]),
       },
     );
   }
@@ -274,8 +393,9 @@ export function UploadPage() {
           <h2>Search PubMed or PMC</h2>
         </div>
         <p className="muted-copy">
-          Search NCBI sources and save the results as the active project
-          dataset. Provide a contact email here, or configure
+          Search NCBI sources and stage the results as screening candidates
+          before creating the active project dataset. Provide a contact email
+          here, or configure
           <code>BIBLIOFLOW_NCBI_EMAIL</code> on the backend.
         </p>
         <div className="form-grid">
@@ -352,30 +472,201 @@ export function UploadPage() {
           <button
             type="submit"
             className="button-primary"
-            disabled={!remoteQuery.trim() || importRemoteSource.isPending}
+            disabled={!remoteQuery.trim() || searchRemoteSource.isPending}
           >
-            {importRemoteSource.isPending
+            {searchRemoteSource.isPending
               ? "Searching…"
-              : "Search and import records"}
+              : "Search and review records"}
           </button>
-          {importRemoteSource.data?.data.dataset_id && (
+        </div>
+        {searchRemoteSource.isError && (
+          <p role="alert">{searchRemoteSource.error.message}</p>
+        )}
+        {remoteSearches.data?.data.length ? (
+          <div className="remote-search-history">
+            <strong>Recent staged searches</strong>
+            <div className="remote-search-list">
+              {remoteSearches.data.data.slice(-4).map((search) => (
+                <button
+                  key={search.search_id}
+                  type="button"
+                  className={
+                    search.search_id === activeRemoteSearchId
+                      ? "chip-button active"
+                      : "chip-button"
+                  }
+                  onClick={() => {
+                    setActiveRemoteSearchId(search.search_id);
+                    setSelectedCandidateIds([]);
+                  }}
+                >
+                  {search.name} · {search.records}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+        {stagedSearch && (
+          <div
+            className="screening-panel"
+            role="region"
+            aria-label="Screening candidates"
+          >
+            <div className="screening-summary">
+              <div>
+                <span className="eyebrow">Screening queue</span>
+                <h3>{stagedSearch.name}</h3>
+                <p className="muted-copy">
+                  {stagedSearch.candidates.length} candidates staged from{" "}
+                  {stagedSearch.source_label}. Select records to promote into
+                  the active dataset, or mark obvious misses as excluded.
+                </p>
+              </div>
+              <div
+                className="screening-counts"
+                aria-label="Candidate status counts"
+              >
+                {Object.entries(stagedSearch.status_counts ?? {}).map(
+                  ([status, count]) => (
+                    <span className={`status-pill ${status}`} key={status}>
+                      {status}: {String(count)}
+                    </span>
+                  ),
+                )}
+              </div>
+            </div>
+            <div className="screening-toolbar">
+              <label>
+                Filter candidates
+                <input
+                  placeholder="Title, author, PMID, DOI, journal…"
+                  value={candidateFilter}
+                  onChange={(event) => setCandidateFilter(event.target.value)}
+                />
+              </label>
+              <div className="section-actions">
+                <button type="button" onClick={selectVisibleCandidates}>
+                  Select visible
+                </button>
+                <button
+                  type="button"
+                  className="button-secondary"
+                  onClick={clearVisibleCandidates}
+                >
+                  Clear visible
+                </button>
+              </div>
+            </div>
+            <p className="muted-copy">
+              Selected {selectedCandidateIds.length} records (
+              {selectedVisibleCount} visible).
+            </p>
+            <DataTable
+              rows={visibleCandidates}
+              columns={[
+                {
+                  key: "candidate_id",
+                  header: "Keep",
+                  render: (row) => (
+                    <input
+                      type="checkbox"
+                      aria-label={`Select ${row.title}`}
+                      checked={selectedCandidateIds.includes(row.candidate_id)}
+                      disabled={
+                        row.status === "excluded" || row.status === "imported"
+                      }
+                      onChange={() => toggleCandidate(row.candidate_id)}
+                    />
+                  ),
+                },
+                {
+                  key: "status",
+                  header: "Status",
+                  render: (row) => (
+                    <span className={`status-pill ${row.status}`}>
+                      {row.status}
+                    </span>
+                  ),
+                },
+                { key: "title", header: "Title" },
+                {
+                  key: "authors",
+                  header: "Authors",
+                  render: (row) => row.authors.join("; ") || "—",
+                },
+                {
+                  key: "year",
+                  header: "Year",
+                  render: (row) => row.year ?? "—",
+                },
+                {
+                  key: "source_title",
+                  header: "Source",
+                  render: (row) => row.source_title ?? "—",
+                },
+                {
+                  key: "identifiers",
+                  header: "Identifiers",
+                  render: (row) => identifiersText(row),
+                },
+              ]}
+            />
+            <div className="section-actions screening-actions">
+              <button
+                type="button"
+                onClick={() => applyCandidateDecision("selected")}
+                disabled={
+                  !selectedCandidateIds.length ||
+                  updateRemoteCandidates.isPending
+                }
+              >
+                Mark selected as keep
+              </button>
+              <button
+                type="button"
+                className="button-secondary"
+                onClick={() => applyCandidateDecision("excluded")}
+                disabled={
+                  !selectedCandidateIds.length ||
+                  updateRemoteCandidates.isPending
+                }
+              >
+                Exclude selected
+              </button>
+              <button
+                type="button"
+                className="button-primary"
+                onClick={promoteSelectedCandidates}
+                disabled={
+                  !selectedCandidateIds.length ||
+                  promoteRemoteCandidates.isPending
+                }
+              >
+                {promoteRemoteCandidates.isPending
+                  ? "Creating dataset…"
+                  : "Create dataset from selected"}
+              </button>
+            </div>
+            {updateRemoteCandidates.isError && (
+              <p role="alert">{updateRemoteCandidates.error.message}</p>
+            )}
+            {promoteRemoteCandidates.isError && (
+              <p role="alert">{promoteRemoteCandidates.error.message}</p>
+            )}
+          </div>
+        )}
+        {promoteRemoteCandidates.data?.data && (
+          <div className="success-callout" role="status">
+            Created dataset{" "}
+            <code>{promoteRemoteCandidates.data.data.dataset_id}</code> from{" "}
+            <strong>{promoteRemoteCandidates.data.data.records.length}</strong>{" "}
+            screened records.
             <Link
               className="button button-secondary"
               to={`/projects/${projectId}/dashboard/overview`}
             >
               Go to dashboard
             </Link>
-          )}
-        </div>
-        {importRemoteSource.isError && (
-          <p role="alert">{importRemoteSource.error.message}</p>
-        )}
-        {importRemoteSource.data?.data && (
-          <div className="success-callout" role="status">
-            Imported{" "}
-            <strong>{importRemoteSource.data.data.records.length}</strong>{" "}
-            records into dataset{" "}
-            <code>{importRemoteSource.data.data.dataset_id}</code>.
           </div>
         )}
       </form>

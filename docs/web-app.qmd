@@ -50,8 +50,9 @@ It provides:
 - FastAPI application factory.
 - Project, upload, dataset, validation, filter, analysis, matrix, network, and
   PRISMA/export routes.
-- PubMed and PubMed Central import routes that call the core `biblioflow`
-  API connectors and persist results as normal datasets.
+- PubMed and PubMed Central routes that call the core `biblioflow` API
+  connectors, stage results as screening candidates, and promote selected
+  records into normal datasets.
 - Runtime file stores for uploaded files, normalized datasets, exports, and
   project metadata.
 - Static-file serving for the bundled React build in production wheels.
@@ -86,21 +87,38 @@ makim web.frontend.tests
 makim web.frontend.build
 ```
 
-## PubMed and PMC import
+## PubMed and PMC screening import
 
 The Import page supports two data-ingestion modes:
 
 1. Upload local bibliographic exports and load them into a normalized dataset.
-2. Search PubMed or PubMed Central and import the remote results directly.
+2. Search PubMed or PubMed Central, review staged candidates, and create a
+   dataset from selected records.
 
-Remote imports call `biblioflow.from_pubmed(...)` or `biblioflow.from_pmc(...)`
-inside the backend. Imported records are saved with the same dataset payload
-shape as uploaded files, so all dashboard pages immediately work with the new
-active dataset.
+Remote searches call `biblioflow.from_pubmed(...)` or
+`biblioflow.from_pmc(...)` inside the backend. Search results are first saved as
+a project-level screening queue with candidate statuses such as `candidate`,
+`selected`, `excluded`, and `imported`. This preserves the original search run
+for reproducibility and makes it possible to inspect, filter, and bulk-select
+records before they enter the active analysis dataset.
+
+The staged workflow is:
+
+```text
+PubMed/PMC query
+→ persisted remote search
+→ candidate screening table
+→ selected candidates
+→ active biblioflow dataset
+```
+
+Promoted records are saved with the same dataset payload shape as uploaded
+files, so all dashboard pages immediately work with the new active dataset.
 
 The form accepts a query, source, limit, contact email, optional NCBI API key,
-tool name, and optional dataset name. API keys are sent only to the backend
-request handler and are not stored in project metadata or API responses.
+tool name, and optional search/dataset name. API keys are sent only to the
+backend request handler and are not stored in project metadata, staged search
+payloads, datasets, or API responses.
 
 For deployments, configure a default contact email when users should not type it
 for every import:
@@ -138,7 +156,11 @@ All application API routes live under `/api` by default.
 | Health | `GET /api/health` | Service and version metadata. |
 | Projects | `/api/projects` | Create, list, inspect, and delete projects. |
 | Uploads | `/api/projects/{project_id}/uploads` | Upload and manage bibliographic files. |
-| Remote sources | `POST /api/projects/{project_id}/sources/import` | Search PubMed/PMC and create an active dataset. |
+| Remote sources | `POST /api/projects/{project_id}/sources/search` | Search PubMed/PMC and stage screening candidates. |
+| Remote sources | `GET /api/projects/{project_id}/sources/searches` | List staged remote-source searches. |
+| Remote sources | `PATCH /api/projects/{project_id}/sources/searches/{search_id}/candidates` | Apply keep/exclude/duplicate decisions. |
+| Remote sources | `POST /api/projects/{project_id}/sources/searches/{search_id}/promote` | Create an active dataset from selected candidates. |
+| Remote sources | `POST /api/projects/{project_id}/sources/import` | Compatibility direct import that creates an active dataset. |
 | Datasets | `/api/projects/{project_id}/datasets` | Load uploads and retrieve normalized datasets. |
 | Validation | `/api/projects/{project_id}/datasets/{dataset_id}/validation` | Inspect warnings and validation metadata. |
 | Filters | `/api/projects/{project_id}/datasets/{dataset_id}/filters/*` | Discover filter options and preview filtered results. |

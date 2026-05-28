@@ -15,26 +15,34 @@ import {
   getHealth,
   getPrismaFlow,
   getProject,
+  getRemoteSearch,
   getUpload,
   getValidation,
   importRemoteSource,
   listDatasets,
   listExports,
   listProjects,
+  listRemoteSearches,
   listUploads,
   loadDataset,
+  promoteRemoteCandidates,
   previewFilters,
   runOverview,
+  searchRemoteSource,
+  updateRemoteCandidates,
   uploadFiles,
 } from "./client";
 import type {
   AnalysisRequest,
+  CandidateDecisionRequest,
+  CandidatePromotionRequest,
   DatasetLoadRequest,
   ExportRequest,
   FilterSpec,
   MatrixRequest,
   PrismaFlowRequest,
   RemoteSourceImportRequest,
+  RemoteSourceSearchRequest,
 } from "./types";
 
 export function useHealth() {
@@ -74,6 +82,25 @@ export function useDatasets(projectId?: string | null) {
     queryKey: ["projects", projectId, "datasets"],
     queryFn: () => listDatasets(projectId as string),
     enabled: Boolean(projectId),
+  });
+}
+
+export function useRemoteSearches(projectId?: string | null) {
+  return useQuery({
+    queryKey: ["projects", projectId, "remote-searches"],
+    queryFn: () => listRemoteSearches(projectId as string),
+    enabled: Boolean(projectId),
+  });
+}
+
+export function useRemoteSearch(
+  projectId?: string | null,
+  searchId?: string | null,
+) {
+  return useQuery({
+    queryKey: ["projects", projectId, "remote-searches", searchId],
+    queryFn: () => getRemoteSearch(projectId as string, searchId as string),
+    enabled: Boolean(projectId && searchId),
   });
 }
 
@@ -265,6 +292,70 @@ export function useImportRemoteSource(projectId?: string | null) {
       queryClient.invalidateQueries({ queryKey: ["projects", projectId] });
       queryClient.invalidateQueries({
         queryKey: ["projects", projectId, "datasets"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["projects", projectId, "datasets", datasetId],
+      });
+    },
+  });
+}
+
+export function useSearchRemoteSource(projectId?: string | null) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: RemoteSourceSearchRequest) =>
+      searchRemoteSource(projectId as string, payload),
+    onSuccess: (response) => {
+      const searchId = response.data.search_id;
+      queryClient.invalidateQueries({ queryKey: ["projects", projectId] });
+      queryClient.invalidateQueries({
+        queryKey: ["projects", projectId, "remote-searches"],
+      });
+      queryClient.setQueryData(
+        ["projects", projectId, "remote-searches", searchId],
+        response,
+      );
+    },
+  });
+}
+
+export function useUpdateRemoteCandidates(
+  projectId?: string | null,
+  searchId?: string | null,
+) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: CandidateDecisionRequest) =>
+      updateRemoteCandidates(projectId as string, searchId as string, payload),
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: ["projects", projectId] });
+      queryClient.invalidateQueries({
+        queryKey: ["projects", projectId, "remote-searches"],
+      });
+      queryClient.setQueryData(
+        ["projects", projectId, "remote-searches", searchId],
+        response,
+      );
+    },
+  });
+}
+
+export function usePromoteRemoteCandidates(
+  projectId?: string | null,
+  searchId?: string | null,
+) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: CandidatePromotionRequest) =>
+      promoteRemoteCandidates(projectId as string, searchId as string, payload),
+    onSuccess: (response) => {
+      const datasetId = response.data.dataset_id;
+      queryClient.invalidateQueries({ queryKey: ["projects", projectId] });
+      queryClient.invalidateQueries({
+        queryKey: ["projects", projectId, "datasets"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["projects", projectId, "remote-searches"],
       });
       queryClient.invalidateQueries({
         queryKey: ["projects", projectId, "datasets", datasetId],

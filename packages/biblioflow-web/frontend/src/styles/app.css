@@ -1116,11 +1116,97 @@ button:disabled {
 }
 
 .success-callout {
+  align-items: center;
   background: #eaf8ef;
   border: 1px solid #b7e4c7;
   border-radius: 0.85rem;
   color: #166534;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
   padding: 0.8rem 0.9rem;
+}
+
+.remote-search-history,
+.screening-panel {
+  border-top: 1px solid #e2e8f0;
+  display: grid;
+  gap: 0.85rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+}
+
+.remote-search-list,
+.screening-counts,
+.screening-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.chip-button {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  box-shadow: none;
+  color: #334155;
+  min-height: 2.2rem;
+  padding: 0.45rem 0.75rem;
+}
+
+.chip-button.active {
+  background: #e0ecff;
+  border-color: #2f6fed;
+  color: #1d4ed8;
+}
+
+.screening-summary {
+  align-items: flex-start;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.screening-toolbar {
+  align-items: end;
+}
+
+.screening-toolbar label {
+  flex: 1 1 18rem;
+}
+
+.screening-actions {
+  justify-content: flex-end;
+}
+
+.status-pill {
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  border-radius: 999px;
+  color: #3730a3;
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 0.2rem 0.55rem;
+  text-transform: capitalize;
+}
+
+.status-pill.excluded {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+.status-pill.imported {
+  background: #ecfdf5;
+  border-color: #bbf7d0;
+  color: #15803d;
+}
+
+.status-pill.selected {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
 }
 
 .checkbox-row {

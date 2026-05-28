@@ -50,6 +50,47 @@ export interface DatasetListItem {
 
 export type BibliographicRecord = Record<string, unknown>;
 
+export type RemoteCandidateStatus =
+  | "candidate"
+  | "selected"
+  | "excluded"
+  | "duplicate"
+  | "imported";
+
+export interface RemoteCandidate {
+  candidate_id: string;
+  status: RemoteCandidateStatus;
+  created_at: string;
+  updated_at: string;
+  record: BibliographicRecord;
+  identifiers: Record<string, string>;
+  title: string;
+  year?: number | null;
+  authors: string[];
+  source_title?: string | null;
+  imported_dataset_id?: string;
+}
+
+export interface RemoteSearchListItem {
+  search_id: string;
+  created_at: string;
+  updated_at: string;
+  source: string;
+  source_label: string;
+  query: string;
+  limit: number;
+  name: string;
+  records: number;
+  status_counts: Record<string, number>;
+  metadata?: Record<string, unknown>;
+}
+
+export interface RemoteSearchPayload extends RemoteSearchListItem {
+  candidates: RemoteCandidate[];
+  warnings: ApiWarning[];
+  metadata: Record<string, unknown>;
+}
+
 export interface DatasetPayload {
   dataset_id: string;
   created_at: string;
@@ -142,6 +183,19 @@ export interface RemoteSourceImportRequest {
   email?: string | null;
   api_key?: string | null;
   tool?: string;
+  name?: string | null;
+}
+
+export type RemoteSourceSearchRequest = RemoteSourceImportRequest;
+
+export interface CandidateDecisionRequest {
+  candidate_ids: string[];
+  status: Exclude<RemoteCandidateStatus, "imported">;
+}
+
+export interface CandidatePromotionRequest {
+  candidate_ids?: string[] | null;
+  include_statuses?: ("candidate" | "selected")[];
   name?: string | null;
 }
 
