@@ -999,7 +999,7 @@ describe("remote source import", () => {
     );
     expect(await screen.findByText("Uploaded candidate")).toBeDefined();
     expect(screen.getByText("Duplicate upload")).toBeDefined();
-    expect(screen.getByText(/Selected 1 records/i)).toBeDefined();
+    expect(await screen.findByText(/Selected 1 records/i)).toBeDefined();
     await userEvent.click(
       screen.getByRole("button", { name: /Mark as maybe/i }),
     );

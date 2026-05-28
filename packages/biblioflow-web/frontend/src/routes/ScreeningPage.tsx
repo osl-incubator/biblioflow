@@ -196,7 +196,7 @@ export function ScreeningPage() {
             className="button button-secondary"
             to={`/projects/${projectId}/upload`}
           >
-            Import records
+            Go to Import page
           </Link>
           <Link
             className="button button-secondary"
@@ -236,16 +236,17 @@ export function ScreeningPage() {
             </div>
           ) : (
             !screeningRuns.isLoading && (
-              <EmptyState title="No screening runs" icon="◆">
+              <EmptyState title="No staged records to screen" icon="◆">
                 <p>
-                  Stage uploaded files or remote source results before reviewing
-                  records here.
+                  Screening reviews records that were already staged from an
+                  uploaded file or API search. Use the Import page to upload
+                  files or run source searches first.
                 </p>
                 <Link
-                  className="button button-primary"
+                  className="button button-secondary"
                   to={`/projects/${projectId}/upload`}
                 >
-                  Import records
+                  Go to Import page
                 </Link>
               </EmptyState>
             )
@@ -278,7 +279,9 @@ export function ScreeningPage() {
       )}
       {!activeScreeningRunId && !screeningRuns.isLoading && (
         <EmptyState title="Select a screening run" icon="◆">
-          <p>Choose a staged import to review its candidates.</p>
+          <p>
+            Choose a staged import from the list above to review its candidates.
+          </p>
         </EmptyState>
       )}
       {stagedRun && (
