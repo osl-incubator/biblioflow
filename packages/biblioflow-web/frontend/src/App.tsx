@@ -5,6 +5,7 @@ import { DashboardPage } from "./routes/DashboardPage";
 import { ExportsPage } from "./routes/ExportsPage";
 import { HomePage } from "./routes/HomePage";
 import { ProjectPage } from "./routes/ProjectPage";
+import { ScreeningPage } from "./routes/ScreeningPage";
 import { UploadPage } from "./routes/UploadPage";
 import { AuthorsPage } from "./routes/dashboard/AuthorsPage";
 import { DocumentsPage } from "./routes/dashboard/DocumentsPage";
@@ -25,6 +26,10 @@ export function App() {
         <Route index element={<HomePage />} />
         <Route path="projects" element={<ProjectPage />} />
         <Route path="projects/:projectId/upload" element={<UploadPage />} />
+        <Route
+          path="projects/:projectId/screening"
+          element={<ScreeningPage />}
+        />
         <Route path="projects/:projectId/dashboard" element={<DashboardPage />}>
           <Route index element={<Navigate to="overview" replace />} />
           <Route path="overview" element={<OverviewPage />} />

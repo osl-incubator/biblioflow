@@ -38,6 +38,21 @@ function renderProjectUpload() {
   );
 }
 
+function renderProjectScreening(runId = "search-1") {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter
+        initialEntries={[`/projects/project-1/screening?run=${runId}`]}
+      >
+        <App />
+      </MemoryRouter>
+    </QueryClientProvider>,
+  );
+}
+
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
@@ -215,7 +230,10 @@ describe("remote source import", () => {
     );
     await userEvent.type(screen.getByLabelText("NCBI API key"), "secret-token");
     await userEvent.clear(screen.getByLabelText("Tool name"));
-    await userEvent.type(screen.getByLabelText("Dataset name"), "PMC import");
+    await userEvent.type(
+      screen.getByLabelText("Screening run name"),
+      "PMC import",
+    );
     await userEvent.type(screen.getByLabelText("Query"), "open science");
     await userEvent.click(
       screen.getByRole("button", { name: /Search and review records/i }),
@@ -234,9 +252,6 @@ describe("remote source import", () => {
     });
     expect(await screen.findByText("PMC record")).toBeDefined();
     expect(screen.getByText(/Selected 2 records/i)).toBeDefined();
-    expect(
-      (screen.getByLabelText("NCBI API key") as HTMLInputElement).value,
-    ).toBe("");
 
     await userEvent.type(screen.getByLabelText("Filter candidates"), "Grace");
     expect(screen.getByText(/Selected 2 records \(1 visible\)/i)).toBeDefined();
@@ -484,7 +499,7 @@ describe("remote source import", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    renderProjectUpload();
+    renderProjectScreening();
 
     await userEvent.click(
       await screen.findByRole("button", { name: /History run · 2/i }),
@@ -511,7 +526,7 @@ describe("remote source import", () => {
     await waitFor(() => expect(promoteBodies).toHaveLength(1));
     expect(promoteBodies[0]).toEqual({
       candidate_ids: ["candidate-promote-error"],
-      name: null,
+      name: "History run",
     });
     expect((await screen.findByRole("alert")).textContent).toMatch(
       /Promotion failed/i,
@@ -1007,19 +1022,6 @@ describe("remote source import", () => {
         candidate_ids: ["upload-candidate-1"],
         status: "duplicate",
       }),
-    );
-
-    await userEvent.click(
-      screen.getByRole("button", { name: /Load directly/i }),
-    );
-    await waitFor(() =>
-      expect(loadBodies).toEqual([
-        {
-          upload_ids: ["upload-2"],
-          provider: "wos",
-          format: "ris",
-        },
-      ]),
     );
   });
 

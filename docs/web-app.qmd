@@ -89,11 +89,13 @@ makim web.frontend.build
 
 ## Source-agnostic screening imports
 
-The Import page supports two data-ingestion modes:
+The browser workflow now separates import from review:
 
-1. Upload local bibliographic exports and load them into a normalized dataset.
-2. Review uploaded files or remote search results as screening candidates, then
-   create a dataset from selected records.
+1. The **Import or Load** page uploads local bibliographic exports, searches
+   supported remote sources, stages records for screening, or loads selected
+   uploads directly as a compatibility shortcut.
+2. The **Screening** page reviews staged candidates, applies keep/maybe/exclude
+   decisions, marks duplicates, and creates a dataset from selected records.
 
 Screening runs are generic. They can be created from uploaded exports, raw
 records supplied by a client, or supported remote sources such as PubMed, PubMed

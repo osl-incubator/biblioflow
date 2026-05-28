@@ -8,14 +8,9 @@ import {
   useDeleteUpload,
   useLoadDataset,
   useProject,
-  usePromoteScreeningCandidates,
-  useScreeningRun,
-  useScreeningRuns,
-  useUpdateScreeningCandidates,
   useUploadFiles,
   useUploads,
 } from "../api/queries";
-import type { ScreeningCandidate } from "../api/types";
 import { formatDate } from "./dashboard/utils";
 
 const supportedSources = [
@@ -69,37 +64,6 @@ function formatSize(size: number): string {
   return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function candidateMatches(
-  candidate: ScreeningCandidate,
-  query: string,
-): boolean {
-  const normalized = query.trim().toLowerCase();
-  if (!normalized) {
-    return true;
-  }
-  const searchable = [
-    candidate.title,
-    candidate.year?.toString() ?? "",
-    candidate.source_title ?? "",
-    candidate.status,
-    candidate.authors.join(" "),
-    Object.values(candidate.identifiers).join(" "),
-  ]
-    .join(" ")
-    .toLowerCase();
-  return searchable.includes(normalized);
-}
-
-function identifiersText(candidate: ScreeningCandidate): string {
-  const entries = Object.entries(candidate.identifiers);
-  if (!entries.length) {
-    return "—";
-  }
-  return entries
-    .map(([key, value]) => `${key.toUpperCase()}: ${value}`)
-    .join(" · ");
-}
-
 export function UploadPage() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
@@ -119,48 +83,11 @@ export function UploadPage() {
   const [remoteApiKey, setRemoteApiKey] = useState("");
   const [remoteTool, setRemoteTool] = useState("biblioflow-web");
   const [remoteName, setRemoteName] = useState("");
-  const [activeScreeningRunId, setActiveScreeningRunId] = useState<
-    string | null
-  >(null);
-  const [selectedCandidateIds, setSelectedCandidateIds] = useState<string[]>(
-    [],
-  );
-  const [candidateFilter, setCandidateFilter] = useState("");
   const [screeningAction, setScreeningAction] = useState<
     "remote" | "uploads" | null
   >(null);
   const [hasAutoSelectedUploads, setHasAutoSelectedUploads] = useState(false);
-  const screeningRuns = useScreeningRuns(projectId);
-  const screeningRun = useScreeningRun(projectId, activeScreeningRunId);
   const createScreeningRun = useCreateScreeningRun(projectId);
-  const updateScreeningCandidates = useUpdateScreeningCandidates(
-    projectId,
-    activeScreeningRunId,
-  );
-  const promoteScreeningCandidates = usePromoteScreeningCandidates(
-    projectId,
-    activeScreeningRunId,
-  );
-  const stagedRun =
-    screeningRun.data?.data ??
-    (createScreeningRun.data?.data.screening_run_id === activeScreeningRunId
-      ? createScreeningRun.data.data
-      : null);
-  const visibleCandidates =
-    stagedRun?.candidates.filter((candidate) =>
-      candidateMatches(candidate, candidateFilter),
-    ) ?? [];
-  const promotableVisibleCandidateIds = visibleCandidates
-    .filter(
-      (candidate) =>
-        !["excluded", "duplicate", "imported", "error"].includes(
-          candidate.status,
-        ),
-    )
-    .map((candidate) => candidate.candidate_id);
-  const selectedVisibleCount = visibleCandidates.filter((candidate) =>
-    selectedCandidateIds.includes(candidate.candidate_id),
-  ).length;
 
   useEffect(() => {
     if (!hasAutoSelectedUploads && uploads.data?.data.length) {
@@ -242,9 +169,8 @@ export function UploadPage() {
       {
         onSuccess: (response) => {
           setRemoteApiKey("");
-          setActiveScreeningRunId(response.data.screening_run_id);
-          setSelectedCandidateIds(
-            response.data.candidates.map((candidate) => candidate.candidate_id),
+          navigate(
+            `/projects/${projectId}/screening?run=${response.data.screening_run_id}`,
           );
         },
       },
@@ -265,62 +191,10 @@ export function UploadPage() {
       },
       {
         onSuccess: (response) => {
-          setActiveScreeningRunId(response.data.screening_run_id);
-          setSelectedCandidateIds(
-            response.data.candidates
-              .filter((candidate) => candidate.status !== "duplicate")
-              .map((candidate) => candidate.candidate_id),
+          navigate(
+            `/projects/${projectId}/screening?run=${response.data.screening_run_id}`,
           );
         },
-      },
-    );
-  }
-
-  function toggleCandidate(candidateId: string) {
-    setSelectedCandidateIds((current) =>
-      current.includes(candidateId)
-        ? current.filter((item) => item !== candidateId)
-        : [...current, candidateId],
-    );
-  }
-
-  function selectVisibleCandidates() {
-    setSelectedCandidateIds((current) => [
-      ...new Set([...current, ...promotableVisibleCandidateIds]),
-    ]);
-  }
-
-  function clearVisibleCandidates() {
-    setSelectedCandidateIds((current) =>
-      current.filter(
-        (candidateId) => !promotableVisibleCandidateIds.includes(candidateId),
-      ),
-    );
-  }
-
-  function applyCandidateDecision(
-    status: "candidate" | "selected" | "maybe" | "excluded" | "duplicate",
-  ) {
-    updateScreeningCandidates.mutate(
-      { candidate_ids: selectedCandidateIds, status },
-      {
-        onSuccess: () => {
-          if (["excluded", "duplicate"].includes(status)) {
-            setSelectedCandidateIds([]);
-          }
-        },
-      },
-    );
-  }
-
-  function promoteSelectedCandidates() {
-    promoteScreeningCandidates.mutate(
-      {
-        candidate_ids: selectedCandidateIds,
-        name: remoteName.trim() || null,
-      },
-      {
-        onSuccess: () => setSelectedCandidateIds([]),
       },
     );
   }
@@ -488,7 +362,7 @@ export function UploadPage() {
             />
           </label>
           <label>
-            Dataset name
+            Screening run name
             <input
               placeholder="Optional"
               value={remoteName}
@@ -518,220 +392,6 @@ export function UploadPage() {
         </div>
         {createScreeningRun.isError && screeningAction === "remote" && (
           <p role="alert">{createScreeningRun.error.message}</p>
-        )}
-        {screeningRuns.data?.data.length ? (
-          <div className="remote-search-history">
-            <strong>Recent screening runs</strong>
-            <div className="remote-search-list">
-              {screeningRuns.data.data.slice(-4).map((run) => (
-                <button
-                  key={run.screening_run_id}
-                  type="button"
-                  className={
-                    run.screening_run_id === activeScreeningRunId
-                      ? "chip-button active"
-                      : "chip-button"
-                  }
-                  onClick={() => {
-                    setActiveScreeningRunId(run.screening_run_id);
-                    setSelectedCandidateIds([]);
-                  }}
-                >
-                  {run.name} · {run.records}
-                </button>
-              ))}
-            </div>
-          </div>
-        ) : null}
-        {stagedRun && (
-          <div
-            className="screening-panel"
-            role="region"
-            aria-label="Screening candidates"
-          >
-            <div className="screening-summary">
-              <div>
-                <span className="eyebrow">Screening queue</span>
-                <h3>{stagedRun.name}</h3>
-                <p className="muted-copy">
-                  {stagedRun.candidates.length} candidates staged from{" "}
-                  {stagedRun.source_label}. Select records to promote into the
-                  active dataset, or mark obvious misses as excluded.
-                </p>
-              </div>
-              <div
-                className="screening-counts"
-                aria-label="Candidate status counts"
-              >
-                {Object.entries(stagedRun.status_counts ?? {}).map(
-                  ([status, count]) => (
-                    <span className={`status-pill ${status}`} key={status}>
-                      {status}: {String(count)}
-                    </span>
-                  ),
-                )}
-              </div>
-            </div>
-            <div className="screening-toolbar">
-              <label>
-                Filter candidates
-                <input
-                  placeholder="Title, author, PMID, DOI, journal…"
-                  value={candidateFilter}
-                  onChange={(event) => setCandidateFilter(event.target.value)}
-                />
-              </label>
-              <div className="section-actions">
-                <button type="button" onClick={selectVisibleCandidates}>
-                  Select visible
-                </button>
-                <button
-                  type="button"
-                  className="button-secondary"
-                  onClick={clearVisibleCandidates}
-                >
-                  Clear visible
-                </button>
-              </div>
-            </div>
-            <p className="muted-copy">
-              Selected {selectedCandidateIds.length} records (
-              {selectedVisibleCount} visible).
-            </p>
-            <DataTable
-              rows={visibleCandidates}
-              columns={[
-                {
-                  key: "candidate_id",
-                  header: "Keep",
-                  render: (row) => (
-                    <input
-                      type="checkbox"
-                      aria-label={`Select ${row.title}`}
-                      checked={selectedCandidateIds.includes(row.candidate_id)}
-                      disabled={
-                        row.status === "excluded" ||
-                        row.status === "duplicate" ||
-                        row.status === "imported" ||
-                        row.status === "error"
-                      }
-                      onChange={() => toggleCandidate(row.candidate_id)}
-                    />
-                  ),
-                },
-                {
-                  key: "status",
-                  header: "Status",
-                  render: (row) => (
-                    <span className={`status-pill ${row.status}`}>
-                      {row.status}
-                    </span>
-                  ),
-                },
-                { key: "title", header: "Title" },
-                {
-                  key: "authors",
-                  header: "Authors",
-                  render: (row) => row.authors.join("; ") || "—",
-                },
-                {
-                  key: "year",
-                  header: "Year",
-                  render: (row) => row.year ?? "—",
-                },
-                {
-                  key: "source_title",
-                  header: "Source",
-                  render: (row) => row.source_title ?? "—",
-                },
-                {
-                  key: "identifiers",
-                  header: "Identifiers",
-                  render: (row) => identifiersText(row),
-                },
-              ]}
-            />
-            <div className="section-actions screening-actions">
-              <button
-                type="button"
-                onClick={() => applyCandidateDecision("selected")}
-                disabled={
-                  !selectedCandidateIds.length ||
-                  updateScreeningCandidates.isPending
-                }
-              >
-                Mark selected as keep
-              </button>
-              <button
-                type="button"
-                className="button-secondary"
-                onClick={() => applyCandidateDecision("excluded")}
-                disabled={
-                  !selectedCandidateIds.length ||
-                  updateScreeningCandidates.isPending
-                }
-              >
-                Exclude selected
-              </button>
-              <button
-                type="button"
-                className="button-secondary"
-                onClick={() => applyCandidateDecision("maybe")}
-                disabled={
-                  !selectedCandidateIds.length ||
-                  updateScreeningCandidates.isPending
-                }
-              >
-                Mark as maybe
-              </button>
-              <button
-                type="button"
-                className="button-secondary"
-                onClick={() => applyCandidateDecision("duplicate")}
-                disabled={
-                  !selectedCandidateIds.length ||
-                  updateScreeningCandidates.isPending
-                }
-              >
-                Mark duplicate
-              </button>
-              <button
-                type="button"
-                className="button-primary"
-                onClick={promoteSelectedCandidates}
-                disabled={
-                  !selectedCandidateIds.length ||
-                  promoteScreeningCandidates.isPending
-                }
-              >
-                {promoteScreeningCandidates.isPending
-                  ? "Creating dataset…"
-                  : "Create dataset from selected"}
-              </button>
-            </div>
-            {updateScreeningCandidates.isError && (
-              <p role="alert">{updateScreeningCandidates.error.message}</p>
-            )}
-            {promoteScreeningCandidates.isError && (
-              <p role="alert">{promoteScreeningCandidates.error.message}</p>
-            )}
-          </div>
-        )}
-        {promoteScreeningCandidates.data?.data && (
-          <div className="success-callout" role="status">
-            Created dataset{" "}
-            <code>{promoteScreeningCandidates.data.data.dataset_id}</code> from{" "}
-            <strong>
-              {promoteScreeningCandidates.data.data.records.length}
-            </strong>{" "}
-            screened records.
-            <Link
-              className="button button-secondary"
-              to={`/projects/${projectId}/dashboard/overview`}
-            >
-              Go to dashboard
-            </Link>
-          </div>
         )}
       </form>
 

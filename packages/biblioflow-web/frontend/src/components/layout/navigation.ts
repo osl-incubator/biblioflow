@@ -41,7 +41,7 @@ export const navigationSections: NavigationSection[] = [
       {
         label: "Screening",
         detail: "Review imports",
-        buildPath: (projectId) => `/projects/${projectId}/upload`,
+        buildPath: (projectId) => `/projects/${projectId}/screening`,
         fallbackPath: "/projects",
         requiresProject: false,
       },

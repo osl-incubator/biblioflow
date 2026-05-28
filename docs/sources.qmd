@@ -246,6 +246,7 @@ app.update_candidates([run["candidates"][0]["candidate_id"]], status="selected")
 app.promote_candidates()
 ```
 
-In the web app, the Import page exposes the same workflow for uploaded files and
-supported remote API sources. Direct `bf.load(...)` and `bf.from_*` calls remain
+In the web app, the Import or Load page creates screening runs from uploaded
+files and supported remote API sources. Candidate review happens on the
+dedicated Screening page. Direct `bf.load(...)` and `bf.from_*` calls remain
 available when no screening step is needed.
