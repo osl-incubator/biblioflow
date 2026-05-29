@@ -39,6 +39,7 @@ dependencies = [
   "pymedx>=0.5.1",
   "pandas>=2",
   "pyyaml>=6",
+  "typst >=0.14.9",
 ]
 
 [project.urls]
@@ -72,6 +73,7 @@ packages = [
 ]
 include = [
   "src/biblioflow/py.typed",
+  "src/biblioflow/reporting/_templates/**/*",
 ]
 
 [tool.ruff]

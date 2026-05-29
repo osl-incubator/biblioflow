@@ -49,6 +49,7 @@ class ProjectStore:
         (project_dir / "remote_searches").mkdir(parents=True, exist_ok=True)
         (project_dir / "screening_runs").mkdir(parents=True, exist_ok=True)
         (project_dir / "exports").mkdir(parents=True, exist_ok=True)
+        (project_dir / "reports").mkdir(parents=True, exist_ok=True)
         self.save_project(project)
         return project
 
@@ -111,6 +112,12 @@ class ProjectStore:
     def exports_dir(self, project_id: str) -> Path:
         """Return the exports directory for a project."""
         path = self.project_dir(project_id) / "exports"
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+
+    def reports_dir(self, project_id: str) -> Path:
+        """Return the reports directory for a project."""
+        path = self.project_dir(project_id) / "reports"
         path.mkdir(parents=True, exist_ok=True)
         return path
 

@@ -15,6 +15,7 @@ from biblioflow_nb.services import (
     ExportService,
     MatrixService,
     NetworkService,
+    ReportService,
     ScreeningService,
 )
 from biblioflow_nb.state import NotebookSession
@@ -45,6 +46,7 @@ class NotebookServices:
     matrices: MatrixService
     networks: NetworkService
     exports: ExportService
+    reports: ReportService
     screening: ScreeningService
 
     @classmethod
@@ -57,6 +59,7 @@ class NotebookServices:
             matrices=MatrixService(session, datasets),
             networks=NetworkService(session, datasets),
             exports=ExportService(session, datasets),
+            reports=ReportService(session, datasets),
             screening=ScreeningService(session),
         )
 
@@ -152,6 +155,10 @@ class BiblioFlowNotebookApp:
     ) -> Any:
         """Promote screening candidates into the active notebook dataset."""
         return self.services.screening.promote_candidates(candidate_ids, **kwargs)
+
+    def report(self, path: str, **kwargs: Any) -> Any:
+        """Generate a PDF report for the active notebook dataset."""
+        return self.services.reports.generate_report(path, **kwargs)
 
     def refresh(self) -> None:
         """Refresh all panels that implement refresh behavior."""

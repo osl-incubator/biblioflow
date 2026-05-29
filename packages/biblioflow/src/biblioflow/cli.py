@@ -16,6 +16,7 @@ from biblioflow.load import load
 from biblioflow.matrices import matrix
 from biblioflow.networks import network
 from biblioflow.normalize.deduplicate import deduplicate
+from biblioflow.reporting import ReportProject, generate_report
 from biblioflow.sources import from_pubmed, from_pubmed_central
 
 
@@ -168,6 +169,46 @@ def _cmd_search(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_report(args: argparse.Namespace) -> int:
+    """
+    title: Run the report command.
+    parameters:
+      args:
+        type: argparse.Namespace
+        description: Parsed command arguments.
+    returns:
+      type: int
+    """
+    input_path = Path(args.input)
+    if args.manifest or input_path.suffix.casefold() in {".yaml", ".yml"}:
+        project = ReportProject.from_manifest(input_path)
+        if args.title:
+            project.title = args.title
+    else:
+        dataset = load(args.input, provider=args.provider, format=args.format)
+        if args.deduplicate:
+            dataset = deduplicate(dataset)
+        project = ReportProject.from_records(
+            dataset,
+            title=args.title or input_path.stem.replace("-", " ").replace("_", " "),
+            subtitle=args.subtitle,
+            authors=args.author or [],
+            organization=args.organization,
+        )
+    result = generate_report(
+        project,
+        output=args.output,
+        template=args.template,
+        completeness=args.completeness,
+        top_n=args.top_n,
+        render=not args.no_render,
+        keep_qmd=args.keep_qmd or args.no_render,
+        keep_context=args.keep_context or args.no_render,
+    )
+    print(json.dumps(result.to_dict(), indent=2, default=str))
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     """
     title: Build the command-line parser.
@@ -242,6 +283,47 @@ def build_parser() -> argparse.ArgumentParser:
             "--to", choices=["json", "csv", "yaml"], default="json"
         )
         source_parser.set_defaults(func=_cmd_search, source=source)
+
+    report_parser = subparsers.add_parser(
+        "report", help="Generate a professional Quarto/Typst project PDF report"
+    )
+    report_parser.add_argument("input", help="Input bibliographic file or project YAML")
+    report_parser.add_argument("-o", "--output", required=True, help="Output PDF path")
+    report_parser.add_argument("--provider", default="auto", help="Semantic provider")
+    report_parser.add_argument("--format", default="auto", help="Input format")
+    report_parser.add_argument("--title", help="Report title")
+    report_parser.add_argument("--subtitle", help="Report subtitle")
+    report_parser.add_argument("--author", action="append", help="Report author")
+    report_parser.add_argument("--organization", help="Organization or lab name")
+    report_parser.add_argument("--template", default="modern")
+    report_parser.add_argument(
+        "--completeness",
+        choices=["summary", "standard", "complete"],
+        default="standard",
+    )
+    report_parser.add_argument("--top-n", type=int, default=20)
+    report_parser.add_argument("--deduplicate", action="store_true")
+    report_parser.add_argument(
+        "--manifest",
+        action="store_true",
+        help="Treat input as a report project manifest",
+    )
+    report_parser.add_argument(
+        "--no-render",
+        action="store_true",
+        help="Write QMD/context/assets but do not invoke Quarto",
+    )
+    report_parser.add_argument(
+        "--keep-qmd",
+        action="store_true",
+        help="Keep the generated Quarto QMD file",
+    )
+    report_parser.add_argument(
+        "--keep-context",
+        action="store_true",
+        help="Keep the generated JSON context file",
+    )
+    report_parser.set_defaults(func=_cmd_report)
 
     return parser
 

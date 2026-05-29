@@ -21,11 +21,20 @@ class ExportsPanel(WidgetPanel):
         self.format = widgets.Dropdown(
             description="Format", options=["json", "csv"], value="json"
         )
+        self.report_path = widgets.Text(
+            description="Report", value="biblioflow-report.pdf"
+        )
         self.export_button = widgets.Button(
             description="Export dataset", button_style="primary"
         )
+        self.report_button = widgets.Button(
+            description="Generate PDF report", button_style="success"
+        )
         self.download_button = widgets.Button(description="Download in Colab")
         self.export_button.on_click(lambda _button: self.run_safely(self.export))
+        self.report_button.on_click(
+            lambda _button: self.run_safely(self.generate_report)
+        )
         self.download_button.on_click(
             lambda _button: self.run_safely(self.download_latest)
         )
@@ -36,6 +45,7 @@ class ExportsPanel(WidgetPanel):
             [
                 widgets.HBox([self.path, self.format]),
                 widgets.HBox([self.export_button, self.download_button]),
+                widgets.HBox([self.report_path, self.report_button]),
                 self.output,
             ]
         )
@@ -49,6 +59,18 @@ class ExportsPanel(WidgetPanel):
         self.output.clear_output()
         with self.output:
             display(HTML(f"<p>Exported to <code>{path}</code>.</p>"))
+            display(
+                HTML(rows_to_html([item.to_dict() for item in self.session.exports]))
+            )
+
+    def generate_report(self) -> None:
+        """Generate a professional PDF report for the current dataset."""
+        result = self.services.reports.generate_report(self.report_path.value)
+        self.output.clear_output()
+        with self.output:
+            display(
+                HTML(f"<p>Generated report at <code>{result.output_path}</code>.</p>")
+            )
             display(
                 HTML(rows_to_html([item.to_dict() for item in self.session.exports]))
             )
