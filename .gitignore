@@ -228,7 +228,7 @@ tmp/
 *.makim
 # pyproject.toml located in the root of the project is
 # ignored because it is not relevant for development.
-./pyproject.toml
+poetry.lock
 
 # biblioflow-web frontend/build artifacts
 packages/biblioflow-web/frontend/node_modules/

@@ -176,3 +176,18 @@ class PrismaFlowRequest(BaseModel):
     dataset_id: str | None = None
     title: str | None = None
     counts: dict[str, Any] = Field(default_factory=dict)
+
+
+class ReportCreateRequest(BaseModel):
+    """Request body for project report generation."""
+
+    dataset_id: str | None = None
+    title: str | None = None
+    subtitle: str | None = None
+    authors: list[str] = Field(default_factory=list)
+    organization: str | None = None
+    template: str = "modern"
+    completeness: Literal["summary", "standard", "complete"] = "standard"
+    render: bool = True
+    keep_qmd: bool = False
+    prisma: dict[str, Any] | None = None

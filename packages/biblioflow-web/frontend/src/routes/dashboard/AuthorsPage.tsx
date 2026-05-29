@@ -40,7 +40,9 @@ export function AuthorsPage() {
         <article className="card">
           <h2>Most relevant authors</h2>
           <BarList
+            countLabel="docs."
             items={rowsToBars(rows, ["author", "name"], ["documents", "count"])}
+            note="Counts are documents where the author appears."
           />
         </article>
         <article className="card">

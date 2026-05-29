@@ -14,6 +14,7 @@ from biblioflow_web_backend.api.routes import (
     networks,
     prisma,
     projects,
+    reports,
     screening,
     sources,
     uploads,
@@ -34,3 +35,4 @@ api_router.include_router(matrices.router, prefix="/projects", tags=["matrices"]
 api_router.include_router(networks.router, prefix="/projects", tags=["networks"])
 api_router.include_router(exports.router, prefix="/projects", tags=["exports"])
 api_router.include_router(prisma.router, prefix="/projects", tags=["prisma"])
+api_router.include_router(reports.router, prefix="/projects", tags=["reports"])

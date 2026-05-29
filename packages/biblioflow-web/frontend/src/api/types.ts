@@ -412,6 +412,39 @@ export interface ExportArtifact {
   created_at: string;
 }
 
+export type ReportCompleteness = "summary" | "standard" | "complete";
+
+export interface ReportCreateRequest {
+  dataset_id?: string | null;
+  title?: string | null;
+  subtitle?: string | null;
+  authors?: string[];
+  organization?: string | null;
+  template?: string;
+  completeness?: ReportCompleteness;
+  render?: boolean;
+  keep_qmd?: boolean;
+  prisma?: Record<string, unknown> | null;
+}
+
+export interface ReportArtifact {
+  report_id: string;
+  kind: "report" | string;
+  format: "pdf" | string;
+  filename: string;
+  path?: string;
+  size: number;
+  created_at: string;
+  dataset_id?: string | null;
+  rendered?: boolean;
+  qmd_path?: string;
+  context_path?: string;
+  assets_dir?: string;
+  warnings?: ApiWarning[];
+  sections_rendered?: string[];
+  sections_skipped?: string[];
+}
+
 export interface ActiveWorkspace {
   projectId: string | null;
   activeDatasetId: string | null;

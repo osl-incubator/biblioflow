@@ -1,5 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen, within } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
@@ -20,8 +27,9 @@ function jsonResponse(payload: unknown, init: MockResponseInit = {}): Response {
 }
 
 function stubApi(projects: Project[] = []) {
-  const fetchMock = vi.fn((input: RequestInfo | URL) => {
+  const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
+    const method = init?.method ?? "GET";
     if (url.endsWith("/health")) {
       return Promise.resolve(
         jsonResponse({
@@ -34,6 +42,41 @@ function stubApi(projects: Project[] = []) {
     }
     if (url.endsWith("/projects")) {
       return Promise.resolve(jsonResponse({ data: projects }));
+    }
+    const project = projects.find((item) =>
+      url.endsWith(`/projects/${item.project_id}`),
+    );
+    if (project) {
+      return Promise.resolve(
+        jsonResponse({ data: project, warnings: [], metadata: {} }),
+      );
+    }
+    if (url.endsWith("/projects/project-1/exports")) {
+      return Promise.resolve(jsonResponse({ data: [], warnings: [] }));
+    }
+    if (url.endsWith("/projects/project-1/reports") && method === "POST") {
+      return Promise.resolve(
+        jsonResponse({
+          data: {
+            report_id: "report-1",
+            kind: "report",
+            format: "pdf",
+            filename: "report.pdf",
+            size: 4096,
+            created_at: "2026-01-03T00:00:00Z",
+            dataset_id: "dataset-1",
+            rendered: true,
+            warnings: [],
+            sections_rendered: ["overview", "methods"],
+            sections_skipped: [],
+          },
+          warnings: [],
+          metadata: {},
+        }),
+      );
+    }
+    if (url.endsWith("/projects/project-1/reports")) {
+      return Promise.resolve(jsonResponse({ data: [], warnings: [] }));
     }
     return Promise.resolve(
       jsonResponse({ error: { message: "Not found" } }, { status: 404 }),
@@ -129,5 +172,38 @@ describe("App", () => {
         })) as HTMLAnchorElement
       ).getAttribute("href"),
     ).toBe("/projects/project-1/dashboard/overview");
+  });
+
+  it("exposes report generation in the export center", async () => {
+    const fetchMock = stubApi([existingProject]);
+    renderApp(["/projects/project-1/exports"]);
+
+    expect(
+      await screen.findByRole("heading", {
+        name: /Generate project report/i,
+      }),
+    ).toBeDefined();
+    expect(
+      (
+        screen.getByRole("link", {
+          name: /ReportPDF synthesis/i,
+        }) as HTMLAnchorElement
+      ).getAttribute("href"),
+    ).toBe("/projects/project-1/exports");
+    expect(screen.queryByText(/Narrative export planned/i)).toBeNull();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /Generate PDF report/i }),
+    );
+
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith(
+        expect.stringMatching(/\/projects\/project-1\/reports$/),
+        expect.objectContaining({
+          method: "POST",
+          body: expect.stringContaining('"render":true'),
+        }),
+      ),
+    );
   });
 });

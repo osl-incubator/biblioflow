@@ -36,6 +36,16 @@ from biblioflow.mapping import (
 from biblioflow.matrices import MatrixResult, matrix
 from biblioflow.networks import NetworkResult, network
 from biblioflow.normalize.deduplicate import deduplicate, enrich
+from biblioflow.reporting import (
+    PrismaFlow,
+    ReportAsset,
+    ReportProject,
+    ReportResult,
+    ReportSource,
+    ReportWarning,
+    generate_report,
+    report,
+)
 from biblioflow.results import (
     DatasetSummary,
     ImportSummary,
@@ -73,6 +83,12 @@ __all__ = [
     "NetworkResult",
     "OptionalDependencyError",
     "ParseError",
+    "PrismaFlow",
+    "ReportAsset",
+    "ReportProject",
+    "ReportResult",
+    "ReportSource",
+    "ReportWarning",
     "SourceDetectionError",
     "ThematicEvolution",
     "ThematicMap",
@@ -93,6 +109,7 @@ __all__ = [
     "from_pubmed",
     "from_pubmed_central",
     "from_scopus",
+    "generate_report",
     "historiograph",
     "infer_format",
     "infer_provider",
@@ -102,6 +119,7 @@ __all__ = [
     "network",
     "normalize_pmc_article",
     "normalize_pubmed_article",
+    "report",
     "summarize_dataset",
     "summarize_filters",
     "summarize_import",

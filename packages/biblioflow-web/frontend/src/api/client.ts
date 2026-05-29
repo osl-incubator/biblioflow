@@ -27,6 +27,8 @@ import type {
   RemoteSearchPayload,
   RemoteSourceImportRequest,
   RemoteSourceSearchRequest,
+  ReportArtifact,
+  ReportCreateRequest,
   ScreeningCandidateDecisionRequest,
   ScreeningCandidatePromotionRequest,
   ScreeningCandidateAggregatePayload,
@@ -429,6 +431,33 @@ export async function createExport(
 
 export function downloadExportUrl(projectId: string, filename: string): string {
   return `${API_BASE_URL}/projects/${projectId}/exports/${encodeURIComponent(
+    filename,
+  )}/download`;
+}
+
+export async function listReports(
+  projectId: string,
+): Promise<ApiEnvelope<ReportArtifact[]>> {
+  return request<ApiEnvelope<ReportArtifact[]>>(
+    `/projects/${projectId}/reports`,
+  );
+}
+
+export async function createReport(
+  projectId: string,
+  payload: ReportCreateRequest,
+): Promise<ApiEnvelope<ReportArtifact>> {
+  return request<ApiEnvelope<ReportArtifact>>(
+    `/projects/${projectId}/reports`,
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    },
+  );
+}
+
+export function downloadReportUrl(projectId: string, filename: string): string {
+  return `${API_BASE_URL}/projects/${projectId}/reports/${encodeURIComponent(
     filename,
   )}/download`;
 }

@@ -279,6 +279,7 @@ button:disabled {
   border: 1px solid #dbe5f1;
   border-radius: 1.15rem;
   box-shadow: 0 16px 36px rgb(22 34 51 / 8%);
+  min-width: 0;
 }
 
 .hero,
@@ -954,6 +955,11 @@ button:disabled {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.export-form-stack {
+  display: grid;
+  gap: 1rem;
+}
+
 .export-grid-wide {
   grid-template-columns: minmax(280px, 0.65fr) minmax(0, 1.35fr);
 }
@@ -1059,7 +1065,21 @@ button:disabled {
   gap: 0.85rem;
   list-style: none;
   margin: 0;
+  max-width: 100%;
+  min-width: 0;
   padding: 0;
+}
+
+.bar-list-note {
+  color: #64748b;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  margin: 0 0 0.85rem;
+}
+
+.bar-list li {
+  min-width: 0;
+  overflow: hidden;
 }
 
 .bar-row-header {
@@ -1067,9 +1087,11 @@ button:disabled {
   display: flex;
   gap: 1rem;
   justify-content: space-between;
+  min-width: 0;
 }
 
 .bar-row-header strong {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1077,15 +1099,19 @@ button:disabled {
 
 .bar-row-header span {
   color: #1f4d8f;
+  flex: 0 0 auto;
   font-weight: 900;
 }
 
 .bar-track {
   background: #e8f0fb;
   border-radius: 999px;
+  box-sizing: border-box;
   height: 0.55rem;
   margin-top: 0.35rem;
+  max-width: 100%;
   overflow: hidden;
+  width: 100%;
 }
 
 .bar-track span {
