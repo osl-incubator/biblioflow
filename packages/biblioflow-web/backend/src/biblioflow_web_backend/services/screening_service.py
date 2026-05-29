@@ -116,6 +116,32 @@ class ScreeningService:
             )
         return cast(dict[str, Any], json.loads(path.read_text(encoding="utf-8")))
 
+    def delete_run(self, project_id: str, screening_run_id: str) -> dict[str, Any]:
+        """Delete one staged screening import and its candidates."""
+        payload = self.get_run(project_id, screening_run_id)
+        path = self._run_path(project_id, screening_run_id)
+        path.unlink(missing_ok=True)
+        project = self.projects.get_project(project_id)
+        project["screening_runs"] = [
+            dict(item)
+            for item in project.get("screening_runs", [])
+            if str(item.get("screening_run_id")) != screening_run_id
+        ]
+        self.projects.save_project(project)
+        promoted_dataset_ids = [
+            str(item) for item in payload.get("promoted_dataset_ids", [])
+        ]
+        return {
+            "deleted": True,
+            "screening_run_id": screening_run_id,
+            "name": payload.get("name"),
+            "records": int(
+                payload.get("records") or len(_screening_candidates(payload))
+            ),
+            "promoted_dataset_ids": promoted_dataset_ids,
+            "datasets_preserved": bool(promoted_dataset_ids),
+        }
+
     def list_candidates(self, project_id: str) -> dict[str, Any]:
         """Return all staged candidates in a project with duplicate groups."""
         runs = [
@@ -871,8 +897,21 @@ def _deduplication_key(
 
 def _metadata_without_secrets(metadata: dict[str, Any]) -> dict[str, Any]:
     """Return metadata without known secret-bearing keys."""
-    secret_keys = {"api_key", "apikey", "apiKey", "ncbi_api_key", "ncbiApiKey"}
-    return {key: value for key, value in metadata.items() if key not in secret_keys}
+    secret_keys = {"api_key", "apikey", "ncbi_api_key", "ncbiapikey"}
+
+    def clean(value: Any) -> Any:
+        if isinstance(value, dict):
+            return {
+                key: clean(item)
+                for key, item in value.items()
+                if str(key).replace("-", "_").casefold() not in secret_keys
+            }
+        if isinstance(value, list):
+            return [clean(item) for item in value]
+        return value
+
+    cleaned = clean(metadata)
+    return cast(dict[str, Any], cleaned) if isinstance(cleaned, dict) else {}
 
 
 def _normalize_source(source: str) -> str:

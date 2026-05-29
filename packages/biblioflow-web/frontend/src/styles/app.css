@@ -60,6 +60,11 @@ button:disabled {
   color: #1f4d8f;
 }
 
+.danger-action {
+  background: #fef2f2;
+  color: #b42318;
+}
+
 .app-shell {
   display: grid;
   grid-template-columns: 300px minmax(0, 1fr);
@@ -1198,6 +1203,40 @@ button:disabled {
 
 .screening-actions {
   justify-content: flex-end;
+}
+
+.metadata-strip {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+}
+
+.metadata-strip div {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 0.65rem 0.75rem;
+}
+
+.metadata-strip .metadata-strip-wide {
+  grid-column: 1 / -1;
+}
+
+.metadata-strip span {
+  color: #64748b;
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 800;
+  margin-bottom: 0.2rem;
+  text-transform: uppercase;
+}
+
+.metadata-strip strong {
+  color: #0f172a;
+  display: block;
+  font-size: 0.95rem;
+  line-height: 1.35;
+  word-break: break-word;
 }
 
 .status-pill {

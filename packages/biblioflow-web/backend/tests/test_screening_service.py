@@ -8,6 +8,7 @@ import pytest
 
 from biblioflow_web_backend.api.routes.screening import (
     create_screening_run,
+    delete_screening_run,
     get_screening_run,
     list_screening_candidates,
     list_screening_runs,
@@ -46,7 +47,7 @@ def _services(
 def _remote_dataset() -> Any:
     import biblioflow as bf
 
-    return bf.load(
+    dataset = bf.load(
         [
             {
                 "pmid": "12345678",
@@ -69,6 +70,15 @@ def _remote_dataset() -> Any:
         ],
         source="pubmed",
     )
+    dataset.metadata.update(
+        {
+            "client_package": "pymedx",
+            "total_results": 10,
+            "returned_count": 2,
+            "nested": {"api_key": "secret-token", "kept": True},
+        }
+    )
+    return dataset
 
 
 def test_screening_run_from_records_updates_and_promotes(tmp_path: Path) -> None:
@@ -256,6 +266,72 @@ def test_screening_candidates_bulk_update_across_runs(tmp_path: Path) -> None:
     assert aggregate["data"]["candidates"][0]["labels"] == ["screened"]
 
 
+def test_screening_run_delete_removes_staged_import_only(tmp_path: Path) -> None:
+    _projects, _files, datasets, screening, project_id = _services(tmp_path)
+
+    first = screening.create_run(
+        project_id,
+        origin_type="records",
+        source="generic",
+        records=[
+            {
+                "title": "Wrong import duplicate",
+                "publication_year": 2024,
+                "authors": ["Ada Lovelace"],
+                "doi": "10.1/delete-me",
+            }
+        ],
+        name="Wrong import",
+    )
+    second = screening.create_run(
+        project_id,
+        origin_type="records",
+        source="generic",
+        records=[
+            {
+                "title": "Correct import duplicate",
+                "publication_year": 2024,
+                "authors": ["Ada Lovelace"],
+                "doi": "10.1/delete-me",
+            }
+        ],
+        name="Correct import",
+    )
+    promoted = screening.promote_candidates(
+        project_id,
+        str(first["screening_run_id"]),
+        candidate_ids=[str(first["candidates"][0]["candidate_id"])],
+        name="Dataset created before deletion",
+    )
+    dataset_id = str(promoted["dataset_id"])
+    assert (
+        screening.list_candidates(project_id)["metadata"]["duplicate_group_count"] == 1
+    )
+
+    deleted = screening.delete_run(project_id, str(first["screening_run_id"]))
+
+    assert deleted["deleted"] is True
+    assert deleted["screening_run_id"] == first["screening_run_id"]
+    assert deleted["datasets_preserved"] is True
+    assert deleted["promoted_dataset_ids"] == [dataset_id]
+    with pytest.raises(ApiError, match="Screening run"):
+        screening.get_run(project_id, str(first["screening_run_id"]))
+    assert [run["screening_run_id"] for run in screening.list_runs(project_id)] == [
+        second["screening_run_id"]
+    ]
+    aggregate = screening.list_candidates(project_id)
+    assert aggregate["records"] == 1
+    assert aggregate["metadata"]["duplicate_group_count"] == 0
+    assert datasets.summarize(project_id, dataset_id)["documents"] == 1
+
+    response = delete_screening_run(
+        project_id, str(second["screening_run_id"]), screening
+    )
+    assert response["data"]["deleted"] is True
+    assert response["warnings"] == []
+    assert screening.list_runs(project_id) == []
+
+
 def test_screening_run_from_uploads_and_routes(tmp_path: Path) -> None:
     _projects, files, _datasets, screening, project_id = _services(tmp_path)
     with (DATA / "minimal.json").open("rb") as handle:
@@ -332,6 +408,9 @@ def test_screening_remote_search_redacts_secrets_and_marks_duplicates(
     )
 
     assert run["source"] == "pubmed"
+    assert run["metadata"]["client_package"] == "pymedx"
+    assert run["metadata"]["total_results"] == 10
+    assert run["metadata"]["nested"] == {"kept": True}
     assert run["status_counts"] == {"candidate": 1, "duplicate": 1}
     assert (
         run["candidates"][1]["duplicate_of_candidate_id"]

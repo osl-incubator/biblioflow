@@ -102,6 +102,15 @@ export interface ScreeningRunPayload extends ScreeningRunListItem {
   metadata: Record<string, unknown>;
 }
 
+export interface ScreeningRunDeletePayload {
+  deleted: boolean;
+  screening_run_id: string;
+  name?: string | null;
+  records: number;
+  promoted_dataset_ids: string[];
+  datasets_preserved: boolean;
+}
+
 export interface ScreeningCandidateAggregateItem extends ScreeningCandidate {
   id: string;
   screening_run_id: string;

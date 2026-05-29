@@ -561,8 +561,21 @@ def _sanitize_error(message: str, secret: str | None) -> str:
 
 def _metadata_without_secrets(metadata: dict[str, Any]) -> dict[str, Any]:
     """Return metadata without known secret-bearing keys."""
-    secret_keys = {"api_key", "apikey", "apiKey", "ncbi_api_key", "ncbiApiKey"}
-    return {key: value for key, value in metadata.items() if key not in secret_keys}
+    secret_keys = {"api_key", "apikey", "ncbi_api_key", "ncbiapikey"}
+
+    def clean(value: Any) -> Any:
+        if isinstance(value, dict):
+            return {
+                key: clean(item)
+                for key, item in value.items()
+                if str(key).replace("-", "_").casefold() not in secret_keys
+            }
+        if isinstance(value, list):
+            return [clean(item) for item in value]
+        return value
+
+    cleaned = clean(metadata)
+    return cast(dict[str, Any], cleaned) if isinstance(cleaned, dict) else {}
 
 
 def _dataset_records(dataset: Any) -> list[dict[str, Any]]:

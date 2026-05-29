@@ -4,6 +4,7 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import { DataTable } from "../components/common/DataTable";
 import { EmptyState } from "../components/common/EmptyState";
 import {
+  useDeleteScreeningRun,
   useProject,
   usePromoteScreeningCandidates,
   useScreeningCandidates,
@@ -15,7 +16,9 @@ import {
 import type {
   ScreeningCandidate,
   ScreeningCandidateAggregateItem,
+  ScreeningRunListItem,
 } from "../api/types";
+import { valueToString } from "./dashboard/utils";
 
 type ScreeningCandidateRow = ScreeningCandidate &
   Partial<ScreeningCandidateAggregateItem>;
@@ -69,6 +72,102 @@ function duplicateLabel(candidate: ScreeningCandidateAggregateItem): string {
   } records`;
 }
 
+function deleteRunMessage(run: ScreeningRunListItem): string {
+  const promotedCount = run.promoted_dataset_ids?.length ?? 0;
+  const statusSummary = Object.entries(run.status_counts ?? {})
+    .map(([status, count]) => `${status}: ${count}`)
+    .join(", ");
+  const datasetWarning = promotedCount
+    ? `\n\n${promotedCount} dataset${
+        promotedCount === 1 ? " was" : "s were"
+      } already created from this import and will be kept.`
+    : "";
+  return `Delete staged import "${run.name}" and its ${
+    run.records
+  } staged records?\n\nCurrent statuses: ${
+    statusSummary || "none"
+  }.${datasetWarning}\n\nThis cannot be undone.`;
+}
+
+function metadataValue(
+  metadata: Record<string, unknown> | undefined,
+  key: string,
+): unknown {
+  if (!metadata) {
+    return undefined;
+  }
+  const value = metadata[key];
+  return value === null || value === undefined || value === ""
+    ? undefined
+    : value;
+}
+
+function SearchMetadata({ metadata }: { metadata?: Record<string, unknown> }) {
+  const hasRemoteMetadata = [
+    "total_results",
+    "returned_count",
+    "requested_limit",
+    "client_package",
+    "client",
+    "ncbi_database",
+    "query_translation",
+  ].some((key) => metadataValue(metadata, key) !== undefined);
+  if (!hasRemoteMetadata) {
+    return null;
+  }
+
+  const rows = [
+    {
+      label: "Total matches",
+      value: metadataValue(metadata, "total_results"),
+    },
+    {
+      label: "Returned",
+      value:
+        metadataValue(metadata, "returned_count") ??
+        metadataValue(metadata, "records"),
+    },
+    {
+      label: "Requested",
+      value:
+        metadataValue(metadata, "requested_limit") ??
+        metadataValue(metadata, "limit"),
+    },
+    {
+      label: "Client",
+      value:
+        metadataValue(metadata, "client_package") ??
+        metadataValue(metadata, "client"),
+    },
+    {
+      label: "NCBI db",
+      value: metadataValue(metadata, "ncbi_database"),
+    },
+  ].filter((row) => row.value !== undefined);
+  const queryTranslation = metadataValue(metadata, "query_translation");
+
+  if (!rows.length && !queryTranslation) {
+    return null;
+  }
+
+  return (
+    <div className="metadata-strip" aria-label="Remote source metadata">
+      {rows.map((row) => (
+        <div key={row.label}>
+          <span>{row.label}</span>
+          <strong>{valueToString(row.value)}</strong>
+        </div>
+      ))}
+      {queryTranslation ? (
+        <div className="metadata-strip-wide">
+          <span>Query translation</span>
+          <strong>{valueToString(queryTranslation)}</strong>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export function ScreeningPage() {
   const { projectId } = useParams<{ projectId: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -95,6 +194,7 @@ export function ScreeningPage() {
     projectId,
     screeningView === "all" ? null : activeScreeningRunId,
   );
+  const deleteScreeningRun = useDeleteScreeningRun(projectId);
   const updateScreeningCandidates = useUpdateScreeningCandidates(
     projectId,
     activeScreeningRunId,
@@ -179,6 +279,7 @@ export function ScreeningPage() {
     setSelectedAllCandidateIds([]);
     setCandidateFilter("");
     promoteScreeningCandidates.reset();
+    deleteScreeningRun.reset();
     updateAllScreeningCandidates.reset();
     updateScreeningCandidates.reset();
   }
@@ -191,6 +292,7 @@ export function ScreeningPage() {
     setSelectedAllCandidateIds([]);
     setCandidateFilter("");
     promoteScreeningCandidates.reset();
+    deleteScreeningRun.reset();
     updateAllScreeningCandidates.reset();
     updateScreeningCandidates.reset();
   }
@@ -271,6 +373,28 @@ export function ScreeningPage() {
     if (["excluded", "duplicate"].includes(status)) {
       setSelectedAllCandidateIds([]);
     }
+  }
+
+  function deleteStagedImport(run: ScreeningRunListItem) {
+    if (!window.confirm(deleteRunMessage(run))) {
+      return;
+    }
+    deleteScreeningRun.mutate(run.screening_run_id, {
+      onSuccess: () => {
+        setSelectedCandidateIds([]);
+        setSelectedAllCandidateIds([]);
+        setCandidateFilter("");
+        if (
+          screeningView === "run" &&
+          activeScreeningRunId === run.screening_run_id
+        ) {
+          setPromoteName("");
+          setScreeningView("all");
+          setActiveScreeningRunId(null);
+          setSearchParams({ view: "all" });
+        }
+      },
+    });
   }
 
   function promoteSelectedCandidates() {
@@ -675,6 +799,7 @@ export function ScreeningPage() {
               )}
             </div>
           </div>
+          <SearchMetadata metadata={stagedRun.metadata} />
           <div className="screening-toolbar">
             <label>
               Filter candidates
@@ -752,6 +877,14 @@ export function ScreeningPage() {
           <div className="section-actions screening-actions">
             <button
               type="button"
+              className="button-secondary danger-action"
+              onClick={() => deleteStagedImport(stagedRun)}
+              disabled={deleteScreeningRun.isPending}
+            >
+              Delete staged import
+            </button>
+            <button
+              type="button"
               onClick={() => applyCandidateDecision("selected")}
               disabled={
                 !selectedCandidateIds.length ||
@@ -809,6 +942,9 @@ export function ScreeningPage() {
           </div>
           {updateScreeningCandidates.isError && (
             <p role="alert">{updateScreeningCandidates.error.message}</p>
+          )}
+          {deleteScreeningRun.isError && (
+            <p role="alert">{deleteScreeningRun.error.message}</p>
           )}
           {promoteScreeningCandidates.isError && (
             <p role="alert">{promoteScreeningCandidates.error.message}</p>

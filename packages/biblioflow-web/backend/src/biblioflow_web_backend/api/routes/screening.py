@@ -116,6 +116,37 @@ def get_screening_run(
     }
 
 
+@router.delete("/{project_id}/screening/runs/{screening_run_id}")
+def delete_screening_run(
+    project_id: str,
+    screening_run_id: str,
+    screening: Annotated[ScreeningService, Depends(get_screening_service)],
+) -> dict[str, Any]:
+    """Delete one staged import and all of its staged candidates."""
+    data = screening.delete_run(project_id, screening_run_id)
+    warnings = (
+        [
+            {
+                "level": "warning",
+                "type": "screening_delete",
+                "message": (
+                    "Datasets already created from this staged import were preserved."
+                ),
+            }
+        ]
+        if data["datasets_preserved"]
+        else []
+    )
+    return {
+        "data": data,
+        "warnings": warnings,
+        "metadata": {
+            "project_id": project_id,
+            "screening_run_id": screening_run_id,
+        },
+    }
+
+
 @router.patch("/{project_id}/screening/runs/{screening_run_id}/candidates")
 def update_screening_candidates(
     project_id: str,

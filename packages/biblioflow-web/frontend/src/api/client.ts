@@ -31,6 +31,7 @@ import type {
   ScreeningCandidatePromotionRequest,
   ScreeningCandidateAggregatePayload,
   ScreeningRunCreateRequest,
+  ScreeningRunDeletePayload,
   ScreeningRunListItem,
   ScreeningRunPayload,
   Upload,
@@ -232,6 +233,16 @@ export async function getScreeningRun(
 ): Promise<ApiEnvelope<ScreeningRunPayload>> {
   return request<ApiEnvelope<ScreeningRunPayload>>(
     `/projects/${projectId}/screening/runs/${screeningRunId}`,
+  );
+}
+
+export async function deleteScreeningRun(
+  projectId: string,
+  screeningRunId: string,
+): Promise<ApiEnvelope<ScreeningRunDeletePayload>> {
+  return request<ApiEnvelope<ScreeningRunDeletePayload>>(
+    `/projects/${projectId}/screening/runs/${screeningRunId}`,
+    { method: "DELETE" },
   );
 }
 

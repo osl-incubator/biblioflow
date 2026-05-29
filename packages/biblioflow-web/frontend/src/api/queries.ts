@@ -8,6 +8,7 @@ import {
   createProject,
   createScreeningRun,
   deleteProject,
+  deleteScreeningRun,
   deleteUpload,
   getDataset,
   getDatasetRecords,
@@ -376,6 +377,26 @@ export function useCreateScreeningRun(projectId?: string | null) {
         ["projects", projectId, "screening-runs", screeningRunId],
         response,
       );
+    },
+  });
+}
+
+export function useDeleteScreeningRun(projectId?: string | null) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (screeningRunId: string) =>
+      deleteScreeningRun(projectId as string, screeningRunId),
+    onSuccess: (_response, screeningRunId) => {
+      queryClient.invalidateQueries({ queryKey: ["projects", projectId] });
+      queryClient.invalidateQueries({
+        queryKey: ["projects", projectId, "screening-runs"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["projects", projectId, "screening-candidates"],
+      });
+      queryClient.removeQueries({
+        queryKey: ["projects", projectId, "screening-runs", screeningRunId],
+      });
     },
   });
 }

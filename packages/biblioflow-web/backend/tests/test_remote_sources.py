@@ -38,7 +38,7 @@ def _services(tmp_path: Path) -> tuple[ProjectStore, DatasetService, str]:
 def _pubmed_dataset() -> Any:
     import biblioflow as bf
 
-    return bf.load(
+    dataset = bf.load(
         [
             {
                 "pmid": "12345678",
@@ -52,12 +52,21 @@ def _pubmed_dataset() -> Any:
         ],
         source="pubmed",
     )
+    dataset.metadata.update(
+        {
+            "client_package": "pymedx",
+            "total_results": 12,
+            "returned_count": 1,
+            "api_key_present": False,
+        }
+    )
+    return dataset
 
 
 def _pubmed_screening_dataset() -> Any:
     import biblioflow as bf
 
-    return bf.load(
+    dataset = bf.load(
         [
             {
                 "pmid": "12345678",
@@ -80,12 +89,21 @@ def _pubmed_screening_dataset() -> Any:
         ],
         source="pubmed",
     )
+    dataset.metadata.update(
+        {
+            "client_package": "pymedx",
+            "total_results": 25,
+            "returned_count": 2,
+            "api_key_present": True,
+        }
+    )
+    return dataset
 
 
 def _pmc_dataset() -> Any:
     import biblioflow as bf
 
-    return bf.load(
+    dataset = bf.load(
         [
             {
                 "pmcid": "PMC123456",
@@ -100,6 +118,15 @@ def _pmc_dataset() -> Any:
         ],
         source="pmc",
     )
+    dataset.metadata.update(
+        {
+            "client_package": "pymedx",
+            "total_results": 3,
+            "returned_count": 1,
+            "api_key_present": False,
+        }
+    )
+    return dataset
 
 
 def test_pubmed_import_persists_active_dataset(
@@ -141,6 +168,9 @@ def test_pubmed_import_persists_active_dataset(
     ]
     assert payload["metadata"]["remote_source"] == "pubmed"
     assert payload["metadata"]["name"] == "My PubMed import"
+    assert payload["metadata"]["client_package"] == "pymedx"
+    assert payload["metadata"]["total_results"] == 12
+    assert payload["metadata"]["returned_count"] == 1
     assert len(payload["records"]) == 1
     assert "secret-token" not in json.dumps(payload)
 
@@ -189,6 +219,7 @@ def test_pmc_and_pubmed_central_alias_use_pmc(
 
     assert first["metadata"]["remote_source"] == "pmc"
     assert second["metadata"]["remote_source"] == "pmc"
+    assert first["metadata"]["total_results"] == 3
     assert len(calls) == 2
     assert calls[1]["query"] == "open access"
     assert calls[1]["api_key"] == "secret-token"
@@ -276,6 +307,9 @@ def test_remote_source_search_stages_and_promotes_candidates(
 
     assert staged["name"] == "Screening run"
     assert staged["records"] == 2
+    assert staged["metadata"]["client_package"] == "pymedx"
+    assert staged["metadata"]["total_results"] == 25
+    assert staged["metadata"]["returned_count"] == 2
     assert staged["status_counts"] == {"candidate": 2}
     assert staged["candidates"][0]["identifiers"]["pmid"] == "12345678"
     assert staged["candidates"][0]["title"] == "PubMed test record"

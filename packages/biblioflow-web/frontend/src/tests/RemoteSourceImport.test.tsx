@@ -121,7 +121,14 @@ describe("remote source import", () => {
         },
       ],
       warnings: [],
-      metadata: { status_counts: { candidate: 2 } },
+      metadata: {
+        status_counts: { candidate: 2 },
+        total_results: 17,
+        returned_count: 2,
+        requested_limit: 12,
+        client_package: "pymedx",
+        ncbi_database: "pmc",
+      },
     };
     const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
@@ -253,6 +260,9 @@ describe("remote source import", () => {
     });
     expect(await screen.findByText("PMC record")).toBeDefined();
     expect(screen.getByText(/Selected 2 records/i)).toBeDefined();
+    expect(screen.getByText("Total matches")).toBeDefined();
+    expect(screen.getByText("17")).toBeDefined();
+    expect(screen.getByText("pymedx")).toBeDefined();
 
     await userEvent.type(screen.getByLabelText("Filter candidates"), "Grace");
     expect(screen.getByText(/Selected 2 records \(1 visible\)/i)).toBeDefined();
@@ -736,6 +746,150 @@ describe("remote source import", () => {
       status: "excluded",
     });
     expect(await screen.findByText(/excluded: 2/i)).toBeDefined();
+  });
+
+  it("deletes a staged import after confirmation", async () => {
+    const deletedRunIds: string[] = [];
+    let deleted = false;
+    const confirmMock = vi.fn(() => true);
+    vi.stubGlobal("confirm", confirmMock);
+    const run = {
+      screening_run_id: "run-1",
+      created_at: "2026-01-01T00:00:00Z",
+      updated_at: "2026-01-01T00:00:00Z",
+      source: "pubmed",
+      source_label: "PubMed",
+      origin_type: "remote_search",
+      format: "api",
+      query: "wrong query",
+      upload_ids: [],
+      limit: 10,
+      name: "Wrong PubMed import",
+      records: 1,
+      status_counts: { candidate: 1 },
+      promoted_dataset_ids: ["dataset-1"],
+      candidates: [
+        {
+          candidate_id: "candidate-1",
+          status: "candidate",
+          created_at: "2026-01-01T00:00:00Z",
+          updated_at: "2026-01-01T00:00:00Z",
+          record: { title: "Wrong record", pmid: "123" },
+          identifiers: { pmid: "123" },
+          title: "Wrong record",
+          year: 2024,
+          authors: ["Jane Smith"],
+          source_title: "Wrong Journal",
+        },
+      ],
+      warnings: [],
+      metadata: {},
+    };
+    const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      const method = init?.method ?? "GET";
+      if (url.endsWith("/projects/project-1")) {
+        return Promise.resolve(
+          jsonResponse({
+            data: {
+              project_id: "project-1",
+              name: "Delete staged project",
+              created_at: "2026-01-01T00:00:00Z",
+              updated_at: "2026-01-01T00:00:00Z",
+              active_dataset_id: "dataset-1",
+              source_files: [],
+              datasets: [],
+              filters: {},
+              metadata: {},
+            },
+            warnings: [],
+            metadata: {},
+          }),
+        );
+      }
+      if (
+        url.endsWith("/projects/project-1/screening/runs/run-1") &&
+        method === "DELETE"
+      ) {
+        deleted = true;
+        deletedRunIds.push("run-1");
+        return Promise.resolve(
+          jsonResponse({
+            data: {
+              deleted: true,
+              screening_run_id: "run-1",
+              name: "Wrong PubMed import",
+              records: 1,
+              promoted_dataset_ids: ["dataset-1"],
+              datasets_preserved: true,
+            },
+            warnings: [{ message: "Datasets were preserved." }],
+            metadata: {},
+          }),
+        );
+      }
+      if (
+        url.endsWith("/projects/project-1/screening/runs/run-1") &&
+        method === "GET"
+      ) {
+        return Promise.resolve(
+          deleted
+            ? jsonResponse(
+                { error: { message: "Screening run was not found." } },
+                { status: 404 },
+              )
+            : jsonResponse({ data: run, warnings: [], metadata: {} }),
+        );
+      }
+      if (url.endsWith("/projects/project-1/screening/runs")) {
+        return Promise.resolve(
+          jsonResponse({
+            data: deleted ? [] : [{ ...run, candidates: undefined }],
+            warnings: [],
+            metadata: {},
+          }),
+        );
+      }
+      if (url.endsWith("/projects/project-1/screening/candidates")) {
+        return Promise.resolve(
+          jsonResponse({
+            data: {
+              records: deleted ? 0 : 1,
+              runs: deleted ? [] : [{ ...run, candidates: undefined }],
+              candidates: deleted ? [] : [],
+              status_counts: deleted ? {} : { candidate: 1 },
+              duplicate_groups: [],
+              metadata: {
+                run_count: deleted ? 0 : 1,
+                duplicate_group_count: 0,
+                duplicate_candidate_count: 0,
+              },
+            },
+            warnings: [],
+            metadata: {},
+          }),
+        );
+      }
+      return Promise.resolve(
+        jsonResponse({ error: { message: "Not found" } }, { status: 404 }),
+      );
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    renderProjectScreening("run-1");
+
+    expect(await screen.findByText("Wrong PubMed import")).toBeDefined();
+    await userEvent.click(
+      screen.getByRole("button", { name: /Delete staged import/i }),
+    );
+
+    await waitFor(() => expect(deletedRunIds).toEqual(["run-1"]));
+    expect(confirmMock).toHaveBeenCalledWith(
+      expect.stringContaining("Wrong PubMed import"),
+    );
+    expect(confirmMock).toHaveBeenCalledWith(
+      expect.stringContaining("dataset was already created"),
+    );
   });
 
   it("renders upload size formats and ignores empty file events", async () => {
