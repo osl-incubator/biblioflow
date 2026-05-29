@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: "If you use biblioflow in your research workflow, please cite this software."
 type: software
 title: "biblioflow"
-version: "0.2.0" # semantic-release
+version: "0.3.0" # semantic-release
 authors:
   - family-names: "Ogasawara"
     given-names: "Ivan"

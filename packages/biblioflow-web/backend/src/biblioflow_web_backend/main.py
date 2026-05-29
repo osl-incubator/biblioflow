@@ -19,7 +19,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app = FastAPI(
         title="biblioflow-web",
         description="FastAPI backend for biblioflow web workflows.",
-        version="0.2.0",  # semantic-release
+        version="0.3.0",  # semantic-release
     )
     if app_settings.cors_origins:
         app.add_middleware(

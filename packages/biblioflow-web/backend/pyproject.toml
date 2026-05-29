@@ -1,6 +1,6 @@
 [project]
 name = "biblioflow-web"
-version = "0.2.0"  # semantic-release
+version = "0.3.0"  # semantic-release
 description = "FastAPI web application for biblioflow bibliometric workflows."
 readme = "README.md"
 requires-python = ">=3.10,<4"
@@ -20,7 +20,7 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-  "biblioflow>=0.2.0",
+  "biblioflow>=0.3.0",
   "fastapi>=0.115",
   "pydantic>=2",
   "prisma-flow>=0.5.0",

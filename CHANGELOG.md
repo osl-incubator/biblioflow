@@ -1,6 +1,19 @@
 # Release Notes
 ---
 
+# [0.3.0](https://github.com/osl-incubator/biblioflow/compare/0.2.0...0.3.0) (2026-05-29)
+
+
+### Bug Fixes
+
+* Fix installation for development ([#9](https://github.com/osl-incubator/biblioflow/issues/9)) ([9a7dda8](https://github.com/osl-incubator/biblioflow/commit/9a7dda84cb8d895224fa3bfe15e5ee9bb66d613b))
+* Fix tmp files from github ([#8](https://github.com/osl-incubator/biblioflow/issues/8)) ([35cd888](https://github.com/osl-incubator/biblioflow/commit/35cd888e07e5aa40b507e50569bcf402a9fe8dd1))
+
+
+### Features
+
+* Add support for screening ([#10](https://github.com/osl-incubator/biblioflow/issues/10)) ([da8815c](https://github.com/osl-incubator/biblioflow/commit/da8815c8a303af537298cb70ce60442cfa6b83d1))
+
 # [0.2.0](https://github.com/osl-incubator/biblioflow/compare/0.1.0...0.2.0) (2026-05-27)
 
 
