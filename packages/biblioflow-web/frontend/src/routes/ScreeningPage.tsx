@@ -218,6 +218,10 @@ export function ScreeningPage() {
     allStaged?.candidates.filter((candidate) =>
       candidateMatches(candidate, candidateFilter),
     ) ?? [];
+  const importableAllCandidateIds =
+    allStaged?.candidates
+      .filter((candidate) => isImportable(candidate.status))
+      .map((candidate) => candidate.id) ?? [];
   const promotableVisibleAllCandidateIds = visibleAllCandidates
     .filter((candidate) => isImportable(candidate.status))
     .map((candidate) => candidate.id);
@@ -229,6 +233,10 @@ export function ScreeningPage() {
     stagedRun?.candidates.filter((candidate) =>
       candidateMatches(candidate, candidateFilter),
     ) ?? [];
+  const importableCandidateIds =
+    stagedRun?.candidates
+      .filter((candidate) => isImportable(candidate.status))
+      .map((candidate) => candidate.candidate_id) ?? [];
   const promotableVisibleCandidateIds = visibleCandidates
     .filter((candidate) => isImportable(candidate.status))
     .map((candidate) => candidate.candidate_id);
@@ -319,10 +327,18 @@ export function ScreeningPage() {
     ]);
   }
 
+  function selectAllCandidates() {
+    setSelectedCandidateIds(importableCandidateIds);
+  }
+
   function selectVisibleAllCandidates() {
     setSelectedAllCandidateIds((current) => [
       ...new Set([...current, ...promotableVisibleAllCandidateIds]),
     ]);
+  }
+
+  function selectAllStagedCandidates() {
+    setSelectedAllCandidateIds(importableAllCandidateIds);
   }
 
   function clearVisibleCandidates() {
@@ -333,6 +349,10 @@ export function ScreeningPage() {
     );
   }
 
+  function clearAllCandidates() {
+    setSelectedCandidateIds([]);
+  }
+
   function clearVisibleAllCandidates() {
     setSelectedAllCandidateIds((current) =>
       current.filter(
@@ -340,6 +360,10 @@ export function ScreeningPage() {
           !promotableVisibleAllCandidateIds.includes(candidateId),
       ),
     );
+  }
+
+  function clearAllStagedCandidates() {
+    setSelectedAllCandidateIds([]);
   }
 
   function applyCandidateDecision(
@@ -590,6 +614,21 @@ export function ScreeningPage() {
               />
             </label>
             <div className="section-actions">
+              <button
+                type="button"
+                onClick={selectAllStagedCandidates}
+                disabled={!importableAllCandidateIds.length}
+              >
+                Check all
+              </button>
+              <button
+                type="button"
+                className="button-secondary"
+                onClick={clearAllStagedCandidates}
+                disabled={!selectedAllCandidateIds.length}
+              >
+                Uncheck all
+              </button>
               <button type="button" onClick={selectVisibleAllCandidates}>
                 Select visible
               </button>
@@ -810,6 +849,21 @@ export function ScreeningPage() {
               />
             </label>
             <div className="section-actions">
+              <button
+                type="button"
+                onClick={selectAllCandidates}
+                disabled={!importableCandidateIds.length}
+              >
+                Check all
+              </button>
+              <button
+                type="button"
+                className="button-secondary"
+                onClick={clearAllCandidates}
+                disabled={!selectedCandidateIds.length}
+              >
+                Uncheck all
+              </button>
               <button type="button" onClick={selectVisibleCandidates}>
                 Select visible
               </button>

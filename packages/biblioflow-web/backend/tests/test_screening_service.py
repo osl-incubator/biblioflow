@@ -152,6 +152,71 @@ def test_screening_run_from_records_updates_and_promotes(tmp_path: Path) -> None
     assert refreshed["promoted_dataset_ids"] == [dataset_id]
 
 
+def test_screening_decisions_refresh_live_dataset(tmp_path: Path) -> None:
+    projects, _files, datasets, screening, project_id = _services(tmp_path)
+    run = screening.create_run(
+        project_id,
+        origin_type="records",
+        source="generic",
+        records=[
+            {
+                "title": "First kept record",
+                "publication_year": 2024,
+                "authors": ["Ada Lovelace"],
+                "doi": "10.1/first",
+            },
+            {
+                "title": "Second kept record",
+                "publication_year": 2025,
+                "authors": ["Grace Hopper"],
+                "doi": "10.1/second",
+            },
+        ],
+        name="Live screening",
+    )
+    run_id = str(run["screening_run_id"])
+    first_id = str(run["candidates"][0]["candidate_id"])
+    second_id = str(run["candidates"][1]["candidate_id"])
+    project = projects.get_project(project_id)
+    live_dataset_id = str(project["active_dataset_id"])
+
+    assert project["metadata"]["screening_live_dataset_id"] == live_dataset_id
+    assert datasets.summarize(project_id, live_dataset_id)["documents"] == 2
+
+    kept = screening.update_candidates(
+        project_id,
+        run_id,
+        candidate_ids=[first_id],
+        status="selected",
+    )
+
+    assert kept["status_counts"] == {"selected": 1, "candidate": 1}
+    assert projects.get_project(project_id)["active_dataset_id"] == live_dataset_id
+    assert datasets.summarize(project_id, live_dataset_id)["documents"] == 2
+
+    maybe = screening.update_candidates(
+        project_id,
+        run_id,
+        candidate_ids=[second_id],
+        status="maybe",
+    )
+
+    assert maybe["status_counts"] == {"selected": 1, "maybe": 1}
+    assert projects.get_project(project_id)["active_dataset_id"] == live_dataset_id
+    assert datasets.summarize(project_id, live_dataset_id)["documents"] == 2
+
+    excluded = screening.update_candidates(
+        project_id,
+        run_id,
+        candidate_ids=[first_id],
+        status="excluded",
+    )
+
+    assert excluded["status_counts"] == {"excluded": 1, "maybe": 1}
+    assert projects.get_project(project_id)["active_dataset_id"] == live_dataset_id
+    assert datasets.summarize(project_id, live_dataset_id)["documents"] == 1
+
+
 def test_screening_candidates_aggregate_duplicate_groups(tmp_path: Path) -> None:
     _projects, _files, _datasets, screening, project_id = _services(tmp_path)
 

@@ -83,6 +83,7 @@ describe("remote source import", () => {
     const searchBodies: unknown[] = [];
     const decisionBodies: unknown[] = [];
     const promoteBodies: unknown[] = [];
+    let activeDatasetId: string | null = null;
     const stagedSearch = {
       screening_run_id: "search-1",
       created_at: "2026-01-01T00:00:00Z",
@@ -134,6 +135,16 @@ describe("remote source import", () => {
       const url = String(input);
       const method = init?.method ?? "GET";
       if (url.endsWith("/projects/project-1")) {
+        const datasets = activeDatasetId
+          ? [
+              {
+                dataset_id: activeDatasetId,
+                created_at: "2026-01-01T00:00:00Z",
+                records: 2,
+                upload_ids: [],
+              },
+            ]
+          : [];
         return Promise.resolve(
           jsonResponse({
             data: {
@@ -141,10 +152,47 @@ describe("remote source import", () => {
               name: "Remote project",
               created_at: "2026-01-01T00:00:00Z",
               updated_at: "2026-01-01T00:00:00Z",
-              active_dataset_id: null,
+              active_dataset_id: activeDatasetId,
               source_files: [],
-              datasets: [],
+              datasets,
               filters: {},
+              metadata: {},
+            },
+            warnings: [],
+            metadata: {},
+          }),
+        );
+      }
+      if (url.endsWith("/projects/project-1/datasets/dataset-1/summary")) {
+        return Promise.resolve(
+          jsonResponse({
+            data: {
+              documents: 2,
+              sources: 2,
+              authors: 1,
+              keywords: 0,
+              timespan_start: null,
+              timespan_end: null,
+              documents_with_doi: 1,
+              warnings: [],
+              metadata: {},
+            },
+            warnings: [],
+            metadata: {},
+          }),
+        );
+      }
+      if (
+        url.endsWith("/projects/project-1/datasets/dataset-1/analysis/overview")
+      ) {
+        return Promise.resolve(
+          jsonResponse({
+            data: {
+              main_information: { documents: 2, sources: 2 },
+              annual_production: [],
+              top_authors: [],
+              top_sources: [],
+              top_keywords: [],
               metadata: {},
             },
             warnings: [],
@@ -201,6 +249,7 @@ describe("remote source import", () => {
       }
       if (url.endsWith("/projects/project-1/screening/runs/search-1/promote")) {
         promoteBodies.push(JSON.parse(String(init?.body)));
+        activeDatasetId = "dataset-1";
         return Promise.resolve(
           jsonResponse({
             data: {
@@ -270,6 +319,14 @@ describe("remote source import", () => {
       screen.getByRole("button", { name: /Clear visible/i }),
     );
     expect(screen.getByText(/Selected 1 records \(0 visible\)/i)).toBeDefined();
+    await userEvent.click(screen.getByRole("button", { name: /Uncheck all/i }));
+    expect(screen.getByText(/Selected 0 records \(0 visible\)/i)).toBeDefined();
+    await userEvent.click(screen.getByRole("button", { name: /^Check all$/i }));
+    expect(screen.getByText(/Selected 2 records \(1 visible\)/i)).toBeDefined();
+    await userEvent.click(
+      screen.getByRole("button", { name: /Clear visible/i }),
+    );
+    expect(screen.getByText(/Selected 1 records \(0 visible\)/i)).toBeDefined();
     await userEvent.click(
       screen.getByRole("button", { name: /Select visible/i }),
     );
@@ -297,6 +354,17 @@ describe("remote source import", () => {
     expect(
       screen.getAllByRole("link", { name: /Go to dashboard/i }).length,
     ).toBeGreaterThan(0);
+    await userEvent.click(
+      screen.getAllByRole("link", { name: /Go to dashboard/i }).at(-1)!,
+    );
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith(
+        expect.stringMatching(
+          /\/projects\/project-1\/datasets\/dataset-1\/summary$/,
+        ),
+        expect.anything(),
+      ),
+    );
   });
 
   it("displays backend remote import errors", async () => {
@@ -733,6 +801,10 @@ describe("remote source import", () => {
     await userEvent.click(
       screen.getByRole("button", { name: /Select visible/i }),
     );
+    expect(screen.getByText(/Selected 2 records/i)).toBeDefined();
+    await userEvent.click(screen.getByRole("button", { name: /Uncheck all/i }));
+    expect(screen.getByText(/Selected 0 records/i)).toBeDefined();
+    await userEvent.click(screen.getByRole("button", { name: /^Check all$/i }));
     expect(screen.getByText(/Selected 2 records/i)).toBeDefined();
     await userEvent.click(
       screen.getByRole("button", { name: /Exclude selected/i }),

@@ -40,11 +40,13 @@ export function WordsPage() {
         <article className="card">
           <h2>Most frequent keywords</h2>
           <BarList
+            countLabel="docs."
             items={rowsToBars(
               rows,
               ["keyword", "term", "name"],
               ["documents", "count"],
             )}
+            note="Counts are documents containing each keyword or term."
           />
         </article>
         <article className="card">

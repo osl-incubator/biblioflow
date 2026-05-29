@@ -23,6 +23,7 @@ SCREENING_STATUSES = {
     "error",
 }
 PROMOTABLE_STATUSES = {"candidate", "selected", "maybe"}
+LIVE_DATASET_STATUSES = {"candidate", "selected", "maybe", "imported"}
 
 
 class ScreeningService:
@@ -128,6 +129,7 @@ class ScreeningService:
             if str(item.get("screening_run_id")) != screening_run_id
         ]
         self.projects.save_project(project)
+        self._sync_live_screening_dataset(project_id)
         promoted_dataset_ids = [
             str(item) for item in payload.get("promoted_dataset_ids", [])
         ]
@@ -263,7 +265,9 @@ class ScreeningService:
                     ]
                 if notes is not None:
                     candidate["notes"] = _optional_string(notes)
-        return self._save_run(project_id, payload, updated_at=updated_at)
+        saved = self._save_run(project_id, payload, updated_at=updated_at)
+        self._sync_live_screening_dataset(project_id)
+        return saved
 
     def update_candidates_bulk(
         self,
@@ -328,6 +332,7 @@ class ScreeningService:
                     if notes is not None:
                         candidate["notes"] = _optional_string(notes)
             self._save_run(project_id, payload, updated_at=updated_at)
+        self._sync_live_screening_dataset(project_id)
         return self.list_candidates(project_id)
 
     def promote_candidates(
@@ -645,6 +650,7 @@ class ScreeningService:
         }
         self._write_run(project_id, screening_run_id, payload)
         self._upsert_run_index(project_id, payload)
+        self._sync_live_screening_dataset(project_id)
         return payload
 
     def _run_path(self, project_id: str, screening_run_id: str) -> Path:
@@ -686,6 +692,45 @@ class ScreeningService:
         existing.append(_run_list_item(payload))
         project["screening_runs"] = existing
         self.projects.save_project(project)
+
+    def _sync_live_screening_dataset(self, project_id: str) -> dict[str, Any] | None:
+        """Create or refresh the active dataset from screening decisions."""
+        import biblioflow as bf
+
+        project = self.projects.get_project(project_id)
+        metadata = cast(dict[str, Any], project.setdefault("metadata", {}))
+        live_dataset_id = metadata.get("screening_live_dataset_id")
+        records = [
+            dict(candidate["record"])
+            for run in (
+                self.get_run(project_id, str(row["screening_run_id"]))
+                for row in self.list_runs(project_id)
+            )
+            for candidate in _screening_candidates(run)
+            if str(candidate.get("status")) in LIVE_DATASET_STATUSES
+        ]
+        if not records and not live_dataset_id:
+            return None
+        dataset = bf.load(records, source="generic", format="records")
+        payload = self.datasets.upsert_dataset(
+            project_id,
+            dataset,
+            dataset_id=str(live_dataset_id) if live_dataset_id else None,
+            upload_ids=[],
+            metadata={
+                "imported_from": "screening_decisions",
+                "name": "Current screening records",
+                "included_count": len(records),
+            },
+            make_active=True,
+        )
+        refreshed_project = self.projects.get_project(project_id)
+        refreshed_metadata = cast(
+            dict[str, Any], refreshed_project.setdefault("metadata", {})
+        )
+        refreshed_metadata["screening_live_dataset_id"] = payload["dataset_id"]
+        self.projects.save_project(refreshed_project)
+        return payload
 
 
 def _dataset_records(dataset: Any) -> list[dict[str, Any]]:

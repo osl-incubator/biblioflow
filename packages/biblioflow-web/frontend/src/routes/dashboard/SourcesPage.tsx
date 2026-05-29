@@ -41,11 +41,13 @@ export function SourcesPage() {
         <article className="card">
           <h2>Most relevant sources</h2>
           <BarList
+            countLabel="docs."
             items={rowsToBars(
               rows,
               ["source_title", "source", "name"],
               ["documents", "count"],
             )}
+            note="Counts are documents published in each source."
           />
         </article>
         <article className="card">

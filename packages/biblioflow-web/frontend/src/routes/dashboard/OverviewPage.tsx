@@ -94,11 +94,13 @@ export function OverviewPage() {
             <h2>Documents per year</h2>
           </div>
           <BarList
+            countLabel="docs."
             items={rowsToBars(
               annualRows,
               ["publication_year", "year"],
               ["documents", "count"],
             )}
+            note="Counts are documents assigned to each publication year."
             emptyMessage="No publication years were detected."
           />
         </article>
@@ -111,11 +113,13 @@ export function OverviewPage() {
             <h2>Most relevant authors</h2>
           </div>
           <BarList
+            countLabel="docs."
             items={rowsToBars(
               overview.data?.data.top_authors,
               ["author", "name"],
               ["documents", "count"],
             )}
+            note="Counts are documents where the author appears."
           />
         </article>
         <article className="card">
@@ -124,11 +128,13 @@ export function OverviewPage() {
             <h2>Most relevant sources</h2>
           </div>
           <BarList
+            countLabel="docs."
             items={rowsToBars(
               overview.data?.data.top_sources,
               ["source_title", "source", "name"],
               ["documents", "count"],
             )}
+            note="Counts are documents published in each source."
           />
         </article>
         <article className="card">
@@ -137,11 +143,13 @@ export function OverviewPage() {
             <h2>Most frequent keywords</h2>
           </div>
           <BarList
+            countLabel="docs."
             items={rowsToBars(
               overview.data?.data.top_keywords,
               ["keyword", "term", "name"],
               ["documents", "count"],
             )}
+            note="Counts are documents containing each keyword or term."
           />
         </article>
       </section>

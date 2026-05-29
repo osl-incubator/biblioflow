@@ -359,13 +359,6 @@ def render_qmd(context: dict[str, Any]) -> str:
             ["label", "path", "format", "provider", "searched_on", "sha256"],
         ),
         "",
-        "## Sample records",
-        "",
-        _markdown_table(
-            context["tables"]["sample_records"],
-            ["title", "authors", "source_title", "publication_year", "doi"],
-        ),
-        "",
     ]
     return "\n".join(lines)
 

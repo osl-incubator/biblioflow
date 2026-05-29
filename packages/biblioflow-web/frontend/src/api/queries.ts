@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { QueryClient } from "@tanstack/react-query";
 
 import {
   buildMatrix,
@@ -6,6 +7,7 @@ import {
   buildPrismaFlow,
   createExport,
   createProject,
+  createReport,
   createScreeningRun,
   deleteProject,
   deleteScreeningRun,
@@ -25,6 +27,7 @@ import {
   listDatasets,
   listExports,
   listProjects,
+  listReports,
   listRemoteSearches,
   listScreeningCandidates,
   listScreeningRuns,
@@ -45,17 +48,86 @@ import type {
   BulkScreeningCandidateDecisionRequest,
   CandidateDecisionRequest,
   CandidatePromotionRequest,
+  ApiEnvelope,
   DatasetLoadRequest,
+  DatasetListItem,
+  DatasetPayload,
   ExportRequest,
   FilterSpec,
   MatrixRequest,
+  Project,
   PrismaFlowRequest,
   RemoteSourceImportRequest,
   RemoteSourceSearchRequest,
+  ReportCreateRequest,
   ScreeningCandidateDecisionRequest,
   ScreeningCandidatePromotionRequest,
   ScreeningRunCreateRequest,
 } from "./types";
+
+function datasetListItem(dataset: DatasetPayload): DatasetListItem {
+  return {
+    dataset_id: dataset.dataset_id,
+    created_at: dataset.created_at,
+    records: dataset.records.length,
+    upload_ids: dataset.upload_ids,
+  };
+}
+
+function upsertDatasetListItem(
+  datasets: DatasetListItem[] = [],
+  item: DatasetListItem,
+): DatasetListItem[] {
+  return [
+    ...datasets.filter((dataset) => dataset.dataset_id !== item.dataset_id),
+    item,
+  ];
+}
+
+function refreshActiveDatasetQueries(
+  queryClient: QueryClient,
+  projectId: string | null | undefined,
+  response: ApiEnvelope<DatasetPayload>,
+) {
+  if (!projectId) {
+    return;
+  }
+  const dataset = response.data;
+  const item = datasetListItem(dataset);
+  queryClient.setQueryData<ApiEnvelope<Project>>(
+    ["projects", projectId],
+    (current) =>
+      current
+        ? {
+            ...current,
+            data: {
+              ...current.data,
+              active_dataset_id: dataset.dataset_id,
+              datasets: upsertDatasetListItem(current.data.datasets, item),
+            },
+          }
+        : current,
+  );
+  queryClient.setQueryData<ApiEnvelope<DatasetListItem[]>>(
+    ["projects", projectId, "datasets"],
+    (current) =>
+      current
+        ? {
+            ...current,
+            data: upsertDatasetListItem(current.data, item),
+          }
+        : current,
+  );
+  queryClient.setQueryData(
+    ["projects", projectId, "datasets", dataset.dataset_id],
+    response,
+  );
+  queryClient.invalidateQueries({ queryKey: ["projects"] });
+  queryClient.invalidateQueries({ queryKey: ["projects", projectId] });
+  queryClient.invalidateQueries({
+    queryKey: ["projects", projectId, "datasets"],
+  });
+}
 
 export function useHealth() {
   return useQuery({ queryKey: ["health"], queryFn: getHealth });
@@ -283,6 +355,14 @@ export function useExports(projectId?: string | null) {
   });
 }
 
+export function useReports(projectId?: string | null) {
+  return useQuery({
+    queryKey: ["projects", projectId, "reports"],
+    queryFn: () => listReports(projectId as string),
+    enabled: Boolean(projectId),
+  });
+}
+
 export function useCreateProject() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -311,10 +391,7 @@ export function useLoadDataset(projectId?: string | null) {
       loadDataset(projectId as string, payload),
     onSuccess: (response) => {
       const datasetId = response.data.dataset_id;
-      queryClient.invalidateQueries({ queryKey: ["projects", projectId] });
-      queryClient.invalidateQueries({
-        queryKey: ["projects", projectId, "datasets"],
-      });
+      refreshActiveDatasetQueries(queryClient, projectId, response);
       queryClient.invalidateQueries({
         queryKey: ["projects", projectId, "datasets", datasetId],
       });
@@ -329,10 +406,7 @@ export function useImportRemoteSource(projectId?: string | null) {
       importRemoteSource(projectId as string, payload),
     onSuccess: (response) => {
       const datasetId = response.data.dataset_id;
-      queryClient.invalidateQueries({ queryKey: ["projects", projectId] });
-      queryClient.invalidateQueries({
-        queryKey: ["projects", projectId, "datasets"],
-      });
+      refreshActiveDatasetQueries(queryClient, projectId, response);
       queryClient.invalidateQueries({
         queryKey: ["projects", projectId, "datasets", datasetId],
       });
@@ -368,6 +442,9 @@ export function useCreateScreeningRun(projectId?: string | null) {
       const screeningRunId = response.data.screening_run_id;
       queryClient.invalidateQueries({ queryKey: ["projects", projectId] });
       queryClient.invalidateQueries({
+        queryKey: ["projects", projectId, "datasets"],
+      });
+      queryClient.invalidateQueries({
         queryKey: ["projects", projectId, "screening-runs"],
       });
       queryClient.invalidateQueries({
@@ -388,6 +465,9 @@ export function useDeleteScreeningRun(projectId?: string | null) {
       deleteScreeningRun(projectId as string, screeningRunId),
     onSuccess: (_response, screeningRunId) => {
       queryClient.invalidateQueries({ queryKey: ["projects", projectId] });
+      queryClient.invalidateQueries({
+        queryKey: ["projects", projectId, "datasets"],
+      });
       queryClient.invalidateQueries({
         queryKey: ["projects", projectId, "screening-runs"],
       });
@@ -416,6 +496,9 @@ export function useUpdateScreeningCandidates(
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: ["projects", projectId] });
       queryClient.invalidateQueries({
+        queryKey: ["projects", projectId, "datasets"],
+      });
+      queryClient.invalidateQueries({
         queryKey: ["projects", projectId, "screening-runs"],
       });
       queryClient.invalidateQueries({
@@ -436,6 +519,9 @@ export function useUpdateAllScreeningCandidates(projectId?: string | null) {
       updateScreeningCandidatesBulk(projectId as string, payload),
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: ["projects", projectId] });
+      queryClient.invalidateQueries({
+        queryKey: ["projects", projectId, "datasets"],
+      });
       queryClient.invalidateQueries({
         queryKey: ["projects", projectId, "screening-runs"],
       });
@@ -461,10 +547,7 @@ export function usePromoteScreeningCandidates(
       ),
     onSuccess: (response) => {
       const datasetId = response.data.dataset_id;
-      queryClient.invalidateQueries({ queryKey: ["projects", projectId] });
-      queryClient.invalidateQueries({
-        queryKey: ["projects", projectId, "datasets"],
-      });
+      refreshActiveDatasetQueries(queryClient, projectId, response);
       queryClient.invalidateQueries({
         queryKey: ["projects", projectId, "screening-runs"],
       });
@@ -509,10 +592,7 @@ export function usePromoteRemoteCandidates(
       promoteRemoteCandidates(projectId as string, searchId as string, payload),
     onSuccess: (response) => {
       const datasetId = response.data.dataset_id;
-      queryClient.invalidateQueries({ queryKey: ["projects", projectId] });
-      queryClient.invalidateQueries({
-        queryKey: ["projects", projectId, "datasets"],
-      });
+      refreshActiveDatasetQueries(queryClient, projectId, response);
       queryClient.invalidateQueries({
         queryKey: ["projects", projectId, "remote-searches"],
       });
@@ -531,6 +611,19 @@ export function useCreateExport(projectId?: string | null) {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["projects", projectId, "exports"],
+      });
+    },
+  });
+}
+
+export function useCreateReport(projectId?: string | null) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: ReportCreateRequest) =>
+      createReport(projectId as string, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["projects", projectId, "reports"],
       });
     },
   });

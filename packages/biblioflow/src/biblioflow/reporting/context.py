@@ -250,7 +250,6 @@ def _tables(
         "top_institutions": _counter_rows(institutions, "institution", "documents"),
         "document_types": _counter_rows(document_types, "document_type", "documents"),
         "prisma_counts": prisma_rows(prisma_flow),
-        "sample_records": _sample_records(records),
     }
 
 
@@ -439,25 +438,6 @@ def _counter_rows(
       type: list[dict[str, Any]]
     """
     return [{key: item, value: count} for item, count in counter.most_common(limit)]
-
-
-def _sample_records(
-    records: list[dict[str, Any]], limit: int = 20
-) -> list[dict[str, Any]]:
-    """
-    title: Return a compact sample of bibliographic records.
-    parameters:
-      records:
-        type: list[dict[str, Any]]
-      limit:
-        type: int
-    returns:
-      type: list[dict[str, Any]]
-    """
-    fields = ["title", "authors", "source_title", "publication_year", "doi"]
-    return [
-        {field: record.get(field) for field in fields} for record in records[:limit]
-    ]
 
 
 def _list_values(value: Any) -> list[str]:

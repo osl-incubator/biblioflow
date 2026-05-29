@@ -148,7 +148,12 @@ export const navigationSections: NavigationSection[] = [
         buildPath: (projectId) => dashboardPath(projectId, "networks"),
         fallbackPath: "/projects",
       },
-      { label: "Report", detail: "Narrative export planned", disabled: true },
+      {
+        label: "Report",
+        detail: "PDF synthesis",
+        buildPath: (projectId) => `/projects/${projectId}/exports`,
+        fallbackPath: "/projects",
+      },
       {
         label: "Export",
         detail: "Artifacts",

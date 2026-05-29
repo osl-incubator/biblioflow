@@ -52,6 +52,8 @@ def test_generate_report_writes_qmd_context_and_prisma_svg(tmp_path: Path) -> No
     assert context["summary"]["documents"] == 2
     assert context["project"]["title"] == "Example Project"
     assert "appendices" in result.sections_rendered
+    assert "Sample records" not in result.qmd_path.read_text(encoding="utf-8")
+    assert "sample_records" not in context["tables"]
 
 
 def test_prisma_validation_and_svg() -> None:

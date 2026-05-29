@@ -435,6 +435,63 @@ class DatasetService:
             self.get_biblioflow_dataset(project_id, dataset_id), spec
         ).to_dict()
 
+    def upsert_dataset(
+        self,
+        project_id: str,
+        dataset: Any,
+        *,
+        dataset_id: str | None = None,
+        upload_ids: list[str] | None = None,
+        metadata: dict[str, Any] | None = None,
+        warnings: list[dict[str, object]] | None = None,
+        make_active: bool = True,
+    ) -> dict[str, Any]:
+        """Create or replace a persisted dataset and optionally make it active."""
+        records = _dataset_records(dataset)
+        selected_dataset_id = dataset_id or uuid4().hex
+        path = self._dataset_path(project_id, selected_dataset_id)
+        if path.exists():
+            existing_payload = self.get_dataset_payload(project_id, selected_dataset_id)
+            created_at = str(existing_payload.get("created_at") or utc_now())
+        else:
+            created_at = utc_now()
+        dataset_metadata = {
+            **_metadata_without_secrets(dict(getattr(dataset, "metadata", {}))),
+            **_metadata_without_secrets(metadata or {}),
+            "records": len(records),
+        }
+        payload = {
+            "dataset_id": selected_dataset_id,
+            "created_at": created_at,
+            "upload_ids": upload_ids or [],
+            "records": records,
+            "warnings": warnings
+            if warnings is not None
+            else _dataset_warnings(dataset),
+            "metadata": dataset_metadata,
+        }
+        self._write_dataset(project_id, selected_dataset_id, payload)
+        project = self.projects.get_project(project_id)
+        datasets = [
+            dict(item)
+            for item in project.get("datasets", [])
+            if str(item.get("dataset_id")) != selected_dataset_id
+        ]
+        datasets.append(
+            {
+                "dataset_id": selected_dataset_id,
+                "created_at": created_at,
+                "records": len(records),
+                "upload_ids": upload_ids or [],
+                "metadata": dataset_metadata,
+            }
+        )
+        project["datasets"] = datasets
+        if make_active:
+            project["active_dataset_id"] = selected_dataset_id
+        self.projects.save_project(project)
+        return payload
+
     def _persist_dataset(
         self,
         project_id: str,
@@ -445,38 +502,14 @@ class DatasetService:
         warnings: list[dict[str, object]] | None = None,
     ) -> dict[str, Any]:
         """Persist a normalized biblioflow dataset and make it active."""
-        records = _dataset_records(dataset)
-        dataset_id = uuid4().hex
-        created_at = utc_now()
-        dataset_metadata = {
-            **_metadata_without_secrets(dict(getattr(dataset, "metadata", {}))),
-            **_metadata_without_secrets(metadata or {}),
-            "records": len(records),
-        }
-        payload = {
-            "dataset_id": dataset_id,
-            "created_at": created_at,
-            "upload_ids": upload_ids or [],
-            "records": records,
-            "warnings": warnings
-            if warnings is not None
-            else _dataset_warnings(dataset),
-            "metadata": dataset_metadata,
-        }
-        self._write_dataset(project_id, dataset_id, payload)
-        project = self.projects.get_project(project_id)
-        project.setdefault("datasets", []).append(
-            {
-                "dataset_id": dataset_id,
-                "created_at": created_at,
-                "records": len(records),
-                "upload_ids": upload_ids or [],
-                "metadata": dataset_metadata,
-            }
+        return self.upsert_dataset(
+            project_id,
+            dataset,
+            upload_ids=upload_ids,
+            metadata=metadata,
+            warnings=warnings,
+            make_active=True,
         )
-        project["active_dataset_id"] = dataset_id
-        self.projects.save_project(project)
-        return payload
 
     def _dataset_path(self, project_id: str, dataset_id: str) -> Path:
         return self.projects.datasets_dir(project_id) / f"{dataset_id}.json"
