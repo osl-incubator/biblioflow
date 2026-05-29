@@ -82,9 +82,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-59ae30943d3da0dd1d3884b3771c55c5.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-9d9e03716bff1943a80bdf8d6ac6af63.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="site_libs/bootstrap/bootstrap-59ae30943d3da0dd1d3884b3771c55c5.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-19860fda162af596b5c58c734d3fd1b5.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-221ba8e23ecead040621c310565d2b2c.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-19860fda162af596b5c58c734d3fd1b5.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -527,7 +527,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>dataset <span class="op">=</span> bf.load(<span class="st">"records.ris"</span>)</span>
 <span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>app <span class="op">=</span> bfn.launch(records<span class="op">=</span>dataset)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Import PubMed or PubMed Central records directly from a notebook:</p>
+<p>Import PubMed or PubMed Central records directly from a notebook, or stage them first for screening:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> biblioflow_nb <span class="im">as</span> bfn</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -536,7 +536,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>app <span class="op">=</span> bfn.app(display<span class="op">=</span><span class="va">False</span>)</span>
 <span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>app.from_pubmed(query<span class="op">=</span><span class="st">"bibliometrics AND reproducibility"</span>, limit<span class="op">=</span><span class="dv">20</span>)</span>
 <span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>app.from_pmc(query<span class="op">=</span><span class="st">"open science"</span>, limit<span class="op">=</span><span class="dv">20</span>)</span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>app.display()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>run <span class="op">=</span> app.stage_pubmed(query<span class="op">=</span><span class="st">"bibliometrics AND reproducibility"</span>, limit<span class="op">=</span><span class="dv">20</span>)</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>app.update_candidates([run[<span class="st">"candidates"</span>][<span class="dv">0</span>][<span class="st">"candidate_id"</span>]], status<span class="op">=</span><span class="st">"selected"</span>)</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>app.promote_candidates()</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>app.display()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p><code>from_pubmed_central(...)</code> is also available as a long-form alias for <code>from_pmc(...)</code>. API keys may be passed as <code>api_key=...</code> or configured through <code>BIBLIOFLOW_NCBI_API_KEY</code>; they are not stored in session manifests.</p>
 </section>
 <section id="google-colab" class="level2">
@@ -553,7 +557,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>The notebook application provides panels for:</p>
 <ul>
 <li>Loading local paths or uploaded files.</li>
-<li>Searching PubMed and PubMed Central through the <strong>PubMed/PMC</strong> panel.</li>
+<li>Searching remote sources through the <strong>Remote screening</strong> panel.</li>
+<li>Staging records, files, PubMed, and PubMed Central results as generic screening runs before promotion.</li>
 <li>Previewing validation warnings and normalized records.</li>
 <li>Applying common filters.</li>
 <li>Running overview analysis.</li>
@@ -561,18 +566,26 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>Building matrices and networks.</li>
 <li>Exporting datasets and downloading artifacts in notebook environments.</li>
 </ul>
+<p>Programmatic screening helpers mirror the web app’s source-agnostic workflow:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>app.stage_records([{<span class="st">"title"</span>: <span class="st">"Manual candidate"</span>}], source<span class="op">=</span><span class="st">"generic"</span>)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>app.stage_file(<span class="st">"records.ris"</span>, source<span class="op">=</span><span class="st">"auto"</span>, <span class="bu">format</span><span class="op">=</span><span class="st">"auto"</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>app.stage_pubmed(query<span class="op">=</span><span class="st">"bibliometrics"</span>, limit<span class="op">=</span><span class="dv">50</span>)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>app.stage_pmc(query<span class="op">=</span><span class="st">"open science"</span>, limit<span class="op">=</span><span class="dv">50</span>)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>app.update_candidates([<span class="st">"candidate-id"</span>], status<span class="op">=</span><span class="st">"maybe"</span>)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>app.promote_candidates(include_statuses<span class="op">=</span>(<span class="st">"selected"</span>, <span class="st">"maybe"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Direct <code>from_pubmed(...)</code> and <code>from_pmc(...)</code> imports remain available as compatibility shortcuts when an intermediate screening step is not needed.</p>
 </section>
 <section id="development" class="level2">
 <h2 class="anchored" data-anchor-id="development">Development</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">makim</span> nb.tests</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="ex">makim</span> nb.package.build</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="ex">makim</span> nb.examples.check</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">makim</span> nb.tests</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="ex">makim</span> nb.package.build</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="ex">makim</span> nb.examples.check</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Direct package commands:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> packages/biblioflow-nb</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="va">PYTHONPATH</span><span class="op">=</span>src:../biblioflow/src <span class="ex">pytest</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="va">PYTHONPATH</span><span class="op">=</span>src:../biblioflow/src <span class="ex">python</span> <span class="at">-m</span> ruff check src tests</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="va">PYTHONPATH</span><span class="op">=</span>src:../biblioflow/src <span class="ex">python</span> <span class="at">-m</span> mypy src</span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="ex">poetry</span> build</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> packages/biblioflow-nb</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="va">PYTHONPATH</span><span class="op">=</span>src:../biblioflow/src <span class="ex">pytest</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="va">PYTHONPATH</span><span class="op">=</span>src:../biblioflow/src <span class="ex">python</span> <span class="at">-m</span> ruff check src tests</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="va">PYTHONPATH</span><span class="op">=</span>src:../biblioflow/src <span class="ex">python</span> <span class="at">-m</span> mypy src</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="ex">poetry</span> build</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="design-rule" class="level2">
 <h2 class="anchored" data-anchor-id="design-rule">Design rule</h2>

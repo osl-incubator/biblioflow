@@ -82,9 +82,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-59ae30943d3da0dd1d3884b3771c55c5.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-9d9e03716bff1943a80bdf8d6ac6af63.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="site_libs/bootstrap/bootstrap-59ae30943d3da0dd1d3884b3771c55c5.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-19860fda162af596b5c58c734d3fd1b5.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-221ba8e23ecead040621c310565d2b2c.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-19860fda162af596b5c58c734d3fd1b5.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -477,6 +477,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#scopus-csv" id="toc-scopus-csv" class="nav-link" data-scroll-target="#scopus-csv">Scopus CSV</a></li>
   <li><a href="#openalex-and-crossref-json" id="toc-openalex-and-crossref-json" class="nav-link" data-scroll-target="#openalex-and-crossref-json">OpenAlex and Crossref JSON</a></li>
   <li><a href="#api-connectors" id="toc-api-connectors" class="nav-link" data-scroll-target="#api-connectors">API connectors</a></li>
+  <li><a href="#screening-before-analysis" id="toc-screening-before-analysis" class="nav-link" data-scroll-target="#screening-before-analysis">Screening before analysis</a></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/osl-incubator/biblioflow/edit/main/sources.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/osl-incubator/biblioflow/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
@@ -761,6 +762,17 @@ raw</code></pre>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    limit<span class="op">=</span><span class="dv">100</span>,</span>
 <span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>If Scopus API support is not installed or configured, <code>biblioflow</code> raises a structured configuration/dependency error.</p>
+</section>
+<section id="screening-before-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="screening-before-analysis">Screening before analysis</h2>
+<p>The core library returns normalized datasets. Applications such as <code>biblioflow-web</code> and <code>biblioflow-nb</code> can stage those normalized records as source-agnostic screening runs before creating an analysis dataset. Use this intermediate step when a search or upload may contain irrelevant records, duplicates, or uncertain candidates:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> biblioflow_nb <span class="im">as</span> bfn</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>app <span class="op">=</span> bfn.app(display<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>run <span class="op">=</span> app.stage_file(<span class="st">"records.ris"</span>, source<span class="op">=</span><span class="st">"auto"</span>, <span class="bu">format</span><span class="op">=</span><span class="st">"auto"</span>)</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>app.update_candidates([run[<span class="st">"candidates"</span>][<span class="dv">0</span>][<span class="st">"candidate_id"</span>]], status<span class="op">=</span><span class="st">"selected"</span>)</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>app.promote_candidates()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>In the web app, the Import or Load page creates screening runs from uploaded files and supported remote API sources. Candidate review happens on the dedicated Screening page. Direct <code>bf.load(...)</code> and <code>bf.from_*</code> calls remain available when no screening step is needed.</p>
 
 
 </section>
