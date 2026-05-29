@@ -228,3 +228,25 @@ records = bf.from_scopus(
 
 If Scopus API support is not installed or configured, `biblioflow` raises a
 structured configuration/dependency error.
+
+## Screening before analysis
+
+The core library returns normalized datasets. Applications such as
+`biblioflow-web` and `biblioflow-nb` can stage those normalized records as
+source-agnostic screening runs before creating an analysis dataset. Use this
+intermediate step when a search or upload may contain irrelevant records,
+duplicates, or uncertain candidates:
+
+```python
+import biblioflow_nb as bfn
+
+app = bfn.app(display=False)
+run = app.stage_file("records.ris", source="auto", format="auto")
+app.update_candidates([run["candidates"][0]["candidate_id"]], status="selected")
+app.promote_candidates()
+```
+
+In the web app, the Import or Load page creates screening runs from uploaded
+files and supported remote API sources. Candidate review happens on the
+dedicated Screening page. Direct `bf.load(...)` and `bf.from_*` calls remain
+available when no screening step is needed.

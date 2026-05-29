@@ -13,6 +13,7 @@ from biblioflow_web_backend.services.matrix_service import MatrixService
 from biblioflow_web_backend.services.network_service import NetworkService
 from biblioflow_web_backend.services.prisma_service import PrismaService
 from biblioflow_web_backend.services.project_store import ProjectStore
+from biblioflow_web_backend.services.screening_service import ScreeningService
 
 
 @lru_cache(maxsize=1)
@@ -69,6 +70,14 @@ def get_prisma_service() -> PrismaService:
     return PrismaService(get_project_store(), get_dataset_service())
 
 
+@lru_cache(maxsize=1)
+def get_screening_service() -> ScreeningService:
+    """Return the screening service singleton."""
+    return ScreeningService(
+        get_project_store(), get_file_store(), get_dataset_service()
+    )
+
+
 def clear_dependency_caches() -> None:
     """Clear dependency caches, primarily for tests."""
     get_settings.cache_clear()
@@ -80,3 +89,4 @@ def clear_dependency_caches() -> None:
     get_network_service.cache_clear()
     get_export_service.cache_clear()
     get_prisma_service.cache_clear()
+    get_screening_service.cache_clear()

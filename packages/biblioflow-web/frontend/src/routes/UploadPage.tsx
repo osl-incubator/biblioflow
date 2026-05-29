@@ -4,14 +4,13 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { DataTable } from "../components/common/DataTable";
 import { EmptyState } from "../components/common/EmptyState";
 import {
+  useCreateScreeningRun,
   useDeleteUpload,
-  useImportRemoteSource,
   useLoadDataset,
   useProject,
   useUploadFiles,
   useUploads,
 } from "../api/queries";
-import type { RemoteSource } from "../api/types";
 import { formatDate } from "./dashboard/utils";
 
 const supportedSources = [
@@ -30,6 +29,7 @@ const providerOptions = [
   "scopus",
   "wos",
   "pubmed",
+  "pmc",
   "openalex",
   "crossref",
   "generic",
@@ -46,9 +46,12 @@ const formatOptions = [
   "nbib",
   "yaml",
 ];
-const remoteSourceOptions: { label: string; value: RemoteSource }[] = [
+const remoteSourceOptions: { label: string; value: string }[] = [
   { label: "PubMed", value: "pubmed" },
   { label: "PubMed Central", value: "pmc" },
+  { label: "OpenAlex", value: "openalex" },
+  { label: "Crossref", value: "crossref" },
+  { label: "Scopus", value: "scopus" },
 ];
 
 function formatSize(size: number): string {
@@ -68,20 +71,23 @@ export function UploadPage() {
   const uploads = useUploads(projectId);
   const uploadFiles = useUploadFiles(projectId);
   const loadDataset = useLoadDataset(projectId);
-  const importRemoteSource = useImportRemoteSource(projectId);
   const deleteUpload = useDeleteUpload(projectId);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [selectedUploadIds, setSelectedUploadIds] = useState<string[]>([]);
   const [provider, setProvider] = useState("auto");
   const [format, setFormat] = useState("auto");
-  const [remoteSource, setRemoteSource] = useState<RemoteSource>("pubmed");
+  const [remoteSource, setRemoteSource] = useState("pubmed");
   const [remoteQuery, setRemoteQuery] = useState("");
   const [remoteLimit, setRemoteLimit] = useState(100);
   const [remoteEmail, setRemoteEmail] = useState("");
   const [remoteApiKey, setRemoteApiKey] = useState("");
   const [remoteTool, setRemoteTool] = useState("biblioflow-web");
   const [remoteName, setRemoteName] = useState("");
+  const [screeningAction, setScreeningAction] = useState<
+    "remote" | "uploads" | null
+  >(null);
   const [hasAutoSelectedUploads, setHasAutoSelectedUploads] = useState(false);
+  const createScreeningRun = useCreateScreeningRun(projectId);
 
   useEffect(() => {
     if (!hasAutoSelectedUploads && uploads.data?.data.length) {
@@ -108,9 +114,6 @@ export function UploadPage() {
   }
 
   function onUpload() {
-    if (!selectedFiles.length) {
-      return;
-    }
     uploadFiles.mutate(selectedFiles, {
       onSuccess: (response) => {
         setSelectedFiles([]);
@@ -151,8 +154,10 @@ export function UploadPage() {
 
   function onImportRemoteSource(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    importRemoteSource.mutate(
+    setScreeningAction("remote");
+    createScreeningRun.mutate(
       {
+        origin_type: "remote_search",
         source: remoteSource,
         query: remoteQuery,
         limit: remoteLimit,
@@ -162,7 +167,34 @@ export function UploadPage() {
         name: remoteName.trim() || null,
       },
       {
-        onSuccess: () => setRemoteApiKey(""),
+        onSuccess: (response) => {
+          setRemoteApiKey("");
+          navigate(
+            `/projects/${projectId}/screening?run=${response.data.screening_run_id}`,
+          );
+        },
+      },
+    );
+  }
+
+  function reviewSelectedUploads() {
+    setScreeningAction("uploads");
+    createScreeningRun.mutate(
+      {
+        origin_type: "uploads",
+        upload_ids: selectedUploadIds,
+        source: provider,
+        format,
+        name: selectedUploadIds.length
+          ? `Uploaded files: ${selectedUploadIds.length} selected`
+          : null,
+      },
+      {
+        onSuccess: (response) => {
+          navigate(
+            `/projects/${projectId}/screening?run=${response.data.screening_run_id}`,
+          );
+        },
       },
     );
   }
@@ -271,11 +303,12 @@ export function UploadPage() {
       >
         <div className="section-heading compact">
           <span className="eyebrow">Remote sources</span>
-          <h2>Search PubMed or PMC</h2>
+          <h2>Search remote sources</h2>
         </div>
         <p className="muted-copy">
-          Search NCBI sources and save the results as the active project
-          dataset. Provide a contact email here, or configure
+          Search a supported API source and stage the results as screening
+          candidates before creating the active project dataset. For NCBI
+          sources, provide a contact email here or configure
           <code>BIBLIOFLOW_NCBI_EMAIL</code> on the backend.
         </p>
         <div className="form-grid">
@@ -283,9 +316,7 @@ export function UploadPage() {
             Source
             <select
               value={remoteSource}
-              onChange={(event) =>
-                setRemoteSource(event.target.value as RemoteSource)
-              }
+              onChange={(event) => setRemoteSource(event.target.value)}
             >
               {remoteSourceOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -331,7 +362,7 @@ export function UploadPage() {
             />
           </label>
           <label>
-            Dataset name
+            Screening run name
             <input
               placeholder="Optional"
               value={remoteName}
@@ -352,31 +383,15 @@ export function UploadPage() {
           <button
             type="submit"
             className="button-primary"
-            disabled={!remoteQuery.trim() || importRemoteSource.isPending}
+            disabled={!remoteQuery.trim() || createScreeningRun.isPending}
           >
-            {importRemoteSource.isPending
+            {createScreeningRun.isPending
               ? "Searching…"
-              : "Search and import records"}
+              : "Search and review records"}
           </button>
-          {importRemoteSource.data?.data.dataset_id && (
-            <Link
-              className="button button-secondary"
-              to={`/projects/${projectId}/dashboard/overview`}
-            >
-              Go to dashboard
-            </Link>
-          )}
         </div>
-        {importRemoteSource.isError && (
-          <p role="alert">{importRemoteSource.error.message}</p>
-        )}
-        {importRemoteSource.data?.data && (
-          <div className="success-callout" role="status">
-            Imported{" "}
-            <strong>{importRemoteSource.data.data.records.length}</strong>{" "}
-            records into dataset{" "}
-            <code>{importRemoteSource.data.data.dataset_id}</code>.
-          </div>
+        {createScreeningRun.isError && screeningAction === "remote" && (
+          <p role="alert">{createScreeningRun.error.message}</p>
         )}
       </form>
 
@@ -490,15 +505,29 @@ export function UploadPage() {
               ))}
             </select>
           </label>
-          <button
-            type="submit"
-            className="button-primary"
-            disabled={!selectedUploadIds.length || loadDataset.isPending}
-          >
-            {loadDataset.isPending
-              ? "Loading dataset…"
-              : "Load selected uploads"}
-          </button>
+          <div className="section-actions">
+            <button
+              type="button"
+              onClick={reviewSelectedUploads}
+              disabled={
+                !selectedUploadIds.length || createScreeningRun.isPending
+              }
+            >
+              {createScreeningRun.isPending
+                ? "Creating screening run…"
+                : "Review selected uploads"}
+            </button>
+            <button
+              type="submit"
+              className="button-primary"
+              disabled={!selectedUploadIds.length || loadDataset.isPending}
+            >
+              {loadDataset.isPending ? "Loading dataset…" : "Load directly"}
+            </button>
+          </div>
+          {createScreeningRun.isError && screeningAction === "uploads" && (
+            <p role="alert">{createScreeningRun.error.message}</p>
+          )}
           {loadDataset.isError && (
             <p role="alert">{loadDataset.error.message}</p>
           )}

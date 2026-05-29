@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
 
 import { StatusPanel } from "../components/feedback/StatusPanel";
-import { useHealth } from "../api/queries";
+import { useHealth, useProjects } from "../api/queries";
+import { formatDate } from "./dashboard/utils";
 
 const workflowSteps = [
   {
@@ -43,6 +44,12 @@ const capabilityCards = [
 
 export function HomePage() {
   const health = useHealth();
+  const projects = useProjects();
+  const recentProjects = [...(projects.data?.data ?? [])]
+    .sort((left, right) =>
+      String(right.updated_at).localeCompare(String(left.updated_at)),
+    )
+    .slice(0, 3);
 
   return (
     <div className="page-stack">
@@ -59,7 +66,13 @@ export function HomePage() {
           </p>
           <div className="hero-actions">
             <Link className="button button-primary" to="/projects">
-              Start a project
+              Create or open a project
+            </Link>
+            <Link
+              className="button button-secondary"
+              to="/projects#existing-projects"
+            >
+              Open existing project
             </Link>
             <a className="button button-secondary" href="#workflow">
               View workflow
@@ -82,6 +95,67 @@ export function HomePage() {
             </ol>
           </div>
         </div>
+      </section>
+
+      <section className="dashboard-grid" aria-label="Project access">
+        <article className="card">
+          <div className="section-heading compact">
+            <span className="eyebrow">Workspace</span>
+            <h2>Select an existing project</h2>
+            <p>
+              Continue from a saved project before uploading more files or
+              opening the analysis dashboard.
+            </p>
+          </div>
+          {projects.isLoading && <p>Loading saved projects…</p>}
+          {projects.isError && <p role="alert">Unable to load projects.</p>}
+          {!projects.isLoading && !recentProjects.length && (
+            <p className="muted-copy">
+              No saved projects were found. Create one from the project console
+              to start a workspace.
+            </p>
+          )}
+          {!!recentProjects.length && (
+            <ul className="project-list">
+              {recentProjects.map((project) => {
+                const openPath = project.active_dataset_id
+                  ? `/projects/${project.project_id}/dashboard/overview`
+                  : `/projects/${project.project_id}/upload`;
+                return (
+                  <li key={project.project_id}>
+                    <div className="project-summary">
+                      <strong>{project.name}</strong>
+                      <span>{project.project_id}</span>
+                      <small>Updated {formatDate(project.updated_at)}</small>
+                    </div>
+                    <div className="project-actions">
+                      <Link to={openPath}>Open project</Link>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          <div className="section-actions project-access-actions">
+            <Link className="button button-secondary" to="/projects">
+              View all projects
+            </Link>
+          </div>
+        </article>
+
+        <article className="card">
+          <div className="section-heading compact">
+            <span className="eyebrow">New workspace</span>
+            <h2>Create a new project</h2>
+            <p>
+              Use the project console to name a workspace, upload bibliographic
+              records, and load the first normalized dataset.
+            </p>
+          </div>
+          <Link className="button button-primary" to="/projects">
+            Go to project console
+          </Link>
+        </article>
       </section>
 
       <section

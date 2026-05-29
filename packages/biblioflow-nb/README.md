@@ -25,7 +25,7 @@ dataset = bf.load("records.ris")
 app = bfn.launch(records=dataset)
 ```
 
-Import from PubMed/PMC:
+Import from PubMed/PMC directly, or stage records first for screening:
 
 ```python
 import os
@@ -36,12 +36,26 @@ os.environ["BIBLIOFLOW_NCBI_EMAIL"] = "researcher@example.org"
 app = bfn.app(display=False)
 app.from_pubmed(query="bibliometrics AND reproducibility", limit=20)
 app.from_pmc(query="open science", limit=20)
+
+run = app.stage_pubmed(query="bibliometrics AND reproducibility", limit=20)
+app.update_candidates([run["candidates"][0]["candidate_id"]], status="selected")
+app.promote_candidates()
 app.display()
 ```
 
-The widget app also includes a **PubMed/PMC** panel. API keys can be provided in
-the panel or through `BIBLIOFLOW_NCBI_API_KEY`; they are not stored in the
-session manifest.
+The widget app also includes a **Remote screening** panel. API keys can be
+provided in the panel or through `BIBLIOFLOW_NCBI_API_KEY`; they are not stored
+in the session manifest.
+
+Generic screening helpers are available for any records or local file:
+
+```python
+app.stage_records([{"title": "Manual candidate"}], source="generic")
+app.stage_file("records.ris", source="auto", format="auto")
+app.stage_pmc(query="open science", limit=50)
+app.update_candidates(["candidate-id"], status="maybe")
+app.promote_candidates(include_statuses=("selected", "maybe"))
+```
 
 ## Development
 

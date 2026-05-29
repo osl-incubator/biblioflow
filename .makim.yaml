@@ -144,7 +144,7 @@ groups:
           from seed_demo_data import main
 
           seed_args = []
-          data_dir = "${{ args.data-dir }}"
+          data_dir = "${{ args.data_dir }}"
           reset = "${{ args.reset }}".lower() in {"1", "true", "yes", "y"}
           if data_dir:
               seed_args.extend(["--data-dir", data_dir])
@@ -296,6 +296,58 @@ groups:
         hooks:
           pre-run:
             - task: web.frontend.linter
+
+  database:
+    tasks:
+      clear:
+        help: Delete the biblioflow-web filesystem data store
+        backend: python
+        args:
+          data-dir:
+            help: Optional biblioflow-web data directory. Defaults to BIBLIOFLOW_WEB_DATA_DIR or the app data dir.
+            type: string
+            default: ""
+          confirm:
+            help: Confirm deletion of the resolved data directory.
+            type: string
+            default: "false"
+        run: |
+          import os
+          import shutil
+          import sys
+          from pathlib import Path
+
+          sys.path.insert(
+              0,
+              str(Path("packages/biblioflow-web/backend/src").resolve()),
+          )
+          from biblioflow_web_backend.core.config import default_data_dir
+
+          def truthy(value):
+              return value.lower() in {"1", "true", "yes", "y"}
+
+          requested_data_dir = "${{ args.data_dir }}"
+          data_dir = Path(
+              requested_data_dir
+              or os.environ.get("BIBLIOFLOW_WEB_DATA_DIR")
+              or default_data_dir()
+          ).expanduser().resolve()
+          confirmed = truthy("${{ args.confirm }}")
+          unsafe_paths = {Path("/").resolve(), Path.home().resolve()}
+
+          if data_dir in unsafe_paths:
+              raise SystemExit(f"Refusing to delete unsafe data directory: {data_dir}")
+
+          if not confirmed:
+              print(f"Refusing to delete without confirmation: {data_dir}")
+              print("Run: makim database.clear --confirm true")
+              raise SystemExit(2)
+
+          if data_dir.exists():
+              shutil.rmtree(data_dir)
+              print(f"Deleted biblioflow-web data directory: {data_dir}")
+          else:
+              print(f"Data directory does not exist: {data_dir}")
 
   nb:
     tasks:

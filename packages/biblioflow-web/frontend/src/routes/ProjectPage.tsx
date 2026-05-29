@@ -39,12 +39,12 @@ export function ProjectPage() {
       <section className="dashboard-hero card">
         <div>
           <span className="eyebrow">Workspace</span>
-          <h1>Project console</h1>
+          <h1>Projects</h1>
           <p>
-            Create a project, upload a bibliographic collection, then open the
-            appraisal, analysis, and synthesis panels. Project state is stored
-            by the FastAPI backend and all computations are delegated to
-            biblioflow.
+            Select an existing project to continue work, or create a new
+            workspace before uploading a bibliographic collection. Project state
+            is stored by the FastAPI backend and all computations are delegated
+            to biblioflow.
           </p>
         </div>
         <form onSubmit={onSubmit} className="project-create-form">
@@ -88,10 +88,14 @@ export function ProjectPage() {
       </section>
 
       <section className="dashboard-grid">
-        <article className="card project-list-card">
+        <article className="card project-list-card" id="existing-projects">
           <div className="section-heading compact">
-            <span className="eyebrow">Search</span>
-            <h2>Projects and collections</h2>
+            <span className="eyebrow">Existing projects</span>
+            <h2>Open an existing project</h2>
+            <p>
+              Pick a saved workspace to upload more records, open the dashboard,
+              or export prepared artifacts.
+            </p>
           </div>
           {projects.isLoading && <p>Loading projects…</p>}
           {projects.isError && <p role="alert">Unable to load projects.</p>}
@@ -103,41 +107,49 @@ export function ProjectPage() {
             </EmptyState>
           )}
           <ul className="project-list">
-            {sortedProjects.map((project) => (
-              <li key={project.project_id}>
-                <div className="project-summary">
-                  <strong>{project.name}</strong>
-                  <span>{project.project_id}</span>
-                  <small>Created {formatDate(project.created_at)}</small>
-                  <small>Updated {formatDate(project.updated_at)}</small>
-                  <small>
-                    Active dataset:{" "}
-                    {project.active_dataset_id?.slice(0, 8) ?? "none"}
-                  </small>
-                </div>
-                <div className="project-actions">
-                  <Link to={`/projects/${project.project_id}/upload`}>
-                    Upload
-                  </Link>
-                  <Link
-                    to={`/projects/${project.project_id}/dashboard/overview`}
-                  >
-                    Dashboard
-                  </Link>
-                  <Link to={`/projects/${project.project_id}/exports`}>
-                    Exports
-                  </Link>
-                  <button
-                    type="button"
-                    className="link-button danger-link"
-                    disabled={deleteProject.isPending}
-                    onClick={() => deleteProject.mutate(project.project_id)}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </li>
-            ))}
+            {sortedProjects.map((project) => {
+              const openPath = project.active_dataset_id
+                ? `/projects/${project.project_id}/dashboard/overview`
+                : `/projects/${project.project_id}/upload`;
+              return (
+                <li key={project.project_id}>
+                  <div className="project-summary">
+                    <strong>{project.name}</strong>
+                    <span>{project.project_id}</span>
+                    <small>Created {formatDate(project.created_at)}</small>
+                    <small>Updated {formatDate(project.updated_at)}</small>
+                    <small>
+                      Active dataset:{" "}
+                      {project.active_dataset_id?.slice(0, 8) ?? "none"}
+                    </small>
+                  </div>
+                  <div className="project-actions">
+                    <Link className="button button-primary" to={openPath}>
+                      Open project
+                    </Link>
+                    <Link to={`/projects/${project.project_id}/upload`}>
+                      Upload
+                    </Link>
+                    <Link
+                      to={`/projects/${project.project_id}/dashboard/overview`}
+                    >
+                      Dashboard
+                    </Link>
+                    <Link to={`/projects/${project.project_id}/exports`}>
+                      Exports
+                    </Link>
+                    <button
+                      type="button"
+                      className="link-button danger-link"
+                      disabled={deleteProject.isPending}
+                      onClick={() => deleteProject.mutate(project.project_id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
           {deleteProject.isError && (
             <p role="alert">{deleteProject.error.message}</p>

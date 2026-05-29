@@ -7,6 +7,16 @@ from typing import Any, Literal
 from pydantic import BaseModel, Field
 
 
+def _default_promoted_statuses() -> list[Literal["candidate", "selected"]]:
+    """Return default candidate statuses promoted into datasets."""
+    return ["selected"]
+
+
+def _default_screening_statuses() -> list[Literal["candidate", "selected", "maybe"]]:
+    """Return default generic screening statuses promoted into datasets."""
+    return ["selected"]
+
+
 class ProjectCreateRequest(BaseModel):
     """Request body for project creation."""
 
@@ -30,6 +40,102 @@ class RemoteSourceImportRequest(BaseModel):
     email: str | None = None
     api_key: str | None = None
     tool: str = "biblioflow-web"
+    name: str | None = None
+
+
+class RemoteSourceSearchRequest(BaseModel):
+    """Request body for staging a PubMed/PMC screening search."""
+
+    source: Literal["pubmed", "pmc", "pubmed_central"] = "pubmed"
+    query: str = Field(min_length=1)
+    limit: int = Field(default=100, ge=1, le=1000)
+    email: str | None = None
+    api_key: str | None = None
+    tool: str = "biblioflow-web"
+    name: str | None = None
+
+
+class CandidateDecisionRequest(BaseModel):
+    """Request body for applying a decision to staged candidates."""
+
+    candidate_ids: list[str] = Field(default_factory=list)
+    status: Literal["candidate", "selected", "excluded", "duplicate"] = "selected"
+
+
+class CandidatePromotionRequest(BaseModel):
+    """Request body for promoting screened candidates into a dataset."""
+
+    candidate_ids: list[str] | None = None
+    include_statuses: list[Literal["candidate", "selected"]] = Field(
+        default_factory=_default_promoted_statuses
+    )
+    name: str | None = None
+
+
+class ScreeningRunCreateRequest(BaseModel):
+    """Request body for creating a generic screening run."""
+
+    origin_type: Literal["uploads", "remote_search", "records"]
+    source: str = "auto"
+    format: str = "auto"
+    upload_ids: list[str] | None = None
+    query: str | None = None
+    limit: int = Field(default=100, ge=1, le=5000)
+    email: str | None = None
+    api_key: str | None = None
+    tool: str = "biblioflow-web"
+    name: str | None = None
+    records: list[dict[str, Any]] | None = None
+
+
+class ScreeningCandidateDecisionRequest(BaseModel):
+    """Request body for applying generic screening decisions."""
+
+    candidate_ids: list[str] = Field(default_factory=list)
+    status: Literal[
+        "candidate",
+        "selected",
+        "maybe",
+        "excluded",
+        "duplicate",
+        "error",
+    ] = "selected"
+    decision_reason: str | None = None
+    labels: list[str] | None = None
+    notes: str | None = None
+
+
+class ScreeningCandidateReference(BaseModel):
+    """Reference to one staged candidate in one screening run."""
+
+    screening_run_id: str
+    candidate_id: str
+
+
+class BulkScreeningCandidateDecisionRequest(BaseModel):
+    """Request body for applying decisions across screening runs."""
+
+    candidates: list[ScreeningCandidateReference] = Field(default_factory=list)
+    status: Literal[
+        "candidate",
+        "selected",
+        "maybe",
+        "excluded",
+        "duplicate",
+        "error",
+    ] = "selected"
+    decision_reason: str | None = None
+    labels: list[str] | None = None
+    notes: str | None = None
+
+
+class ScreeningCandidatePromotionRequest(BaseModel):
+    """Request body for promoting generic screening candidates."""
+
+    candidate_ids: list[str] | None = None
+    include_statuses: list[Literal["candidate", "selected", "maybe"]] = Field(
+        default_factory=_default_screening_statuses
+    )
     name: str | None = None
 
 

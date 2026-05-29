@@ -519,7 +519,14 @@ def _pubmed_authors(value: Any) -> list[str]:
             return [_first_text(collective) or ""]
         family = _first_text(_lookup(value, "last_name", "lastname", "LastName"))
         given = _first_text(
-            _lookup(value, "fore_name", "forename", "first_name", "initials")
+            _lookup(
+                value,
+                "fore_name",
+                "forename",
+                "first_name",
+                "firstname",
+                "initials",
+            )
         )
         name = " ".join(part for part in (given, family) if part)
         return [name] if name else []

@@ -4,6 +4,9 @@ import type {
   ApiEnvelope,
   ApiErrorPayload,
   BibliographicRecord,
+  BulkScreeningCandidateDecisionRequest,
+  CandidateDecisionRequest,
+  CandidatePromotionRequest,
   DatasetListItem,
   DatasetLoadRequest,
   DatasetPayload,
@@ -20,7 +23,17 @@ import type {
   PrismaFlowPayload,
   PrismaFlowRequest,
   Project,
+  RemoteSearchListItem,
+  RemoteSearchPayload,
   RemoteSourceImportRequest,
+  RemoteSourceSearchRequest,
+  ScreeningCandidateDecisionRequest,
+  ScreeningCandidatePromotionRequest,
+  ScreeningCandidateAggregatePayload,
+  ScreeningRunCreateRequest,
+  ScreeningRunDeletePayload,
+  ScreeningRunListItem,
+  ScreeningRunPayload,
   Upload,
   ValidationPayload,
 } from "./types";
@@ -143,6 +156,132 @@ export async function importRemoteSource(
 ): Promise<ApiEnvelope<DatasetPayload>> {
   return request<ApiEnvelope<DatasetPayload>>(
     `/projects/${projectId}/sources/import`,
+    { method: "POST", body: JSON.stringify(payload) },
+  );
+}
+
+export async function searchRemoteSource(
+  projectId: string,
+  payload: RemoteSourceSearchRequest,
+): Promise<ApiEnvelope<RemoteSearchPayload>> {
+  return request<ApiEnvelope<RemoteSearchPayload>>(
+    `/projects/${projectId}/sources/search`,
+    { method: "POST", body: JSON.stringify(payload) },
+  );
+}
+
+export async function listRemoteSearches(
+  projectId: string,
+): Promise<ApiEnvelope<RemoteSearchListItem[]>> {
+  return request<ApiEnvelope<RemoteSearchListItem[]>>(
+    `/projects/${projectId}/sources/searches`,
+  );
+}
+
+export async function getRemoteSearch(
+  projectId: string,
+  searchId: string,
+): Promise<ApiEnvelope<RemoteSearchPayload>> {
+  return request<ApiEnvelope<RemoteSearchPayload>>(
+    `/projects/${projectId}/sources/searches/${searchId}`,
+  );
+}
+
+export async function updateRemoteCandidates(
+  projectId: string,
+  searchId: string,
+  payload: CandidateDecisionRequest,
+): Promise<ApiEnvelope<RemoteSearchPayload>> {
+  return request<ApiEnvelope<RemoteSearchPayload>>(
+    `/projects/${projectId}/sources/searches/${searchId}/candidates`,
+    { method: "PATCH", body: JSON.stringify(payload) },
+  );
+}
+
+export async function promoteRemoteCandidates(
+  projectId: string,
+  searchId: string,
+  payload: CandidatePromotionRequest,
+): Promise<ApiEnvelope<DatasetPayload>> {
+  return request<ApiEnvelope<DatasetPayload>>(
+    `/projects/${projectId}/sources/searches/${searchId}/promote`,
+    { method: "POST", body: JSON.stringify(payload) },
+  );
+}
+
+export async function createScreeningRun(
+  projectId: string,
+  payload: ScreeningRunCreateRequest,
+): Promise<ApiEnvelope<ScreeningRunPayload>> {
+  return request<ApiEnvelope<ScreeningRunPayload>>(
+    `/projects/${projectId}/screening/runs`,
+    { method: "POST", body: JSON.stringify(payload) },
+  );
+}
+
+export async function listScreeningRuns(
+  projectId: string,
+): Promise<ApiEnvelope<ScreeningRunListItem[]>> {
+  return request<ApiEnvelope<ScreeningRunListItem[]>>(
+    `/projects/${projectId}/screening/runs`,
+  );
+}
+
+export async function getScreeningRun(
+  projectId: string,
+  screeningRunId: string,
+): Promise<ApiEnvelope<ScreeningRunPayload>> {
+  return request<ApiEnvelope<ScreeningRunPayload>>(
+    `/projects/${projectId}/screening/runs/${screeningRunId}`,
+  );
+}
+
+export async function deleteScreeningRun(
+  projectId: string,
+  screeningRunId: string,
+): Promise<ApiEnvelope<ScreeningRunDeletePayload>> {
+  return request<ApiEnvelope<ScreeningRunDeletePayload>>(
+    `/projects/${projectId}/screening/runs/${screeningRunId}`,
+    { method: "DELETE" },
+  );
+}
+
+export async function listScreeningCandidates(
+  projectId: string,
+): Promise<ApiEnvelope<ScreeningCandidateAggregatePayload>> {
+  return request<ApiEnvelope<ScreeningCandidateAggregatePayload>>(
+    `/projects/${projectId}/screening/candidates`,
+  );
+}
+
+export async function updateScreeningCandidatesBulk(
+  projectId: string,
+  payload: BulkScreeningCandidateDecisionRequest,
+): Promise<ApiEnvelope<ScreeningCandidateAggregatePayload>> {
+  return request<ApiEnvelope<ScreeningCandidateAggregatePayload>>(
+    `/projects/${projectId}/screening/candidates`,
+    { method: "PATCH", body: JSON.stringify(payload) },
+  );
+}
+
+export async function updateScreeningCandidates(
+  projectId: string,
+  screeningRunId: string,
+  payload: ScreeningCandidateDecisionRequest,
+): Promise<ApiEnvelope<ScreeningRunPayload>> {
+  return request<ApiEnvelope<ScreeningRunPayload>>(
+    `/projects/${projectId}/screening/runs/${screeningRunId}/candidates`,
+    { method: "PATCH", body: JSON.stringify(payload) },
+  );
+}
+
+export async function promoteScreeningCandidates(
+  projectId: string,
+  screeningRunId: string,
+  payload: ScreeningCandidatePromotionRequest,
+): Promise<ApiEnvelope<DatasetPayload>> {
+  return request<ApiEnvelope<DatasetPayload>>(
+    `/projects/${projectId}/screening/runs/${screeningRunId}/promote`,
     { method: "POST", body: JSON.stringify(payload) },
   );
 }
